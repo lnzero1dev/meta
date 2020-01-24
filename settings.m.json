@@ -1,0 +1,6 @@
+{
+    "toolchain": "default",
+    "build_configuration": "debug",
+    "build_root": "../..",
+    "build_directory": "build"
+}
