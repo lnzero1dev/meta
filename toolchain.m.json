@@ -120,6 +120,26 @@
                 "ar": {
                     "binary": "ar",
                     "flags": ""
+                },
+                "download": {
+                    "binary": "wget",
+                    "flags": "-O-"
+                },
+                "patch": {
+                    "binary": "patch",
+                    "flags": ""
+                },
+                "configure": {
+                    "binary": "./configure",
+                    "flags": ""
+                },
+                "make": {
+                    "binary": "make",
+                    "flags": ""
+                },
+                "install": {
+                    "binary": "make",
+                    "flags": "install"
                 }
             }
         }

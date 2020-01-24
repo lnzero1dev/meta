@@ -1,0 +1,10 @@
+{
+    "name": "serenity-LibC",
+    "type": "library",
+    "source": [
+        "$ROOT/Libraries/LibC/**.cpp"
+    ],
+    "include": [
+        "$ROOT/Libraries/LibC"
+    ]
+}
