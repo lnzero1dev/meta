@@ -4,6 +4,9 @@ PROGRAM = meta
 
 OBJS = \
     main.o \
+    Settings.o \
+    FileProvider.o \
+    ../../AK/FileSystemPath.o \
     ../../AK/String.o \
     ../../AK/StringImpl.o \
     ../../AK/StringBuilder.o \
