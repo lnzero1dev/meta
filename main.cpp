@@ -1,3 +1,4 @@
+#include "FileProvider.h"
 #include "Settings.h"
 #include <AK/String.h>
 #include <AK/Types.h>
@@ -112,7 +113,27 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    //Toolchain::the().Load();
+    if (cmd == PrimaryCommand::Build) {
+        fprintf(stderr, "Build!\n");
+
+        String root;
+        if (settings.get("root", &root)) {
+            fprintf(stderr, "Searching for files in: %s\n", root.characters());
+            Vector<String> files = FileProvider::the().glob_all_meta_json_files(root);
+            for (auto& file : files) {
+                fprintf(stderr, "File: %s\n", file.characters());
+            }
+        } else {
+            fprintf(stderr, "Root directory is missing!\n");
+            return -1;
+        }
+    }
+
+    //    Toolchain& toolchain = Toolchain::the();
+    //    if (!toolchain.find_and_load_files()) {
+    //        fprintf(stderr, "Failed loading settings!\n");
+    //        return -1;
+    //    }
 
     // GeneratorPluginsLoader::the().Initialize(); // Find all loadable plugins and initialize them
     // GeneratorPluginsLoader::the().Generate(); // Generate everything

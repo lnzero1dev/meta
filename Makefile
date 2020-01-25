@@ -2,6 +2,8 @@ USE_HOST_CXX = 1
 
 PROGRAM = meta
 
+DEFINES = -g
+
 OBJS = \
     main.o \
     Settings.o \
@@ -22,6 +24,7 @@ OBJS = \
     ../../Libraries/LibCore/CLocalSocket.o \
     ../../Libraries/LibCore/CLocalServer.o \
     ../../Libraries/LibCore/CNotifier.o \
+    ../../Libraries/LibCore/CDirIterator.o \
     ../../Libraries/LibCore/CEventLoop.o
 
 include ../../Makefile.common
