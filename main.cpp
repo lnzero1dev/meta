@@ -76,13 +76,12 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    fprintf(stderr, "1  whoop:\n");
-
     // needs always to be done
     Settings& settings = Settings::the();
-    settings.load();
-
-    fprintf(stderr, "2  whoop:\n");
+    if (!settings.load()) {
+        fprintf(stderr, "Failed loading settings!\n");
+        return -1;
+    }
 
     if (cmd == PrimaryCommand::Config) {
         switch (config_subcmd) {
@@ -90,13 +89,14 @@ int main(int argc, char** argv)
             break;
         }
         case ConfigSubCommand::List: {
+            settings.list();
             break;
         }
         case ConfigSubCommand::Get: {
             String parameter { argv[3], strlen(argv[3]) };
             String value;
             if (settings.get(parameter, &value)) {
-                fprintf(stdout, "%s: %s", parameter.characters(), value.characters());
+                fprintf(stdout, "%s: %s\n", parameter.characters(), value.characters());
             } else {
                 fprintf(stderr, "No valid parameter: %s\n", parameter.characters());
                 return -1;
@@ -112,7 +112,6 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    (void)(config_subcmd);
     //Toolchain::the().Load();
 
     // GeneratorPluginsLoader::the().Initialize(); // Find all loadable plugins and initialize them
