@@ -1,10 +1,13 @@
 {
-    "name": "serenity-LibC",
-    "type": "library",
-    "source": [
-        "$ROOT/Libraries/LibC/**.cpp"
-    ],
-    "include": [
-        "$ROOT/Libraries/LibC"
-    ]
+    "package": {
+        "serenity-LibC": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibC/**.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibC"
+            ]
+        }
+    }
 }

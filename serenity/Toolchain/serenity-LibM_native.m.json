@@ -1,10 +1,13 @@
 {
-    "name": "serenity-LibM",
-    "type": "library",
-    "source": [
-        "$ROOT/Libraries/LibM/**.cpp"
-    ],
-    "include": [
-        "$ROOT/Libraries/LibM"
-    ]
+    "package": {
+        "serenity-LibM": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibM/**.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibM"
+            ]
+        }
+    }
 }

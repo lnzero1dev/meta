@@ -1,31 +1,34 @@
 {
-    "name": "g++-serenity",
-    "version": "9.2.0",
-    "type": "collection",
-    "toolchain": {
-        "steps": [
-            "download",
-            "patch",
-            "configure", 
-            "make",
-            "install"
-        ],
-        "options": {
-            "download": {
-                "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}.tar.gz",
-                "md5sum": "e03739b042a14376d727ddcfd05a9bc3"
+    "package": {
+        "g++-serenity": {
+            "version": "9.2.0",
+            "type": "collection",
+            "toolchain": {
+                "steps": [
+                    "download",
+                    "patch",
+                    "configure",
+                    "make",
+                    "install"
+                ],
+                "options": {
+                    "download": {
+                        "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}.tar.gz",
+                        "md5sum": "e03739b042a14376d727ddcfd05a9bc3"
+                    },
+                    "patch": {
+                        "file": "patches/gcc.patch"
+                    },
+                    "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++", # --with-sysroot=$SYSROOT has to be set by toolchain!
+                    "make": "all-gcc all-target-libgcc all-target-libstdc++-v3",
+                    "install": "install-gcc install-target-libgcc install-target-libstdc++-v3"
+                }
             },
-            "patch": {
-                "file": "patches/gcc.patch"
-            },
-            "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++", # --with-sysroot=$SYSROOT has to be set by toolchain!
-            "make": "all-gcc all-target-libgcc all-target-libstdc++-v3",
-            "install": "install-gcc install-target-libgcc install-target-libstdc++-v3"
+            "dependencies": [
+                "bin-utils-serenity",
+                "serenity-LibC",
+                "serenity-LibM"
+            ]
         }
-    },
-    "dependencies": [
-        "bin-utils-serenity",
-        "serenity-LibC",
-        "serenity-LibM"
-    ]
+    }
 }

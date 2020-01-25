@@ -1,144 +1,146 @@
 {
-    "default": {
-        "file_tool_mapping": {
-            "cpp": "cxx",
-            "c": "cc",
-            "S": "as"
-        },
-        "configuration": {
-            "debug": {
+    "toolchain": {
+        "default": {
+            "file_tool_mapping": {
+                "cpp": "cxx",
+                "c": "cc",
+                "S": "as"
+            },
+            "configuration": {
+                "debug": {
+                    "cxx": {
+                        "flags": {
+                            "optimization": "-Og",
+                            "defines": "-DDEBUG"
+                        }
+                    },
+                    "cc": {
+                        "flags": {
+                            "optimization": "-Og",
+                            "defines": "-DDEBUG"
+                        }
+                    }
+                },
+                "release": {
+                    "cxx": {
+                        "flags": {
+                            "optimization": "-Os",
+                            "defines": "-DRELEASE"
+                        }
+                    },
+                    "cc": {
+                        "flags": {
+                            "optimization": "-Os",
+                            "defines": "-DRELEASE"
+                        }
+                    }
+                }
+            },
+            "target_tools": {
                 "cxx": {
+                    "package": "g++-serenity",
+                    "binary": "i686-pc-serenity-g++",
                     "flags": {
-                        "optimization": "-Og",
-                        "defines": "-DDEBUG"
+                        "standard": "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
+                        "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
+                        "flavor": "-fno-exceptions -fno-rtti -fstack-protector",
+                        "optimisation": "-Os",
+                        "arch": "",
+                        "include": "-I. -IDevTools -ILibraries -IServers -ILibraries/LibC -ILibraries/LibM -ILibraries/LibPthread"
                     }
                 },
                 "cc": {
+                    "package": "g++-serenity",
+                    "binary": "i686-pc-serenity-gcc",
                     "flags": {
-                        "optimization": "-Og",
-                        "defines": "-DDEBUG"
+                        "standard": "-MMD -MP",
+                        "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
+                        "flavor": "-fstack-protector",
+                        "optimisation": "-Os",
+                        "arch": "",
+                        "include": "-I. -IDevTools -ILibraries -IServers -ILibraries/LibC -ILibraries/LibM -ILibraries/LibPthread"
                     }
+                },
+                "as": {
+                    "package": "g++-serenity",
+                    "binary": "i686-pc-serenity-as",
+                    "flags": ""
+                },
+                "link": {
+                    "package": "g++-serenity",
+                    "binary": "i686-pc-serenity-ld",
+                    "flags": ""
+                },
+                "ranlib": {
+                    "package": "g++-serenity",
+                    "binary": "i686-pc-serenity-ranlib",
+                    "flags": ""
+                },
+                "ar": {
+                    "package": "g++-serenity",
+                    "binary": "i686-pc-serenity-ar",
+                    "flags": ""
                 }
             },
-            "release": {
+            "native_tools": {
                 "cxx": {
+                    "binary": "g++",
                     "flags": {
-                        "optimization": "-Os",
-                        "defines": "-DRELEASE"
+                        "standard": "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
+                        "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
+                        "flavor": "-fno-exceptions -fno-rtti -fstack-protector",
+                        "optimisation": "-Os",
+                        "arch": "",
+                        "include": "-I. -IDevTools -ILibraries -IServers"
                     }
                 },
                 "cc": {
+                    "binary": "gcc",
                     "flags": {
-                        "optimization": "-Os",
-                        "defines": "-DRELEASE"
+                        "standard": "-MMD -MP",
+                        "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
+                        "flavor": "-fstack-protector",
+                        "optimisation": "-Os",
+                        "arch": "",
+                        "include": "-I. -IDevTools -ILibraries -IServers"
                     }
+                },
+                "as": {
+                    "binary": "as",
+                    "flags": ""
+                },
+                "link": {
+                    "binary": "ld",
+                    "flags": ""
+                },
+                "ranlib": {
+                    "binary": "ranlib",
+                    "flags": ""
+                },
+                "ar": {
+                    "binary": "ar",
+                    "flags": ""
+                },
+                "download": {
+                    "binary": "wget",
+                    "flags": "-O-"
+                },
+                "patch": {
+                    "binary": "patch",
+                    "flags": ""
+                },
+                "configure": {
+                    "binary": "./configure",
+                    "flags": ""
+                },
+                "make": {
+                    "binary": "make",
+                    "flags": ""
+                },
+                "install": {
+                    "binary": "make",
+                    "flags": "install"
                 }
-            }
-        },
-        "target_tools": {
-            "cxx": {
-                "package": "g++-serenity",
-                "binary": "i686-pc-serenity-g++",
-                "flags": {
-                    "standard": "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
-                    "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
-                    "flavor": "-fno-exceptions -fno-rtti -fstack-protector",
-                    "optimisation": "-Os",
-                    "arch": "",
-                    "include": "-I. -IDevTools -ILibraries -IServers -ILibraries/LibC -ILibraries/LibM -ILibraries/LibPthread"
-                }
-            },
-            "cc": {
-                "package": "g++-serenity",
-                "binary": "i686-pc-serenity-gcc",
-                "flags": {
-                    "standard": "-MMD -MP",
-                    "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
-                    "flavor": "-fstack-protector",
-                    "optimisation": "-Os",
-                    "arch": "",
-                    "include": "-I. -IDevTools -ILibraries -IServers -ILibraries/LibC -ILibraries/LibM -ILibraries/LibPthread"
-                }
-            },
-            "as": {
-                "package": "g++-serenity",
-                "binary": "i686-pc-serenity-as",
-                "flags": ""
-            },
-            "link": {
-                "package": "g++-serenity",
-                "binary": "i686-pc-serenity-ld",
-                "flags": ""
-            },
-            "ranlib": {
-                "package": "g++-serenity",
-                "binary": "i686-pc-serenity-ranlib",
-                "flags": ""
-            },
-            "ar": {
-                "package": "g++-serenity",
-                "binary": "i686-pc-serenity-ar",
-                "flags": ""
-            }
-        },
-        "native_tools": {
-            "cxx": {
-                "binary": "g++",
-                "flags": {
-                    "standard": "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
-                    "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
-                    "flavor": "-fno-exceptions -fno-rtti -fstack-protector",
-                    "optimisation": "-Os",
-                    "arch": "",
-                    "include": "-I. -IDevTools -ILibraries -IServers"
-                }
-            },
-            "cc": {
-                "binary": "gcc",
-                "flags": {
-                    "standard": "-MMD -MP",
-                    "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
-                    "flavor": "-fstack-protector",
-                    "optimisation": "-Os",
-                    "arch": "",
-                    "include": "-I. -IDevTools -ILibraries -IServers"
-                }
-            },
-            "as": {
-                "binary": "as",
-                "flags": ""
-            },
-            "link": {
-                "binary": "ld",
-                "flags": ""
-            },
-            "ranlib": {
-                "binary": "ranlib",
-                "flags": ""
-            },
-            "ar": {
-                "binary": "ar",
-                "flags": ""
-            },
-            "download": {
-                "binary": "wget",
-                "flags": "-O-"
-            },
-            "patch": {
-                "binary": "patch",
-                "flags": ""
-            },
-            "configure": {
-                "binary": "./configure",
-                "flags": ""
-            },
-            "make": {
-                "binary": "make",
-                "flags": ""
-            },
-            "install": {
-                "binary": "make",
-                "flags": "install"
             }
         }
     }
