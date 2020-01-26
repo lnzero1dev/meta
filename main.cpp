@@ -1,5 +1,9 @@
 #include "FileProvider.h"
+#include "PackageDB.h"
 #include "Settings.h"
+#include "ToolchainDB.h"
+#include <AK/JsonObject.h>
+#include <AK/JsonValue.h>
 #include <AK/String.h>
 #include <AK/Types.h>
 #include <algorithm>
@@ -19,6 +23,49 @@ enum class ConfigSubCommand : u8 {
     Set,
     List
 };
+
+void load_meta_json_files(Vector<String> files)
+{
+    auto file = CFile::construct();
+    for (auto& filename : files) {
+        file->set_filename(filename);
+        if (file->filename().is_empty() || !file->exists())
+            continue;
+
+        /* load json file */
+        if (!file->open(CIODevice::ReadOnly)) {
+            fprintf(stderr, "Couldn't open %s for reading: %s\n", file->filename().characters(), file->error_string());
+            continue;
+        }
+
+        auto file_contents = file->read_all();
+        auto json = JsonValue::from_string(file_contents);
+
+        if (json.is_object()) {
+            json.as_object().for_each_member([&](auto& key, auto& value) {
+                if (key == "toolchain") {
+                    value.as_object().for_each_member([&](auto& key2, auto& value2) {
+                        fprintf(stderr, "Adding toolchain: %s\n", key2.characters());
+                        ToolchainDB::the().add(key2, value2.as_object());
+                    });
+                } else if (key == "package") {
+                    value.as_object().for_each_member([&](auto& key2, auto& value2) {
+                        fprintf(stderr, "Adding package: %s\n", key2.characters());
+                        PackageDB::the().add(key2, value2.as_object());
+                    });
+                } else if (key == "settings") {
+                    // do nothing ...
+
+                } else {
+                    fprintf(stderr, "Unknown key %s found in JSON file.\n", key.characters());
+                }
+            });
+        } else if (json.is_array()) {
+            fprintf(stderr, "JSON file malformed: %s\n", file->filename().characters());
+            continue;
+        }
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -113,27 +160,30 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    if (cmd == PrimaryCommand::Build) {
-        fprintf(stderr, "Build!\n");
-
-        String root;
-        if (settings.get("root", &root)) {
-            fprintf(stderr, "Searching for files in: %s\n", root.characters());
-            Vector<String> files = FileProvider::the().glob_all_meta_json_files(root);
-            for (auto& file : files) {
-                fprintf(stderr, "File: %s\n", file.characters());
-            }
-        } else {
-            fprintf(stderr, "Root directory is missing!\n");
-            return -1;
+    String root;
+    Vector<String> files;
+    if (settings.get("root", &root)) {
+        fprintf(stderr, "Searching for files in: %s\n", root.characters());
+        files = FileProvider::the().glob_all_meta_json_files(root);
+        for (auto& file : files) {
+            fprintf(stderr, "File: %s\n", file.characters());
         }
+    } else {
+        fprintf(stderr, "Root directory is missing!\n");
+        return -1;
     }
+
+    load_meta_json_files(files);
 
     //    Toolchain& toolchain = Toolchain::the();
     //    if (!toolchain.find_and_load_files()) {
     //        fprintf(stderr, "Failed loading settings!\n");
     //        return -1;
     //    }
+
+    if (cmd == PrimaryCommand::Build) {
+        fprintf(stderr, "Build!\n");
+    }
 
     // GeneratorPluginsLoader::the().Initialize(); // Find all loadable plugins and initialize them
     // GeneratorPluginsLoader::the().Generate(); // Generate everything

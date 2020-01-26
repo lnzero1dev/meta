@@ -19,7 +19,7 @@
                     "patch": {
                         "file": "patches/gcc.patch"
                     },
-                    "configure": "--target=i686-pc-serenity --enable-shared --disable-nls", # --with-sysroot=$SYSROOT has to be set by toolchain!
+                    "configure": "--target=i686-pc-serenity --enable-shared --disable-nls",
                     "install": "install"
                 }
             },

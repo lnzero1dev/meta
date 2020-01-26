@@ -19,7 +19,7 @@
                     "patch": {
                         "file": "patches/gcc.patch"
                     },
-                    "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++", # --with-sysroot=$SYSROOT has to be set by toolchain!
+                    "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++",
                     "make": "all-gcc all-target-libgcc all-target-libstdc++-v3",
                     "install": "install-gcc install-target-libgcc install-target-libstdc++-v3"
                 }

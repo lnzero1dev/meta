@@ -1,7 +1,7 @@
 #include "Settings.h"
+#include "FileProvider.h"
 #include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
-#include <FileProvider.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -42,7 +42,12 @@ bool Settings::load()
         auto json = JsonValue::from_string(file_contents);
 
         if (json.is_object()) {
-            json.as_object().for_each_member([&](auto& key, auto& value) {
+            if (!json.as_object().has("settings")) {
+                fprintf(stderr, "Did not find settings object in settings file %s\n", file->filename().characters());
+                return false;
+            }
+
+            json.as_object().get("settings").as_object().for_each_member([&](auto& key, auto& value) {
                 if (key == "toolchain") {
                     m_toolchain = value.as_string();
                 } else if (key == "build_configuration") {

@@ -8,6 +8,10 @@ OBJS = \
     main.o \
     Settings.o \
     FileProvider.o \
+    ToolchainDB.o \
+    Toolchain.o \
+    PackageDB.o \
+    Package.o \
     ../../AK/FileSystemPath.o \
     ../../AK/String.o \
     ../../AK/StringImpl.o \
