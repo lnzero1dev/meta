@@ -16,8 +16,17 @@ public:
     void add(String, JsonObject);
     Package* get(StringView name);
 
+    template<typename Callback>
+    void for_each_package(Callback callback)
+    {
+        for (auto& package : m_packages) {
+            if (callback(package.key, package.value) == IterationDecision::Break)
+                break;
+        }
+    };
+
 private:
     PackageDB();
 
-    HashMap<String, Package> packages;
+    HashMap<String, Package> m_packages;
 };

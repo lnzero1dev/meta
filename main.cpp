@@ -175,6 +175,12 @@ int main(int argc, char** argv)
 
     load_meta_json_files(files);
 
+    PackageDB::the().for_each_package([&](auto& name, auto& package) {
+        fprintf(stderr, "Package %s:\n", name.characters());
+        fprintf(stderr, "Toolchain Steps: %i\n", package.toolchain_steps().size());
+        return IterationDecision::Continue;
+    });
+
     //    Toolchain& toolchain = Toolchain::the();
     //    if (!toolchain.find_and_load_files()) {
     //        fprintf(stderr, "Failed loading settings!\n");

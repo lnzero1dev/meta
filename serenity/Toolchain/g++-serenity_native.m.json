@@ -24,7 +24,7 @@
                     "install": "install-gcc install-target-libgcc install-target-libstdc++-v3"
                 }
             },
-            "dependencies": [
+            "dependency": [
                 "bin-utils-serenity",
                 "serenity-LibC",
                 "serenity-LibM"

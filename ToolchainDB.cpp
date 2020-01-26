@@ -20,13 +20,13 @@ ToolchainDB& ToolchainDB::the()
 
 void ToolchainDB::add(String name, JsonObject json_obj)
 {
-    toolchains.set(name, { json_obj });
+    m_toolchains.set(name, { json_obj });
 }
 
 Toolchain* ToolchainDB::get(StringView name)
 {
-    auto it = toolchains.find(name);
-    if (it == toolchains.end())
+    auto it = m_toolchains.find(name);
+    if (it == m_toolchains.end())
         return nullptr;
 
     return &(*it).value;

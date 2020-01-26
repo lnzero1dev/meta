@@ -23,7 +23,7 @@
                     "install": "install"
                 }
             },
-            "dependencies": [
+            "dependency": [
                 "bin-utils-serenity",
                 "serenity-LibC",
                 "serenity-LibM"

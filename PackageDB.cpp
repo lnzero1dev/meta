@@ -20,13 +20,13 @@ PackageDB& PackageDB::the()
 
 void PackageDB::add(String name, JsonObject json_obj)
 {
-    packages.set(name, { json_obj });
+    m_packages.set(name, { json_obj });
 }
 
 Package* PackageDB::get(StringView name)
 {
-    auto it = packages.find(name);
-    if (it == packages.end())
+    auto it = m_packages.find(name);
+    if (it == m_packages.end())
         return nullptr;
 
     return &(*it).value;

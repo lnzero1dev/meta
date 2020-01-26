@@ -18,5 +18,5 @@ public:
 private:
     ToolchainDB();
 
-    HashMap<String, Toolchain> toolchains;
+    HashMap<String, Toolchain> m_toolchains;
 };
