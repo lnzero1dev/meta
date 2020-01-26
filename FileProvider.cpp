@@ -54,10 +54,6 @@ Vector<String> FileProvider::glob_all_meta_json_files(String root_directory)
     if (Settings::the().get("build_directory", &build_dir)) {
         skip_paths.append(build_dir);
     }
-
-    // FIXME: Remove if toolchain and other build things have been removed
-    //skip_paths.append("/home/ema/checkout/serenity-orig/Toolchain");
-
     return recursive_glob("**/*.m.json", root_directory, skip_paths);
 }
 
@@ -69,11 +65,16 @@ String without_base(StringView path, StringView base)
     return path;
 }
 
-bool FileProvider::match(const GlobState& state, const StringView& path)
+bool FileProvider::match(const GlobState& state, String path)
 {
-    String path_without_base = without_base(path, state.base_dir);
-    int reti = regexec(&state.compiled_regex, path_without_base.characters(), 0, NULL, 0);
+    if (state.relative_regex)
+        path = without_base(path, state.base_dir);
+
+    int reti = regexec(&state.compiled_regex, path.characters(), 0, NULL, 0);
     if (!reti) {
+#ifdef META_DEBUG
+        fprintf(stderr, "Regex match: %s - %s\n", state.pattern.characters(), path.characters());
+#endif
         return true;
     } else if (reti == REG_NOMATCH) {
     } else {
@@ -129,6 +130,8 @@ Vector<String> FileProvider::recursive_glob(const StringView& pattern, const Str
     state.base_dir = base;
     state.skip_paths = {};
     state.compiled_regex = compile_regex(pattern);
+    state.relative_regex = !pattern.starts_with("/");
+    state.pattern = pattern;
     return recursive_glob(state, base);
 }
 
@@ -138,6 +141,8 @@ Vector<String> FileProvider::recursive_glob(const StringView& pattern, const Str
     state.base_dir = base;
     state.skip_paths = skip_paths;
     state.compiled_regex = compile_regex(pattern);
+    state.relative_regex = !pattern.starts_with("/");
+    state.pattern = pattern;
     return recursive_glob(state, base);
 }
 

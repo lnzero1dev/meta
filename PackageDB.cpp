@@ -18,9 +18,9 @@ PackageDB& PackageDB::the()
     return *s_the;
 }
 
-void PackageDB::add(String name, JsonObject json_obj)
+void PackageDB::add(String filename, String name, JsonObject json_obj)
 {
-    m_packages.set(name, { json_obj });
+    m_packages.set(name, { filename, json_obj });
 }
 
 Package* PackageDB::get(StringView name)

@@ -3,7 +3,7 @@
         "serenity-LibC": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibC/**.cpp"
+                "${root}/Libraries/LibC/**/*.cpp"
             ],
             "include": [
                 "${root}/Libraries/LibC"

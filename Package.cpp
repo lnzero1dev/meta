@@ -1,6 +1,10 @@
 #include "Package.h"
+#include "FileProvider.h"
+#include "Settings.h"
 #include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
+#include <regex>
+#include <string>
 
 LinkageType string_to_linkage_type(String type)
 {
@@ -14,13 +18,43 @@ LinkageType string_to_linkage_type(String type)
         return LinkageType::Unknown;
 }
 
-Package::Package(JsonObject json_obj)
+static bool is_glob(const StringView& s)
 {
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s.characters_without_null_termination()[i];
+        if (c == '*' || c == '?')
+            return true;
+    }
+    return false;
+}
+
+static bool contains_variable(const StringView& s)
+{
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s.characters_without_null_termination()[i];
+        if (c == '$') {
+            return true;
+        }
+    }
+    return false;
+}
+
+String replace_variables(const StringView& s)
+{
+    std::string str(s.characters_without_null_termination(), s.length());
+    std::string replaced = std::regex_replace(str, std::regex("\\$\\{root\\}"), String { Settings::the().root() }.characters());
+    return replaced.c_str();
+}
+
+Package::Package(String filename, JsonObject json_obj)
+{
+    FileSystemPath path { filename };
+    m_directory = path.dirname();
+    m_filename = filename;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         //fprintf(stderr, "Package Key: %s\n", key.characters());
         if (key == "type") {
-            fprintf(stderr, "type_start\n");
             if (((String)value.as_string()).matches("library"))
                 m_type = PackageType::Library;
             else if (((String)value.as_string()).matches("executable"))
@@ -29,11 +63,9 @@ Package::Package(JsonObject json_obj)
                 m_type = PackageType::Collection;
             else
                 m_consistent = false;
-            fprintf(stderr, "type_end\n");
             return;
         }
         if (key == "version") {
-            fprintf(stderr, "version_start\n");
             auto parts = value.as_string().split('.');
             if (parts.size() == 1)
                 m_version.other = value.as_string();
@@ -52,11 +84,9 @@ Package::Package(JsonObject json_obj)
                     fprintf(stderr, "Version cannot be parsed correctly: %s\n", value.as_string().characters());
                 }
             }
-            fprintf(stderr, "version_end\n");
             return;
         }
         if (key == "toolchain") {
-            fprintf(stderr, "toolchain_start\n");
             // get steps and options...
             if (value.as_object().has("steps")) {
                 auto values = value.as_object().get("steps").as_array().values();
@@ -64,7 +94,6 @@ Package::Package(JsonObject json_obj)
                     m_toolchain_steps.append(value.as_string());
                 }
             }
-            fprintf(stderr, "toolchain_end\n");
             return;
         }
         if (key == "dependency_linkage") {
@@ -75,7 +104,6 @@ Package::Package(JsonObject json_obj)
             return;
         }
         if (key == "dependency") {
-            fprintf(stderr, "dependency_start\n");
             // there are two ways to define a dependency:
             // "dependency_linkage": "static" (static is default if setting is absent)
             // "dependency": [
@@ -96,24 +124,47 @@ Package::Package(JsonObject json_obj)
                     m_dependencies.set(key, string_to_linkage_type(value.as_string()));
                 });
             }
-            fprintf(stderr, "dependency_end\n");
             return;
         }
         if (key == "source") {
-            fprintf(stderr, "source_start\n");
             auto values = value.as_array().values();
             for (auto& value : values) {
-                m_sources.append(value.as_string());
+                String source = value.as_string();
+                String search_dir = m_directory;
+                if (contains_variable(source)) {
+                    source = replace_variables(source);
+                    // instead of setting the place to search here directly,
+                    // it would be also possible (and maybe more performant)
+                    // to first search in m_directory, and if nothing is being
+                    // found, search again in root.
+                    search_dir = Settings::the().root();
+                }
+                if (is_glob(source)) {
+                    auto files = FileProvider::the().recursive_glob(source, search_dir);
+                    for (auto& file : files) {
+                        m_sources.append(file);
+                    }
+                } else
+                    m_sources.append(value.as_string());
             }
-            // do the globbing from file's directory... which is... not handed over yet.
-            fprintf(stderr, "source_end\n");
             return;
         }
         if (key == "include") {
-            fprintf(stderr, "include_start\n");
-            auto includes = value.as_array().values();
-            // do the globbing from file's directory... which is... not handed over yet.
-            fprintf(stderr, "include_end\n");
+            auto values = value.as_array().values();
+            for (auto& value : values) {
+                String include = value.as_string();
+                String search_dir = m_directory;
+                if (contains_variable(include)) {
+                    include = replace_variables(include);
+                    search_dir = Settings::the().root();
+                }
+                if (is_glob(include)) {
+                    auto files = FileProvider::the().recursive_glob(include, search_dir);
+                    for (auto& file : files)
+                        m_includes.append(file);
+                } else
+                    m_includes.append(value.as_string());
+            }
             return;
         }
     });

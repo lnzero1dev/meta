@@ -12,6 +12,8 @@ public:
     String base_dir;
     Vector<String> skip_paths;
     bool already_matched;
+    bool relative_regex;
+    String pattern;
 };
 
 class FileProvider : public CObject {
@@ -47,7 +49,7 @@ public:
 private:
     FileProvider(StringView current_dir);
 
-    bool match(const GlobState& state, const StringView& path);
+    bool match(const GlobState& state, String path);
 
     String m_current_dir;
 

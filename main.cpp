@@ -45,13 +45,17 @@ void load_meta_json_files(Vector<String> files)
             json.as_object().for_each_member([&](auto& key, auto& value) {
                 if (key == "toolchain") {
                     value.as_object().for_each_member([&](auto& key2, auto& value2) {
-                        fprintf(stderr, "Adding toolchain: %s\n", key2.characters());
+#ifdef META_DEBUG
+                        fprintf(stderr, "Found toolchain %s, adding to DB.\n", key2.characters());
+#endif
                         ToolchainDB::the().add(key2, value2.as_object());
                     });
                 } else if (key == "package") {
                     value.as_object().for_each_member([&](auto& key2, auto& value2) {
-                        fprintf(stderr, "Adding package: %s\n", key2.characters());
-                        PackageDB::the().add(key2, value2.as_object());
+#ifdef META_DEBUG
+                        fprintf(stderr, "Found package %s, adding to DB.\n", key2.characters());
+#endif
+                        PackageDB::the().add(filename, key2, value2.as_object());
                     });
                 } else if (key == "settings") {
                     // do nothing ...
@@ -65,6 +69,58 @@ void load_meta_json_files(Vector<String> files)
             continue;
         }
     }
+}
+
+void statistics()
+{
+    auto& toolchains = ToolchainDB::the().toolchains();
+    StringBuilder toolchain_list;
+    ToolchainDB::the().for_each_toolchain([&](auto& name, auto&) {
+        toolchain_list.append(name);
+        toolchain_list.append(", ");
+
+        return IterationDecision::Continue;
+    });
+
+    auto& packages = PackageDB::the().packages();
+    StringBuilder package_list;
+    u32 number_of_source_files = 0;
+    u32 number_of_include_directories = 0;
+    u16 type_library = 0;
+    u16 type_executable = 0;
+    u16 type_collection = 0;
+    PackageDB::the().for_each_package([&](auto& name, auto& package) {
+        package_list.append(name);
+        package_list.append(", ");
+        number_of_source_files += package.sources().size();
+        number_of_include_directories += package.includes().size();
+        switch (package.type()) {
+        case PackageType::Library:
+            ++type_library;
+            break;
+        case PackageType::Executable:
+            ++type_executable;
+            break;
+        case PackageType::Collection:
+            ++type_collection;
+            break;
+        }
+
+        return IterationDecision::Continue;
+    });
+
+    fprintf(stdout, "----- STATISTICS -----\n");
+    fprintf(stdout, "Toolchains: %i\n* ", toolchains.size());
+    fprintf(stdout, "%s\033[2D \n", toolchain_list.build().characters());
+    fprintf(stdout, "----- ---------- -----\n");
+    fprintf(stdout, "Packages: %i\n* ", packages.size());
+    fprintf(stdout, "%s\033[2D \n", package_list.build().characters());
+    fprintf(stdout, "Packages that are Libraries: %i\n", type_library);
+    fprintf(stdout, "Packages that are Executables: %i\n", type_executable);
+    fprintf(stdout, "Packages that are Collections: %i\n", type_collection);
+    fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
+    fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
+    fprintf(stdout, "----------------------\n");
 }
 
 int main(int argc, char** argv)
@@ -163,10 +219,10 @@ int main(int argc, char** argv)
     String root;
     Vector<String> files;
     if (settings.get("root", &root)) {
-        fprintf(stderr, "Searching for files in: %s\n", root.characters());
+        fprintf(stderr, "Searching for meta json files in: %s\n", root.characters());
         files = FileProvider::the().glob_all_meta_json_files(root);
         for (auto& file : files) {
-            fprintf(stderr, "File: %s\n", file.characters());
+            fprintf(stderr, "* %s\n", file.characters());
         }
     } else {
         fprintf(stderr, "Root directory is missing!\n");
@@ -175,21 +231,17 @@ int main(int argc, char** argv)
 
     load_meta_json_files(files);
 
-    PackageDB::the().for_each_package([&](auto& name, auto& package) {
-        fprintf(stderr, "Package %s:\n", name.characters());
-        fprintf(stderr, "Toolchain Steps: %i\n", package.toolchain_steps().size());
-        return IterationDecision::Continue;
-    });
-
     //    Toolchain& toolchain = Toolchain::the();
-    //    if (!toolchain.find_and_load_files()) {
-    //        fprintf(stderr, "Failed loading settings!\n");
+    //    if (!toolchain.check_native_apps()) {
+    //        fprintf(stderr, "Some native apps missing!\n");
     //        return -1;
     //    }
 
     if (cmd == PrimaryCommand::Build) {
         fprintf(stderr, "Build!\n");
     }
+
+    statistics();
 
     // GeneratorPluginsLoader::the().Initialize(); // Find all loadable plugins and initialize them
     // GeneratorPluginsLoader::the().Generate(); // Generate everything

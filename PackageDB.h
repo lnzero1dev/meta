@@ -13,7 +13,7 @@ public:
     static PackageDB& the();
     ~PackageDB();
 
-    void add(String, JsonObject);
+    void add(String, String, JsonObject);
     Package* get(StringView name);
 
     template<typename Callback>
@@ -24,6 +24,8 @@ public:
                 break;
         }
     };
+
+    const HashMap<String, Package>& packages() { return m_packages; }
 
 private:
     PackageDB();

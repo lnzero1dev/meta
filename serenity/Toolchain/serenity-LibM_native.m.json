@@ -3,7 +3,7 @@
         "serenity-LibM": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibM/**.cpp"
+                "${root}/Libraries/LibM/**/*.cpp"
             ],
             "include": [
                 "${root}/Libraries/LibM"

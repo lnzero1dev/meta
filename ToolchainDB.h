@@ -15,6 +15,17 @@ public:
     void add(String, JsonObject);
     Toolchain* get(StringView);
 
+    template<typename Callback>
+    void for_each_toolchain(Callback callback)
+    {
+        for (auto& toolchain : m_toolchains) {
+            if (callback(toolchain.key, toolchain.value) == IterationDecision::Break)
+                break;
+        }
+    };
+
+    const HashMap<String, Toolchain>& toolchains() { return m_toolchains; }
+
 private:
     ToolchainDB();
 

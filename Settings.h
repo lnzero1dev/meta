@@ -16,6 +16,8 @@ public:
     bool get(StringView parameter, String* value);
     void list();
 
+    StringView root() { return m_root; }
+
 private:
     Settings();
 

@@ -29,13 +29,19 @@ struct PackageVersion {
 class Package {
 
 public:
-    Package(JsonObject);
+    Package(String, JsonObject);
     ~Package();
 
     const Vector<String>& toolchain_steps() { return m_toolchain_steps; }
+    const Vector<String>& sources() { return m_sources; }
+    const Vector<String>& includes() { return m_includes; }
+    PackageType type() { return m_type; }
 
 private:
     bool m_consistent = true;
+
+    String m_filename;
+    String m_directory;
 
     PackageType m_type;
     PackageVersion m_version;
