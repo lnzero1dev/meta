@@ -44,18 +44,18 @@ void load_meta_json_files(Vector<String> files)
         if (json.is_object()) {
             json.as_object().for_each_member([&](auto& key, auto& value) {
                 if (key == "toolchain") {
-                    value.as_object().for_each_member([&](auto& key2, auto& value2) {
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
 #ifdef META_DEBUG
-                        fprintf(stderr, "Found toolchain %s, adding to DB.\n", key2.characters());
+                        fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
 #endif
-                        ToolchainDB::the().add(key2, value2.as_object());
+                        ToolchainDB::the().add(key, value.as_object());
                     });
                 } else if (key == "package") {
-                    value.as_object().for_each_member([&](auto& key2, auto& value2) {
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
 #ifdef META_DEBUG
-                        fprintf(stderr, "Found package %s, adding to DB.\n", key2.characters());
+                        fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
 #endif
-                        PackageDB::the().add(filename, key2, value2.as_object());
+                        PackageDB::the().add(filename, key, value.as_object());
                     });
                 } else if (key == "settings") {
                     // do nothing ...
@@ -75,10 +75,15 @@ void statistics()
 {
     auto& toolchains = ToolchainDB::the().toolchains();
     StringBuilder toolchain_list;
-    ToolchainDB::the().for_each_toolchain([&](auto& name, auto&) {
+    u32 number_of_target_tools = 0;
+    u32 number_of_native_tools = 0;
+    u32 number_of_file_tool_mappings = 0;
+    ToolchainDB::the().for_each_toolchain([&](auto& name, auto& toolchain) {
         toolchain_list.append(name);
         toolchain_list.append(", ");
-
+        number_of_target_tools += toolchain.target_tools().size();
+        number_of_native_tools += toolchain.native_tools().size();
+        number_of_file_tool_mappings += toolchain.file_tool_mapping().size();
         return IterationDecision::Continue;
     });
 
@@ -89,6 +94,7 @@ void statistics()
     u16 type_library = 0;
     u16 type_executable = 0;
     u16 type_collection = 0;
+    u16 type_unknown = 0;
     PackageDB::the().for_each_package([&](auto& name, auto& package) {
         package_list.append(name);
         package_list.append(", ");
@@ -104,6 +110,9 @@ void statistics()
         case PackageType::Collection:
             ++type_collection;
             break;
+        case PackageType::Unknown:
+            ++type_unknown;
+            break;
         }
 
         return IterationDecision::Continue;
@@ -112,6 +121,9 @@ void statistics()
     fprintf(stdout, "----- STATISTICS -----\n");
     fprintf(stdout, "Toolchains: %i\n* ", toolchains.size());
     fprintf(stdout, "%s\033[2D \n", toolchain_list.build().characters());
+    fprintf(stdout, "Target tools: %i\n", number_of_target_tools);
+    fprintf(stdout, "Native tools: %i\n", number_of_native_tools);
+    fprintf(stdout, "File extension tool mappings: %i\n", number_of_file_tool_mappings);
     fprintf(stdout, "----- ---------- -----\n");
     fprintf(stdout, "Packages: %i\n* ", packages.size());
     fprintf(stdout, "%s\033[2D \n", package_list.build().characters());

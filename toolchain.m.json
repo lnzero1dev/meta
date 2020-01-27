@@ -34,12 +34,15 @@
                             "defines": "-DRELEASE"
                         }
                     }
+                },
+                "minsizerel": {
+                },
+                "debwithrelinfo": {
                 }
             },
             "target_tools": {
                 "cxx": {
-                    "package": "g++-serenity",
-                    "binary": "i686-pc-serenity-g++",
+                    "executable": "i686-pc-serenity-g++",
                     "flags": {
                         "standard": "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
                         "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
@@ -50,8 +53,7 @@
                     }
                 },
                 "cc": {
-                    "package": "g++-serenity",
-                    "binary": "i686-pc-serenity-gcc",
+                    "executable": "i686-pc-serenity-gcc",
                     "flags": {
                         "standard": "-MMD -MP",
                         "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
@@ -62,29 +64,25 @@
                     }
                 },
                 "as": {
-                    "package": "g++-serenity",
-                    "binary": "i686-pc-serenity-as",
+                    "executable": "i686-pc-serenity-as",
                     "flags": ""
                 },
                 "link": {
-                    "package": "g++-serenity",
-                    "binary": "i686-pc-serenity-ld",
+                    "executable": "i686-pc-serenity-ld",
                     "flags": ""
                 },
                 "ranlib": {
-                    "package": "g++-serenity",
-                    "binary": "i686-pc-serenity-ranlib",
+                    "executable": "i686-pc-serenity-ranlib",
                     "flags": ""
                 },
                 "ar": {
-                    "package": "g++-serenity",
-                    "binary": "i686-pc-serenity-ar",
+                    "executable": "i686-pc-serenity-ar",
                     "flags": ""
                 }
             },
             "native_tools": {
                 "cxx": {
-                    "binary": "g++",
+                    "executable": "g++",
                     "flags": {
                         "standard": "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
                         "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
@@ -95,7 +93,7 @@
                     }
                 },
                 "cc": {
-                    "binary": "gcc",
+                    "executable": "gcc",
                     "flags": {
                         "standard": "-MMD -MP",
                         "warning": "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
@@ -106,19 +104,19 @@
                     }
                 },
                 "as": {
-                    "binary": "as",
+                    "executable": "as",
                     "flags": ""
                 },
                 "link": {
-                    "binary": "ld",
+                    "executable": "ld",
                     "flags": ""
                 },
                 "ranlib": {
-                    "binary": "ranlib",
+                    "executable": "ranlib",
                     "flags": ""
                 },
                 "ar": {
-                    "binary": "ar",
+                    "executable": "ar",
                     "flags": ""
                 },
                 "download": {
@@ -126,19 +124,19 @@
                     "flags": "-O-"
                 },
                 "patch": {
-                    "binary": "patch",
+                    "executable": "patch",
                     "flags": ""
                 },
                 "configure": {
-                    "binary": "./configure",
+                    "executable": "./configure",
                     "flags": ""
                 },
                 "make": {
-                    "binary": "make",
+                    "executable": "make",
                     "flags": ""
                 },
                 "install": {
-                    "binary": "make",
+                    "executable": "make",
                     "flags": "install"
                 }
             }
