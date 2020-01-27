@@ -118,6 +118,7 @@ void statistics()
     fprintf(stdout, "Packages that are Libraries: %i\n", type_library);
     fprintf(stdout, "Packages that are Executables: %i\n", type_executable);
     fprintf(stdout, "Packages that are Collections: %i\n", type_collection);
+    fprintf(stdout, "Packages that are Unknown type: %i\n", type_unknown);
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
     fprintf(stdout, "----------------------\n");

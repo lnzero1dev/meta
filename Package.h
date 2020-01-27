@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AK/JsonObject.h>
+#include <AK/Traits.h>
 #include <LibCore/CFile.h>
 #include <LibCore/CObject.h>
 
@@ -10,14 +11,25 @@ enum class LinkageType : uint8_t {
     Dynamic,
     NoLib,
 
-    Unknown,
+    Unknown = 0xFF
 };
 
 enum class PackageType : uint8_t {
     Library = 0, // Exactly one library
     Executable,  // Exactly one executable
     Collection,  // Collection of 1..n libraries/executables
+
+    Unknown = 0xFF
 };
+
+namespace AK {
+template<>
+struct Traits<PackageType> : public GenericTraits<PackageType> {
+    static constexpr bool is_trivial() { return true; }
+    static unsigned hash(PackageType i) { return int_hash((int)i); }
+    static void dump(PackageType i) { kprintf("%d", (int)i); }
+};
+}
 
 struct PackageVersion {
     int major;
@@ -45,6 +57,9 @@ private:
 
     PackageType m_type;
     PackageVersion m_version;
+
+    // For collections, provide the ability to define which libraries and executables are contained.
+    HashMap<PackageType, Vector<String>> m_provides;
 
     Vector<String> m_sources;
     Vector<String> m_includes;

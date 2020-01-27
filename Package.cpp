@@ -55,11 +55,11 @@ Package::Package(String filename, JsonObject json_obj)
     json_obj.for_each_member([&](auto& key, auto& value) {
         //fprintf(stderr, "Package Key: %s\n", key.characters());
         if (key == "type") {
-            if (((String)value.as_string()).matches("library"))
+            if (value.as_string().matches("library"))
                 m_type = PackageType::Library;
-            else if (((String)value.as_string()).matches("executable"))
+            else if (value.as_string().matches("executable"))
                 m_type = PackageType::Executable;
-            else if (((String)value.as_string()).matches("collection"))
+            else if (value.as_string().matches("collection"))
                 m_type = PackageType::Collection;
             else
                 m_consistent = false;
@@ -83,6 +83,27 @@ Package::Package(String filename, JsonObject json_obj)
                     m_version.other = value.as_string();
                     fprintf(stderr, "Version cannot be parsed correctly: %s\n", value.as_string().characters());
                 }
+            }
+            return;
+        }
+        if (key == "provides") {
+            if (value.is_object()) {
+                value.as_object().for_each_member([&](auto& key, auto& value) {
+                    Vector<String> values;
+                    value.as_array().for_each([&](auto& value) {
+                        values.append(value.as_string());
+                    });
+
+                    PackageType type = PackageType::Unknown;
+                    if (key.matches("library"))
+                        type = PackageType::Library;
+                    else if (key.matches("executable"))
+                        type = PackageType::Executable;
+                    else if (key.matches("collection"))
+                        type = PackageType::Collection;
+
+                    m_provides.set(type, values);
+                });
             }
             return;
         }

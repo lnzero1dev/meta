@@ -3,6 +3,16 @@
         "g++-serenity": {
             "version": "9.2.0",
             "type": "collection",
+            "provides": {
+                "executable": [
+                    "i686-pc-serenity-g++",
+                    "i686-pc-serenity-gcc",
+                    "i686-pc-serenity-as",
+                    "i686-pc-serenity-ld",
+                    "i686-pc-serenity-ranlib",
+                    "i686-pc-serenity-ar"
+                ]
+            },
             "toolchain": {
                 "steps": [
                     "download",
