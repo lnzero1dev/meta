@@ -1,0 +1,10 @@
+{
+    "settings": {
+        "user": {
+            "build_generator_configuration": {
+                "build_configuration": "debug",
+                "parallel_build": "24"
+            }
+        }
+    }
+}

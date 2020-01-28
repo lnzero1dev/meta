@@ -1,0 +1,32 @@
+{
+    "package": {
+        "g++-serenity": {
+            "version": "4.1.0",
+            "type": "collection",
+            "provides": {
+                "executable": [
+                    "qemu-img",
+                    "qemu-system-i386"
+                ]
+            },
+            "toolchain": {
+                "steps": [
+                    "download",
+                    "configure",
+                    "make",
+                    "install"
+                ],
+                "options": {
+                    "download": {
+                        "url": "https://download.qemu.org/qemu-${version}.tar.xz",
+                        "md5sum": "cdf2b5ca52b9abac9bacb5842fa420f8"
+                    },
+                    "configure": "--target-list=i386-softmmu --enable-gtk"
+                }
+            },
+            "dependency": [
+                "libgtk-3"
+            ]
+        }
+    }
+}

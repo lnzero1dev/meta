@@ -1,8 +1,0 @@
-{
-    "settings": {
-        "toolchain": "default",
-        "build_configuration": "debug",
-        "root": "../..",
-        "build_directory": "build"
-    }
-}

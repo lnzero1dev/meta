@@ -138,6 +138,26 @@
                 "install": {
                     "executable": "make",
                     "flags": "install"
+                },
+                "cmake": {
+                    "executable": "cmake",
+                    "flags": ""
+                },
+                "ninja": {
+                    "executable": "ninja",
+                    "flags": ""
+                },
+                "build_qemu": {
+                    "executable": "build-qemu-image-linux"
+                },
+                "run_qemu": {
+                    "executable": "qemu-system-i386",
+                    "flags": {
+                        "standard": "-s -m 256M -cpu max -machine q35 -d cpu_reset,guest_errors -device VGA,vgamem_mb=64 -device piix3-ide",
+                        "warning": "-drive file=_disk_image,id=disk,if=none -device ide-hd,bus=ide.6,drive=disk,unit=0 -debugcon stdio",
+                        "flavor": "-soundhw pcspk -soundhw sb16 -netdev user,id=breh,hostfwd=tcp:127.0.0.1:8888-10.0.2.15:8888,hostfwd=tcp:127.0.0.1:8823-10.0.2.15:23",
+                        "optimisation": "-device e1000,netdev=breh -kernel kernel -append hello"
+                    }
                 }
             }
         }

@@ -1,0 +1,21 @@
+{
+    "package": {
+        "build-qemu-image-linux": {
+            "type": "build-script",
+            "toolchain": {
+                "steps": [
+                    "execute"
+                ],
+                "options": {
+                    "execute": {
+                        "file": "build-qemu-image-linux.sh"
+                    }
+                }
+            },
+            "dependency": [
+                "qemu-img",
+                "mke2fs"
+            ]
+        }
+    }
+}
