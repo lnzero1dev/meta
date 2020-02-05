@@ -1,6 +1,7 @@
 #include "Package.h"
 #include "FileProvider.h"
 #include "Settings.h"
+#include "SettingsProvider.h"
 #include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
 #include <regex>
@@ -42,7 +43,7 @@ static bool contains_variable(const StringView& s)
 String replace_variables(const StringView& s)
 {
     std::string str(s.characters_without_null_termination(), s.length());
-    std::string replaced = std::regex_replace(str, std::regex("\\$\\{root\\}"), String { Settings::the().root() }.characters());
+    std::string replaced = std::regex_replace(str, std::regex("\\$\\{root\\}"), String { SettingsProvider::the().get_string("root").value_or("") }.characters());
     return replaced.c_str();
 }
 
@@ -158,7 +159,7 @@ Package::Package(String filename, JsonObject json_obj)
                     // it would be also possible (and maybe more performant)
                     // to first search in m_directory, and if nothing is being
                     // found, search again in root.
-                    search_dir = Settings::the().root();
+                    search_dir = SettingsProvider::the().get_string("root").value_or("");
                 }
                 if (is_glob(source)) {
                     auto files = FileProvider::the().recursive_glob(source, search_dir);
@@ -168,6 +169,11 @@ Package::Package(String filename, JsonObject json_obj)
                 } else
                     m_sources.append(value.as_string());
             }
+#ifdef META_DEBUG
+            for (auto& source : m_sources) {
+                fprintf(stdout, "source: %s\n", source.characters());
+            }
+#endif
             return;
         }
         if (key == "include") {
@@ -177,7 +183,7 @@ Package::Package(String filename, JsonObject json_obj)
                 String search_dir = m_directory;
                 if (contains_variable(include)) {
                     include = replace_variables(include);
-                    search_dir = Settings::the().root();
+                    search_dir = SettingsProvider::the().get_string("root").value_or("");
                 }
                 if (is_glob(include)) {
                     auto files = FileProvider::the().recursive_glob(include, search_dir);
@@ -186,6 +192,11 @@ Package::Package(String filename, JsonObject json_obj)
                 } else
                     m_includes.append(value.as_string());
             }
+#ifdef META_DEBUG
+            for (auto& include : m_includes) {
+                fprintf(stdout, "include: %s\n", include.characters());
+            }
+#endif
             return;
         }
     });

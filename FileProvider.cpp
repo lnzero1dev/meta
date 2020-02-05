@@ -1,5 +1,6 @@
 #include "FileProvider.h"
 #include "Settings.h"
+#include "SettingsProvider.h"
 #include <AK/FileSystemPath.h>
 #include <AK/StringBuilder.h>
 #include <LibCore/CDirIterator.h>
@@ -31,7 +32,7 @@ FileProvider& FileProvider::the()
 
 String FileProvider::find_in_working_directory_and_parents(StringView filename)
 {
-    auto file = CFile::construct();
+    auto file = Core::File::construct();
 
     for_each_parent_directory([&](auto directory) {
         StringBuilder builder;
@@ -50,9 +51,9 @@ String FileProvider::find_in_working_directory_and_parents(StringView filename)
 Vector<String> FileProvider::glob_all_meta_json_files(String root_directory)
 {
     Vector<String> skip_paths;
-    String build_dir;
-    if (Settings::the().get("build_directory", &build_dir)) {
-        skip_paths.append(build_dir);
+    auto opt_build_dir = SettingsProvider::the().get("build_directory");
+    if (opt_build_dir.has_value()) {
+        skip_paths.append(opt_build_dir.value().as_string());
     }
     return recursive_glob("**/*.m.json", root_directory, skip_paths);
 }
@@ -148,7 +149,7 @@ Vector<String> FileProvider::recursive_glob(const StringView& pattern, const Str
 
 Vector<String> FileProvider::recursive_glob(GlobState state, const StringView& current_dir)
 {
-    CDirIterator di(current_dir, CDirIterator::SkipDots);
+    Core::DirIterator di(current_dir, Core::DirIterator::SkipDots);
     Vector<String> vec;
 
     if (di.has_error()) {
@@ -189,10 +190,51 @@ Vector<String> FileProvider::recursive_glob(GlobState state, const StringView& c
                     vec.append(new_path);
             }
         } else {
-            perror("stat");
-            fprintf(stderr, "file: %s\n", new_path.characters());
+            //perror("stat");
+            //fprintf(stderr, "file: %s\n", new_path.characters());
         }
     }
 
+#ifdef META_DEBUG
+    fprintf(stdout, "recursive_glob found:\n");
+    for (auto& file : vec) {
+        fprintf(stdout, "file: %s\n", file.characters());
+    }
+#endif
     return vec;
+}
+
+bool FileProvider::update_if_relative(String& path, String base)
+{
+    if (!path.starts_with("/")) {
+        StringBuilder builder;
+        builder.append(base);
+        builder.append("/");
+        builder.append(path);
+
+        String path2 = builder.build().characters();
+
+        char buf[PATH_MAX];
+        char* res = realpath(path2.characters(), buf);
+        if (res) {
+            path = buf;
+            return true;
+        } else {
+            // path its not existing, create it!
+            // FIXME: This likely needs mkdir_p!
+            int rc = mkdir(path2.characters(), 0755);
+            if (rc < 0) {
+                perror("mkdir");
+                return false;
+            }
+            // after creating the path, we have to call realpath again to fully resolve the path
+            char* res = realpath(path2.characters(), buf);
+            if (res) {
+                path = buf;
+                return true;
+            }
+            return false;
+        }
+    }
+    return true;
 }

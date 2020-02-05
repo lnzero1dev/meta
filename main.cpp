@@ -1,6 +1,6 @@
 #include "FileProvider.h"
 #include "PackageDB.h"
-#include "Settings.h"
+#include "SettingsProvider.h"
 #include "ToolchainDB.h"
 #include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
@@ -24,44 +24,63 @@ enum class ConfigSubCommand : u8 {
     List
 };
 
-void load_meta_json_files(Vector<String> files)
+void load_meta_json_files(Vector<String> files, bool settings_only = false)
 {
-    auto file = CFile::construct();
+    auto file = Core::File::construct();
     for (auto& filename : files) {
         file->set_filename(filename);
         if (file->filename().is_empty() || !file->exists())
             continue;
 
         /* load json file */
-        if (!file->open(CIODevice::ReadOnly)) {
+        if (!file->open(Core::IODevice::ReadOnly)) {
             fprintf(stderr, "Couldn't open %s for reading: %s\n", file->filename().characters(), file->error_string());
             continue;
         }
 
         auto file_contents = file->read_all();
         auto json = JsonValue::from_string(file_contents);
+        auto parse_settings = [&](auto& key, auto& value) {
+            SettingsPriority priority { SettingsPriority::Undefined };
+            if (key == "user")
+                priority = SettingsPriority::User;
+            else if (key == "project")
+                priority = SettingsPriority::Project;
+
+            if (priority != SettingsPriority::Undefined)
+                SettingsProvider::the().add(filename, priority, value.as_object());
+            else
+                fprintf(stderr, "Unknown settings priority %s found in JSON file.\n", key.characters());
+        };
 
         if (json.is_object()) {
             json.as_object().for_each_member([&](auto& key, auto& value) {
-                if (key == "toolchain") {
-                    value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
-                        fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
-#endif
-                        ToolchainDB::the().add(key, value.as_object());
-                    });
-                } else if (key == "package") {
-                    value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
-                        fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
-#endif
-                        PackageDB::the().add(filename, key, value.as_object());
-                    });
-                } else if (key == "settings") {
-                    // do nothing ...
-
+                if (settings_only) {
+                    if (key == "settings")
+                        value.as_object().for_each_member(parse_settings);
                 } else {
-                    fprintf(stderr, "Unknown key %s found in JSON file.\n", key.characters());
+                    if (key == "toolchain") {
+                        value.as_object().for_each_member([&](auto& key, auto& value) {
+#ifdef META_DEBUG
+                            fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
+#endif
+                            ToolchainDB::the().add(key, value.as_object());
+                        });
+                    } else if (key == "package") {
+                        value.as_object().for_each_member([&](auto& key, auto& value) {
+#ifdef META_DEBUG
+                            fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
+#endif
+                            PackageDB::the().add(filename, key, value.as_object());
+                        });
+                    } else if (key == "settings") {
+                        // TODO: shall settings are allowed in the second round?
+                        //value.as_object().for_each_member(parse_settings);
+                    } else if (key == "image") {
+                        // TODO: Fixme
+                    } else {
+                        fprintf(stderr, "Unknown key %s found in JSON file.\n", key.characters());
+                    }
                 }
             });
         } else if (json.is_array()) {
@@ -119,14 +138,16 @@ void statistics()
     });
 
     fprintf(stdout, "----- STATISTICS -----\n");
-    fprintf(stdout, "Toolchains: %i\n* ", toolchains.size());
-    fprintf(stdout, "%s\033[2D \n", toolchain_list.build().characters());
+    fprintf(stdout, "Toolchains: %i\n", toolchains.size());
+    if (toolchains.size())
+        fprintf(stdout, "* %s\033[2D \n", toolchain_list.build().characters());
     fprintf(stdout, "Target tools: %i\n", number_of_target_tools);
     fprintf(stdout, "Native tools: %i\n", number_of_native_tools);
     fprintf(stdout, "File extension tool mappings: %i\n", number_of_file_tool_mappings);
     fprintf(stdout, "----- ---------- -----\n");
-    fprintf(stdout, "Packages: %i\n* ", packages.size());
-    fprintf(stdout, "%s\033[2D \n", package_list.build().characters());
+    fprintf(stdout, "Packages: %i\n", packages.size());
+    if (packages.size())
+        fprintf(stdout, "* %s\033[2D \n", package_list.build().characters());
     fprintf(stdout, "Packages that are Libraries: %i\n", type_library);
     fprintf(stdout, "Packages that are Executables: %i\n", type_executable);
     fprintf(stdout, "Packages that are Collections: %i\n", type_collection);
@@ -193,12 +214,19 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    // needs always to be done
-    Settings& settings = Settings::the();
-    if (!settings.load()) {
-        fprintf(stderr, "Failed loading settings!\n");
-        return -1;
+    SettingsProvider& settingsProvider = SettingsProvider::the();
+
+    Vector<String> files;
+    String root = FileProvider::the().current_dir();
+    files = FileProvider::the().glob_all_meta_json_files(root);
+
+#ifdef META_DEBUG
+    fprintf(stderr, "Searching for meta json files in: %s\n", root.characters());
+    for (auto& file : files) {
+        fprintf(stderr, "* %s\n", file.characters());
     }
+#endif
+    load_meta_json_files(files, true);
 
     if (cmd == PrimaryCommand::Config) {
         switch (config_subcmd) {
@@ -206,14 +234,15 @@ int main(int argc, char** argv)
             break;
         }
         case ConfigSubCommand::List: {
-            settings.list();
+            settingsProvider.list();
             break;
         }
         case ConfigSubCommand::Get: {
             String parameter { argv[3], strlen(argv[3]) };
             String value;
-            if (settings.get(parameter, &value)) {
-                fprintf(stdout, "%s: %s\n", parameter.characters(), value.characters());
+            Optional<SettingsParameter> param = settingsProvider.get(parameter);
+            if (param.has_value()) {
+                fprintf(stdout, "%s: %s (set in %s)\n", parameter.characters(), param.value().as_string().characters(), param.value().filename().characters());
             } else {
                 fprintf(stderr, "No valid parameter: %s\n", parameter.characters());
                 return -1;
@@ -227,19 +256,6 @@ int main(int argc, char** argv)
         }
         }
         return 0;
-    }
-
-    String root;
-    Vector<String> files;
-    if (settings.get("root", &root)) {
-        fprintf(stderr, "Searching for meta json files in: %s\n", root.characters());
-        files = FileProvider::the().glob_all_meta_json_files(root);
-        for (auto& file : files) {
-            fprintf(stderr, "* %s\n", file.characters());
-        }
-    } else {
-        fprintf(stderr, "Root directory is missing!\n");
-        return -1;
     }
 
     load_meta_json_files(files);

@@ -7,6 +7,8 @@ DEFINES = -g
 OBJS = \
     main.o \
     Settings.o \
+    SettingsProvider.o \
+    SettingsParameter.o \
     FileProvider.o \
     ToolchainDB.o \
     Toolchain.o \

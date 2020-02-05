@@ -1,6 +1,5 @@
 #include "Settings.h"
 #include "FileProvider.h"
-#include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -14,143 +13,132 @@ Settings::~Settings()
 {
 }
 
-Settings& Settings::the()
+bool Settings::load(const String& filename, const JsonObject& settings_object)
 {
-    static Settings* s_the;
-    if (!s_the)
-        s_the = &Settings::construct().leak_ref();
-    return *s_the;
-}
+    bool failed = false;
+    settings_object.for_each_member([&](auto& key, auto& value) {
+        if (key == "toolchain") {
+            if (m_toolchain.has_value()) {
+                failed = true;
+                return IterationDecision::Break;
+            } else
+                m_toolchain = SettingsParameter { filename, value.as_string() };
+        } else if (key == "build_generator_configuration") {
+            if (m_build_generator_configuration.has_value()) {
+                failed = true;
+                return IterationDecision::Break;
+            } else
+                m_build_generator_configuration = SettingsParameter { filename, value.as_object() };
 
-bool Settings::load()
-{
-    auto filename = FileProvider::the().find_in_working_directory_and_parents(s_settings_file_name);
-
-    auto file = CFile::construct();
-    file->set_filename(filename);
-
-    if (!file->filename().is_empty() && file->exists()) {
-        m_settings_filename = filename;
-
-        /* load json file */
-        if (!file->open(CIODevice::ReadOnly)) {
-            fprintf(stderr, "Couldn't open %s for reading: %s\n", file->filename().characters(), file->error_string());
-            return false;
-        }
-
-        auto file_contents = file->read_all();
-        auto json = JsonValue::from_string(file_contents);
-
-        if (json.is_object()) {
-            if (!json.as_object().has("settings")) {
-                fprintf(stderr, "Did not find settings object in settings file %s\n", file->filename().characters());
-                return false;
-            }
-
-            json.as_object().get("settings").as_object().for_each_member([&](auto& key, auto& value) {
-                if (key == "toolchain") {
-                    m_toolchain = value.as_string();
-                } else if (key == "build_configuration") {
-                    m_build_configuration = value.as_string();
-                } else if (key == "root") {
-                    m_root = value.as_string();
-                } else if (key == "build_directory") {
-                    m_build_directory = value.as_string();
-                } else {
-                    fprintf(stderr, "Unknown key in JSON file: %s, %s\n", key.characters(), file->filename().characters());
-                }
-            });
-
-        } else if (json.is_array()) {
-            fprintf(stderr, "JSON file malformed: %s\n", file->filename().characters());
-            return false;
-        }
-
-        return update_paths();
-    }
-    return false;
-}
-
-bool update_if_relative(String* path, String base)
-{
-    if (!path->starts_with("/")) {
-        StringBuilder builder;
-        builder.append(base);
-        builder.append("/");
-        builder.append(*path);
-
-        String path2 = builder.build().characters();
-
-        char buf[PATH_MAX];
-        char* res = realpath(path2.characters(), buf);
-        if (res) {
-            *path = buf;
-            return true;
+        } else if (key == "gendata_directory") {
+            if (m_gendata_directory.has_value()) {
+                failed = true;
+                return IterationDecision::Break;
+            } else
+                m_gendata_directory = SettingsParameter { filename, value.as_string() };
+        } else if (key == "build_generator") {
+            if (m_build_generator.has_value()) {
+                failed = true;
+                return IterationDecision::Break;
+            } else
+                m_build_generator = SettingsParameter { filename, value.as_string() };
+        } else if (key == "build_directory") {
+            if (m_build_directory.has_value()) {
+                failed = true;
+                return IterationDecision::Break;
+            } else
+                m_build_directory = SettingsParameter { filename, value.as_string() };
+        } else if (key == "root") {
+            if (m_root.has_value()) {
+                failed = true;
+                return IterationDecision::Break;
+            } else
+                m_root = SettingsParameter { filename, value.as_string() };
         } else {
-            // path its not existing, create it!
-            // FIXME: This likely needs mkdir_p!
-            int rc = mkdir(path2.characters(), 0755);
-            if (rc < 0) {
-                perror("mkdir");
-                return false;
-            }
-            // after creating the path, we have to call realpath again to fully resolve the path
-            char* res = realpath(path2.characters(), buf);
-            if (res) {
-                *path = buf;
-                return true;
-            }
-            return false;
+            fprintf(stderr, "Unknown key '%s' in JSON file %s\n", key.characters(), filename.characters());
         }
-    }
-    return true;
+        return IterationDecision::Continue;
+    });
+
+    if (failed)
+        return false;
+    else
+        return update_paths(filename);
 }
 
-bool Settings::update_paths()
+//bool Settings::load()
+//{
+//    auto filename = FileProvider::the().find_in_working_directory_and_parents(s_settings_file_name);
+
+//    auto file = CFile::construct();
+//    file->set_filename(filename);
+
+//    if (!file->filename().is_empty() && file->exists()) {
+//        m_settings_filename = filename;
+
+//        /* load json file */
+//        if (!file->open(CIODevice::ReadOnly)) {
+//            fprintf(stderr, "Couldn't open %s for reading: %s\n", file->filename().characters(), file->error_string());
+//            return false;
+//        }
+
+//        auto file_contents = file->read_all();
+//        auto json = JsonValue::from_string(file_contents);
+
+//    }
+//    return false;
+//}
+
+bool Settings::update_paths(const String& filename)
 {
     // first, update build root
     // if relative path, append path of settings file
-    FileSystemPath path { m_settings_filename };
+    FileSystemPath path { filename };
     String settings_file_dir = path.dirname();
     bool ret = true;
-    ret &= update_if_relative(&m_root, settings_file_dir);
-    ret &= update_if_relative(&m_build_directory, settings_file_dir);
+
+    if (m_root.has_value()) {
+        auto root = String { m_root.value().as_string() };
+        ret &= FileProvider::the().update_if_relative(root, settings_file_dir);
+        if (ret)
+            m_root.value() = { filename, root };
+
+        //fprintf(stderr, "root: %s\n", root.characters());
+    }
+    if (m_build_directory.has_value()) {
+        auto build_directory = String { m_build_directory.value().as_string() };
+        ret &= FileProvider::the().update_if_relative(build_directory, settings_file_dir);
+        if (ret)
+            m_build_directory.value() = { filename, build_directory };
+        //fprintf(stderr, "build_directory: %s\n", build_directory.characters());
+    }
+    if (m_gendata_directory.has_value()) {
+        auto gendata_directory = String { m_gendata_directory.value().as_string() };
+        ret &= FileProvider::the().update_if_relative(gendata_directory, settings_file_dir);
+        if (ret)
+            m_gendata_directory.value() = { filename, gendata_directory };
+        //fprintf(stderr, "gendata_directory: %s\n", gendata_directory.characters());
+    }
     return ret;
 }
 
-bool Settings::get(StringView parameter, String* value)
+Optional<SettingsParameter> Settings::get(Badge<SettingsProvider>, const String parameter)
 {
-    if (parameter == "toolchain") {
-        *value = m_toolchain;
-        return true;
-    }
-    if (parameter == "build_configuration") {
-        *value = m_build_configuration;
-        return true;
-    }
+    Optional<SettingsParameter> ret;
     if (parameter == "root") {
-        *value = m_root;
-        return true;
+        return m_root;
+    } else if (parameter == "toolchain") {
+        return m_toolchain;
+    } else if (parameter == "build_generator") {
+        return m_build_generator;
+    } else if (parameter == "build_generator_configuration") {
+        return m_build_generator_configuration;
+    } else if (parameter == "build_directory") {
+        return m_build_directory;
+    } else if (parameter == "gendata_directory") {
+        return m_gendata_directory;
     }
 
-    if (parameter == "build_directory") {
-        *value = m_build_directory;
-        return true;
-    }
-
-    if (parameter == "filename") {
-        *value = m_settings_filename;
-    }
-
-    fprintf(stderr, "Unknown config parameter: %s\n", parameter.characters_without_null_termination());
-    return false;
-}
-
-void Settings::list()
-{
-    fprintf(stdout, "filename: %s\n", m_settings_filename.characters());
-    fprintf(stdout, "root: %s\n", m_root.characters());
-    fprintf(stdout, "toolchain: %s\n", m_toolchain.characters());
-    fprintf(stdout, "build_directory: %s\n", m_build_directory.characters());
-    fprintf(stdout, "build_configuration: %s\n", m_build_configuration.characters());
+    fprintf(stderr, "Unknown config parameter: %s\n", parameter.characters());
+    return ret;
 }

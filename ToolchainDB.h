@@ -5,7 +5,7 @@
 #include <LibCore/CFile.h>
 #include <LibCore/CObject.h>
 
-class ToolchainDB : public CObject {
+class ToolchainDB : public Core::Object {
     C_OBJECT(ToolchainDB)
 
 public:

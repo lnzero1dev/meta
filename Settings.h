@@ -1,33 +1,39 @@
 #pragma once
 
+#include "SettingsParameter.h"
+#include <AK/Badge.h>
+#include <AK/JsonObject.h>
+#include <AK/Optional.h>
 #include <LibCore/CFile.h>
 #include <LibCore/CObject.h>
 
-static constexpr const char* s_settings_file_name { "settings.m.json" };
+class SettingsProvider;
 
-class Settings : public CObject {
-    C_OBJECT(Settings)
+class Settings {
 
 public:
-    static Settings& the();
-    ~Settings();
+    Settings();
+    //    Settings(Settings& other) = default;
+    //    explicit Settings(Settings&& other) = default;
+    //    Settings& operator=(Settings& other) = default;
+    //    Settings& operator=(Settings&& other) = default;
 
-    bool load();
-    bool get(StringView parameter, String* value);
+    ~Settings();
+    bool load(const String& filename, const JsonObject& settings_object);
+
+    Optional<SettingsParameter> get(Badge<SettingsProvider>, String parameter);
+
     void list();
 
-    StringView root() { return m_root; }
-
 private:
-    Settings();
+    Core::File& find_file(String file_name);
 
-    CFile& find_file(String file_name);
+    Optional<SettingsParameter> m_root;
+    Optional<SettingsParameter> m_toolchain;
+    Optional<SettingsParameter> m_build_directory;
+    Optional<SettingsParameter> m_gendata_directory;
+    Optional<SettingsParameter> m_build_generator;
+    Optional<SettingsParameter> m_build_generator_configuration;
 
-    String m_settings_filename;
-    String m_build_directory;
-    String m_toolchain;
-    String m_build_configuration;
-    String m_root;
-
-    bool update_paths();
+    bool update_paths(const String& filename);
 };

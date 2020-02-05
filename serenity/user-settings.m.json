@@ -1,6 +1,7 @@
 {
     "settings": {
         "user": {
+            "build_directory": "build-asdf",
             "build_generator_configuration": {
                 "build_configuration": "debug",
                 "parallel_build": "24"

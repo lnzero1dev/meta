@@ -6,7 +6,7 @@
 #include <LibCore/CFile.h>
 #include <LibCore/CObject.h>
 
-class PackageDB : public CObject {
+class PackageDB : public Core::Object {
     C_OBJECT(PackageDB)
 
 public:

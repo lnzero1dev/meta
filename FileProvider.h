@@ -6,6 +6,8 @@
 #include <LibCore/CObject.h>
 #include <regex.h>
 
+//#define META_DEBUG
+
 struct GlobState {
 public:
     regex_t compiled_regex;
@@ -16,7 +18,7 @@ public:
     String pattern;
 };
 
-class FileProvider : public CObject {
+class FileProvider : public Core::Object {
     C_OBJECT(FileProvider)
 
 public:
@@ -45,6 +47,8 @@ public:
 
     Vector<String> recursive_glob(const StringView& pattern, const StringView& base);
     Vector<String> recursive_glob(const StringView& pattern, const StringView& base, Vector<String> skip_paths);
+
+    bool update_if_relative(String& path, String base);
 
 private:
     FileProvider(StringView current_dir);

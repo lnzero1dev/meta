@@ -8,6 +8,7 @@
             "build_generator": "cmake",
             "build_generator_configuration": {
                 "build_tool": "ninja",
+                "parallel_build": "4"
             }
         }
     }
