@@ -44,10 +44,11 @@ public:
     Package(String, JsonObject);
     ~Package();
 
-    const Vector<String>& toolchain_steps() { return m_toolchain_steps; }
-    const Vector<String>& sources() { return m_sources; }
-    const Vector<String>& includes() { return m_includes; }
-    PackageType type() { return m_type; }
+    const Vector<String>& toolchain_steps() const { return m_toolchain_steps; }
+    const Vector<String>& sources() const { return m_sources; }
+    const Vector<String>& includes() const { return m_includes; }
+    PackageType type() const { return m_type; }
+    const String& filename() const { return m_filename; }
 
 private:
     bool m_consistent = true;

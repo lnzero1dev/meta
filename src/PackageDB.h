@@ -13,7 +13,7 @@ public:
     static PackageDB& the();
     ~PackageDB();
 
-    void add(String, String, JsonObject);
+    bool add(String, String, JsonObject);
     Package* get(StringView name);
 
     template<typename Callback>

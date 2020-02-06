@@ -71,7 +71,13 @@ void load_meta_json_files(Vector<String> files, bool settings_only = false)
 #ifdef META_DEBUG
                             fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
 #endif
-                            PackageDB::the().add(filename, key, value.as_object());
+                            bool result = PackageDB::the().add(filename, key, value.as_object());
+                            if (!result) {
+                                fprintf(stderr, "Could not add package to DB: Already existing\n");
+                                fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
+                                auto package = PackageDB::the().get(key);
+                                fprintf(stderr, "- Existing: %s from file %s\n", key.characters(), package->filename().characters());
+                            }
                         });
                     } else if (key == "settings") {
                         // TODO: shall settings are allowed in the second round?

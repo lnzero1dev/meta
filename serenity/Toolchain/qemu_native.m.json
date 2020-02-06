@@ -1,6 +1,6 @@
 {
     "package": {
-        "g++-serenity": {
+        "qemu": {
             "version": "4.1.0",
             "type": "collection",
             "provides": {
