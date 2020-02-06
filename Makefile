@@ -5,15 +5,15 @@ PROGRAM = meta
 DEFINES = -g
 
 OBJS = \
-    main.o \
-    Settings.o \
-    SettingsProvider.o \
-    SettingsParameter.o \
-    FileProvider.o \
-    ToolchainDB.o \
-    Toolchain.o \
-    PackageDB.o \
-    Package.o \
+    src/main.o \
+    src/Settings.o \
+    src/SettingsProvider.o \
+    src/SettingsParameter.o \
+    src/FileProvider.o \
+    src/ToolchainDB.o \
+    src/Toolchain.o \
+    src/PackageDB.o \
+    src/Package.o \
     ../../AK/FileSystemPath.o \
     ../../AK/String.o \
     ../../AK/StringImpl.o \
