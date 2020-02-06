@@ -1,4 +1,5 @@
 #include "FileProvider.h"
+#include "ImageDB.h"
 #include "PackageDB.h"
 #include "SettingsProvider.h"
 #include "ToolchainDB.h"
@@ -79,7 +80,6 @@ void load_meta_all(Vector<String> files)
         if (json.is_object()) {
             json.as_object().for_each_member([&](auto& key, auto& value) {
                 if (key == "toolchain") {
-                    fprintf(stderr, "Found toolchain, adding to DB.\n");
                     value.as_object().for_each_member([&](auto& key, auto& value) {
 #ifdef META_DEBUG
                         fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
@@ -114,7 +114,18 @@ void load_meta_all(Vector<String> files)
                                 fprintf(stderr, "Unknown settings priority %s found in JSON file.\n", key.characters());
                         });
                 } else if (key == "image") {
-                    // TODO: Fixme
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
+#ifdef META_DEBUG
+                        fprintf(stderr, "Found image %s, adding to DB.\n", key.characters());
+#endif
+                        bool result = ImageDB::the().add(filename, key, value.as_object());
+                        if (!result) {
+                            fprintf(stderr, "Could not add image to DB: Already existing\n");
+                            fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
+                            auto image = ImageDB::the().get(key);
+                            fprintf(stderr, "- Existing: %s from file %s\n", key.characters(), image->filename().characters());
+                        }
+                    });
                 } else {
                     fprintf(stderr, "Unknown key %s found in JSON file.\n", key.characters());
                 }
@@ -173,6 +184,14 @@ void statistics()
         return IterationDecision::Continue;
     });
 
+    auto& images = ImageDB::the().images();
+    StringBuilder image_list;
+    ImageDB::the().for_each_image([&](auto& name, auto&) {
+        image_list.append(name);
+        image_list.append(", ");
+        return IterationDecision::Continue;
+    });
+
     fprintf(stdout, "----- STATISTICS -----\n");
     fprintf(stdout, "Toolchains: %i\n", toolchains.size());
     if (toolchains.size())
@@ -190,6 +209,10 @@ void statistics()
     fprintf(stdout, "Packages that are Unknown type: %i\n", type_unknown);
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
+    fprintf(stdout, "----- ---------- -----\n");
+    fprintf(stdout, "Images: %i\n", images.size());
+    if (images.size())
+        fprintf(stdout, "* %s\033[2D \n", image_list.build().characters());
     fprintf(stdout, "----------------------\n");
 }
 

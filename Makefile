@@ -14,6 +14,8 @@ OBJS = \
     src/Toolchain.o \
     src/PackageDB.o \
     src/Package.o \
+    src/ImageDB.o \
+    src/Image.o \
     ../../AK/FileSystemPath.o \
     ../../AK/String.o \
     ../../AK/StringImpl.o \

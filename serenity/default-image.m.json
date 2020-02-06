@@ -2,8 +2,8 @@
     "image": {
         "default-image": {
             "install": "*",
-            "build_toolchain": "build_qemu",
-            "run_toolchain": "run_qemu"
+            "build_tool": "build_qemu",
+            "run_tool": "run_qemu"
         }
     }
 }
