@@ -3,7 +3,6 @@
 #include <AK/JsonValue.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 
 Settings::Settings()
 {
@@ -66,29 +65,6 @@ bool Settings::load(const String& filename, const JsonObject& settings_object)
         return update_paths(filename);
 }
 
-//bool Settings::load()
-//{
-//    auto filename = FileProvider::the().find_in_working_directory_and_parents(s_settings_file_name);
-
-//    auto file = CFile::construct();
-//    file->set_filename(filename);
-
-//    if (!file->filename().is_empty() && file->exists()) {
-//        m_settings_filename = filename;
-
-//        /* load json file */
-//        if (!file->open(CIODevice::ReadOnly)) {
-//            fprintf(stderr, "Couldn't open %s for reading: %s\n", file->filename().characters(), file->error_string());
-//            return false;
-//        }
-
-//        auto file_contents = file->read_all();
-//        auto json = JsonValue::from_string(file_contents);
-
-//    }
-//    return false;
-//}
-
 bool Settings::update_paths(const String& filename)
 {
     // first, update build root
@@ -102,22 +78,18 @@ bool Settings::update_paths(const String& filename)
         ret &= FileProvider::the().update_if_relative(root, settings_file_dir);
         if (ret)
             m_root.value() = { filename, root };
-
-        //fprintf(stderr, "root: %s\n", root.characters());
     }
     if (m_build_directory.has_value()) {
         auto build_directory = String { m_build_directory.value().as_string() };
         ret &= FileProvider::the().update_if_relative(build_directory, settings_file_dir);
         if (ret)
             m_build_directory.value() = { filename, build_directory };
-        //fprintf(stderr, "build_directory: %s\n", build_directory.characters());
     }
     if (m_gendata_directory.has_value()) {
         auto gendata_directory = String { m_gendata_directory.value().as_string() };
         ret &= FileProvider::the().update_if_relative(gendata_directory, settings_file_dir);
         if (ret)
             m_gendata_directory.value() = { filename, gendata_directory };
-        //fprintf(stderr, "gendata_directory: %s\n", gendata_directory.characters());
     }
     return ret;
 }

@@ -1,6 +1,4 @@
 #include "Toolchain.h"
-#include <AK/JsonObject.h>
-#include <AK/JsonValue.h>
 
 bool set_flags(Flags& flags, String key, String value)
 {
@@ -38,7 +36,6 @@ bool set_flags(Flags& flags, String key, String value)
 Toolchain::Toolchain(JsonObject json_obj)
 {
     json_obj.for_each_member([&](auto& key, auto& value) {
-        //fprintf(stderr, "Package Key: %s\n", key.characters());
         if (key == "file_tool_mapping") {
             value.as_object().for_each_member([&](auto& key, auto& value) {
                 m_file_tool_mapping.set(key, value.as_string());

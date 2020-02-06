@@ -2,7 +2,6 @@
 
 #include "Toolchain.h"
 #include <AK/JsonObject.h>
-#include <LibCore/CFile.h>
 #include <LibCore/CObject.h>
 
 class ToolchainDB : public Core::Object {
@@ -12,7 +11,7 @@ public:
     static ToolchainDB& the();
     ~ToolchainDB();
 
-    void add(String, JsonObject);
+    bool add(String, JsonObject);
     Toolchain* get(StringView);
 
     template<typename Callback>

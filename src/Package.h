@@ -2,8 +2,6 @@
 
 #include <AK/JsonObject.h>
 #include <AK/Traits.h>
-#include <LibCore/CFile.h>
-#include <LibCore/CObject.h>
 
 enum class LinkageType : uint8_t {
     Inherit = 0,
@@ -49,6 +47,8 @@ public:
     const Vector<String>& includes() const { return m_includes; }
     PackageType type() const { return m_type; }
     const String& filename() const { return m_filename; }
+
+    bool is_consistent() const { return m_consistent; }
 
 private:
     bool m_consistent = true;

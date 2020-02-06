@@ -3,7 +3,6 @@
 #include "Settings.h"
 #include <AK/HashMap.h>
 #include <AK/JsonObject.h>
-#include <AK/NonnullOwnPtr.h>
 #include <AK/Types.h>
 #include <LibCore/CObject.h>
 
@@ -33,7 +32,7 @@ public:
     Optional<SettingsParameter> get(const String& parameter);
     Optional<String> get_string(const String& parameter);
 
-    void list();
+    void list_all();
 
 private:
     SettingsProvider();

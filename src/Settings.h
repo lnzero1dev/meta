@@ -13,11 +13,6 @@ class Settings {
 
 public:
     Settings();
-    //    Settings(Settings& other) = default;
-    //    explicit Settings(Settings&& other) = default;
-    //    Settings& operator=(Settings& other) = default;
-    //    Settings& operator=(Settings&& other) = default;
-
     ~Settings();
     bool load(const String& filename, const JsonObject& settings_object);
 

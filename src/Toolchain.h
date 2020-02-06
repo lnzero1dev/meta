@@ -2,8 +2,6 @@
 
 #include <AK/HashMap.h>
 #include <AK/JsonObject.h>
-#include <LibCore/CFile.h>
-#include <LibCore/CObject.h>
 
 struct Flags {
     String standard;

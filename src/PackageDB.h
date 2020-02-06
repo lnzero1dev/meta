@@ -3,7 +3,6 @@
 #include "Package.h"
 #include <AK/HashMap.h>
 #include <AK/JsonObject.h>
-#include <LibCore/CFile.h>
 #include <LibCore/CObject.h>
 
 class PackageDB : public Core::Object {

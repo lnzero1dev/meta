@@ -6,8 +6,6 @@
 #include <LibCore/CObject.h>
 #include <regex.h>
 
-//#define META_DEBUG
-
 struct GlobState {
 public:
     regex_t compiled_regex;
@@ -23,9 +21,6 @@ class FileProvider : public Core::Object {
 
 public:
     static FileProvider& the();
-
-    String find_in_working_directory_and_parents(StringView filename);
-
     ~FileProvider();
 
     template<typename Callback>

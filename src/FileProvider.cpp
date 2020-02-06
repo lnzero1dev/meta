@@ -1,11 +1,8 @@
 #include "FileProvider.h"
-#include "Settings.h"
 #include "SettingsProvider.h"
-#include <AK/FileSystemPath.h>
 #include <AK/StringBuilder.h>
 #include <LibCore/CDirIterator.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 FileProvider::FileProvider(StringView current_dir)
     : m_current_dir { current_dir }
@@ -28,24 +25,6 @@ FileProvider& FileProvider::the()
     if (!s_the)
         s_the = &FileProvider::construct(cwd).leak_ref();
     return *s_the;
-}
-
-String FileProvider::find_in_working_directory_and_parents(StringView filename)
-{
-    auto file = Core::File::construct();
-
-    for_each_parent_directory([&](auto directory) {
-        StringBuilder builder;
-        builder.append(directory);
-        builder.append("/");
-        builder.append(filename);
-        file->set_filename(builder.build());
-        if (file->exists())
-            return IterationDecision::Break;
-        return IterationDecision::Continue;
-    });
-
-    return file->filename();
 }
 
 Vector<String> FileProvider::glob_all_meta_json_files(String root_directory)

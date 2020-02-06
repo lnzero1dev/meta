@@ -55,11 +55,11 @@ Optional<String> SettingsProvider::get_string(const String& parameter)
     return {};
 }
 
-void SettingsProvider::list()
+void SettingsProvider::list_all()
 {
-    //    fprintf(stdout, "filename: %s\n", m_settings_filename.characters());
-    //    fprintf(stdout, "root: %s\n", m_root.characters());
-    //    fprintf(stdout, "toolchain: %s\n", m_toolchain.characters());
-    //    fprintf(stdout, "build_directory: %s\n", m_build_directory.characters());
-    //    fprintf(stdout, "build_configuration: %s\n", m_build_configuration.characters());
+    Vector<String> string_params = { "root", "toolchain", "build_directory", "gendata_directory", "build_generator" };
+    for (auto& param : string_params) {
+        auto value = get_string(param);
+        fprintf(stdout, "%s: %s\n", param.characters(), value.value_or("").characters());
+    }
 }

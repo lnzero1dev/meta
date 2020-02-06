@@ -1,6 +1,4 @@
 #include "ToolchainDB.h"
-#include <AK/JsonObject.h>
-#include <AK/JsonValue.h>
 
 ToolchainDB::ToolchainDB()
 {
@@ -18,9 +16,13 @@ ToolchainDB& ToolchainDB::the()
     return *s_the;
 }
 
-void ToolchainDB::add(String name, JsonObject json_obj)
+bool ToolchainDB::add(String name, JsonObject json_obj)
 {
+    if (m_toolchains.find(name) != m_toolchains.end())
+        return false;
+
     m_toolchains.set(name, { json_obj });
+    return true;
 }
 
 Toolchain* ToolchainDB::get(StringView name)

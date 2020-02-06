@@ -2,12 +2,9 @@
 #include "PackageDB.h"
 #include "SettingsProvider.h"
 #include "ToolchainDB.h"
-#include <AK/JsonObject.h>
 #include <AK/JsonValue.h>
 #include <AK/String.h>
 #include <AK/Types.h>
-#include <algorithm>
-#include <cstring>
 #include <stdio.h>
 
 enum class PrimaryCommand : u8 {
@@ -277,7 +274,7 @@ int main(int argc, char** argv)
             break;
         }
         case ConfigSubCommand::List: {
-            settingsProvider.list();
+            settingsProvider.list_all();
             break;
         }
         case ConfigSubCommand::Get: {

@@ -1,11 +1,7 @@
 #include "Package.h"
 #include "FileProvider.h"
-#include "Settings.h"
 #include "SettingsProvider.h"
-#include <AK/JsonObject.h>
-#include <AK/JsonValue.h>
 #include <regex>
-#include <string>
 
 LinkageType string_to_linkage_type(String type)
 {
@@ -54,7 +50,6 @@ Package::Package(String filename, JsonObject json_obj)
     m_filename = filename;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
-        //fprintf(stderr, "Package Key: %s\n", key.characters());
         if (key == "type") {
             if (value.as_string().matches("library"))
                 m_type = PackageType::Library;

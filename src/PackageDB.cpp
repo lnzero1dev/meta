@@ -1,6 +1,4 @@
 #include "PackageDB.h"
-#include <AK/JsonObject.h>
-#include <AK/JsonValue.h>
 
 PackageDB::PackageDB()
 {
@@ -20,10 +18,9 @@ PackageDB& PackageDB::the()
 
 bool PackageDB::add(String filename, String name, JsonObject json_obj)
 {
-    if (m_packages.find(name) != m_packages.end()) {
-
+    if (m_packages.find(name) != m_packages.end())
         return false;
-    }
+
     m_packages.set(name, { filename, json_obj });
     return true;
 }
