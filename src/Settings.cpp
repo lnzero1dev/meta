@@ -39,8 +39,13 @@ bool Settings::load(const String& filename, const JsonObject& settings_object)
             if (m_build_generator.has_value()) {
                 failed = true;
                 return IterationDecision::Break;
-            } else
-                m_build_generator = SettingsParameter { filename, value.as_string() };
+            } else {
+                if (value.as_string() == "cmake")
+                    m_build_generator = SettingsParameter { filename, BuildGenerator::CMake };
+                else
+                    failed = true;
+            }
+
         } else if (key == "build_directory") {
             if (m_build_directory.has_value()) {
                 failed = true;
@@ -59,10 +64,8 @@ bool Settings::load(const String& filename, const JsonObject& settings_object)
         return IterationDecision::Continue;
     });
 
-    if (failed)
-        return false;
-    else
-        return update_paths(filename);
+    failed = !failed & update_paths(filename);
+    return failed;
 }
 
 bool Settings::update_paths(const String& filename)

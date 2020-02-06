@@ -1,3 +1,4 @@
+#include "CMakeGenerator.h"
 #include "FileProvider.h"
 #include "ImageDB.h"
 #include "PackageDB.h"
@@ -11,6 +12,7 @@
 enum class PrimaryCommand : u8 {
     None = 0,
     Build,
+    Generate,
     Config,
     Run
 };
@@ -228,6 +230,9 @@ int main(int argc, char** argv)
         if (strncmp("build", argv[1], arg_len) == 0 && arg_len == 5) {
             minarg = 3;
             cmd = PrimaryCommand::Build;
+        } else if (strncmp("gen", argv[1], arg_len) == 0 && arg_len == 3) {
+            minarg = 3;
+            cmd = PrimaryCommand::Generate;
         } else if (strncmp("config", argv[1], arg_len) == 0 && arg_len == 6) {
             cmd = PrimaryCommand::Config;
             ++minarg;
@@ -260,11 +265,15 @@ int main(int argc, char** argv)
             fprintf(stderr, "    meta config get <param>\n");
             fprintf(stderr, "    meta config set <param> <value>\n");
         }
+        if (cmd == PrimaryCommand::None || cmd == PrimaryCommand::Generate) {
+            fprintf(stderr, "  Generate:\n");
+            //fprintf(stderr, "    meta gen <toolchain>\n");
+            fprintf(stderr, "    meta gen <package>\n");
+            fprintf(stderr, "    meta gen <image>\n");
+        }
         if (cmd == PrimaryCommand::None || cmd == PrimaryCommand::Build) {
             fprintf(stderr, "  Build:\n");
-            fprintf(stderr, "    meta build <toolchain>\n");
-            fprintf(stderr, "    meta build <application>\n");
-            fprintf(stderr, "    meta build <image>\n");
+            fprintf(stderr, "    meta build <package>\n");
         }
         if (cmd == PrimaryCommand::None || cmd == PrimaryCommand::Run) {
             fprintf(stderr, "  Run:\n");
@@ -302,7 +311,6 @@ int main(int argc, char** argv)
         }
         case ConfigSubCommand::Get: {
             String parameter { argv[3], strlen(argv[3]) };
-            String value;
             Optional<SettingsParameter> param = settingsProvider.get(parameter);
             if (param.has_value()) {
                 fprintf(stdout, "%s: %s (set in %s)\n", parameter.characters(), param.value().as_string().characters(), param.value().filename().characters());
@@ -324,20 +332,90 @@ int main(int argc, char** argv)
     files = FileProvider::the().glob_all_meta_json_files(SettingsProvider::the().get_string("root").value_or(root));
     load_meta_all(files);
 
-    //    Toolchain& toolchain = Toolchain::the();
-    //    if (!toolchain.check_native_apps()) {
-    //        fprintf(stderr, "Some native apps missing!\n");
-    //        return -1;
-    //    }
+    if (cmd == PrimaryCommand::Generate) {
+        fprintf(stderr, "Generate!\n");
+
+        auto configured_toolchain = SettingsProvider::the().get_string("toolchain");
+        auto toolchain = ToolchainDB::the().get(configured_toolchain.value_or("default"));
+        if (!toolchain) {
+            if (configured_toolchain.has_value()) {
+                fprintf(stderr, "Wrong toolchain configured: %s!\n", configured_toolchain.value().characters());
+                StringBuilder toolchain_list;
+                ToolchainDB::the().for_each_toolchain([&](auto& name, auto&) {
+                    toolchain_list.append(name);
+                    toolchain_list.append(", ");
+                    return IterationDecision::Continue;
+                });
+                fprintf(stdout, "Available toolchains: %s\033[2D \n", toolchain_list.build().characters());
+            }
+        }
+
+        bool isImage = false;
+        bool isPackage = false;
+        String parameter { argv[2], strlen(argv[2]) };
+
+        // check if given argument is an image or an package
+        ImageDB::the().for_each_image([&](auto& name, auto&) {
+            if (name == parameter) {
+                isImage = true;
+                return IterationDecision::Break;
+            }
+            return IterationDecision::Continue;
+        });
+
+        if (!isImage)
+            PackageDB::the().for_each_package([&](auto& name, auto&) {
+                if (name == parameter) {
+                    isPackage = true;
+                    return IterationDecision::Break;
+                }
+                return IterationDecision::Continue;
+            });
+
+        // TODO: Do what the framework must do, before the generator is invoked:
+        // * calculate dependencies
+        // * check for missing executables / dependencies
+        // * calculate other requirements
+        // * do plausbility check, resolution of missing things....
+
+        // TODO: Lookahead into the future, that would be nice to have plugins to load
+        // Find/load the generator plugin and execute it... for now, everything is static.
+        // auto buildGenerator = settingsProvider.get("build_generator").value_or({ "internal", BuildGenerator::Undefined }).as_buildgenerator();
+        // GeneratorPluginsLoader::the().Initialize(buildGenerator); // Find all loadable plugins and initialize them
+        // GeneratorPluginsLoader::the().Generate(); // Generate everything
+
+        auto optBuildGenerator = settingsProvider.get("build_generator");
+        if (optBuildGenerator.has_value()) {
+            auto buildGenerator = optBuildGenerator.value().as_buildgenerator();
+            switch (buildGenerator) {
+            case BuildGenerator::CMake: {
+                auto& cmakegen = CMakeGenerator::the();
+                if (isImage) {
+                    cmakegen.gen_image(parameter);
+                } else if (isPackage) {
+                    cmakegen.gen_package(parameter);
+                }
+                break;
+            }
+            default:
+                fprintf(stderr, "Invalid build configurator configured.");
+            }
+        } else
+            fprintf(stderr, "Invalid build configurator configured.");
+
+        //
+        //    Toolchain& toolchain = Toolchain::the();
+        //    if (!toolchain.check_native_apps()) {
+        //        fprintf(stderr, "Some native apps missing!\n");
+        //        return -1;
+        //    }
+    }
 
     if (cmd == PrimaryCommand::Build) {
         fprintf(stderr, "Build!\n");
     }
 
     statistics();
-
-    // GeneratorPluginsLoader::the().Initialize(); // Find all loadable plugins and initialize them
-    // GeneratorPluginsLoader::the().Generate(); // Generate everything
 
     return 0;
 }

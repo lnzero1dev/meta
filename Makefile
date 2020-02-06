@@ -16,6 +16,7 @@ OBJS = \
     src/Package.o \
     src/ImageDB.o \
     src/Image.o \
+    src/CMakeGenerator.o \
     ../../AK/FileSystemPath.o \
     ../../AK/String.o \
     ../../AK/StringImpl.o \

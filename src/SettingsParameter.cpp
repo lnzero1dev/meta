@@ -30,6 +30,10 @@ void SettingsParameter::copy_from(const SettingsParameter& other)
         m_value.as_string = other.m_value.as_string;
         m_value.as_string->ref();
         break;
+    case Type::BuildGenerator:
+        ASSERT(!m_value.as_buildgenerator);
+        m_value.as_buildgenerator = other.m_value.as_buildgenerator;
+        break;
     case Type::JsonObject:
         m_value.as_object = new JsonObject(*other.m_value.as_object);
         break;
@@ -88,6 +92,13 @@ SettingsParameter::SettingsParameter(String filename, const String& value)
         m_value.as_string = const_cast<StringImpl*>(value.impl());
         m_value.as_string->ref();
     }
+}
+
+SettingsParameter::SettingsParameter(String filename, const BuildGenerator value)
+    : m_filename(filename)
+{
+    m_type = Type::BuildGenerator;
+    m_value.as_buildgenerator = new BuildGenerator(value);
 }
 
 SettingsParameter::SettingsParameter(String filename, const JsonObject& value)
