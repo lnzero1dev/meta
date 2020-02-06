@@ -20,7 +20,7 @@ SettingsProvider& SettingsProvider::the()
     return *s_the;
 }
 
-void SettingsProvider::add(const String& filename, SettingsPriority priority, const JsonObject& settings_object)
+bool SettingsProvider::add(const String& filename, SettingsPriority priority, const JsonObject& settings_object)
 {
     if (!m_settings.contains(priority)) {
         m_settings.set(priority, new Settings());
@@ -31,7 +31,9 @@ void SettingsProvider::add(const String& filename, SettingsPriority priority, co
     auto& settings = *m_settings.ensure(priority);
     if (!settings.load(filename, settings_object)) {
         fprintf(stdout, "Error loading settings file: %s\n", filename.characters());
+        return false;
     }
+    return true;
 }
 
 Optional<SettingsParameter> SettingsProvider::get(const String& parameter)

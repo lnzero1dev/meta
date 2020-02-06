@@ -24,7 +24,9 @@ enum class ConfigSubCommand : u8 {
     List
 };
 
-void load_meta_json_files(Vector<String> files, bool settings_only = false)
+Vector<String> s_loaded_settings_files;
+
+void load_meta_settings(Vector<String> files)
 {
     auto file = Core::File::construct();
     for (auto& filename : files) {
@@ -38,55 +40,86 @@ void load_meta_json_files(Vector<String> files, bool settings_only = false)
             continue;
         }
 
-        auto file_contents = file->read_all();
-        auto json = JsonValue::from_string(file_contents);
-        auto parse_settings = [&](auto& key, auto& value) {
-            SettingsPriority priority { SettingsPriority::Undefined };
-            if (key == "user")
-                priority = SettingsPriority::User;
-            else if (key == "project")
-                priority = SettingsPriority::Project;
+        auto json = JsonValue::from_string(file->read_all());
 
-            if (priority != SettingsPriority::Undefined)
-                SettingsProvider::the().add(filename, priority, value.as_object());
-            else
-                fprintf(stderr, "Unknown settings priority %s found in JSON file.\n", key.characters());
-        };
+        if (json.is_object())
+            json.as_object().for_each_member([&](auto& key, auto& value) {
+                if (key == "settings")
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
+                        SettingsPriority priority { SettingsPriority::Undefined };
+                        if (key == "user")
+                            priority = SettingsPriority::User;
+                        else if (key == "project")
+                            priority = SettingsPriority::Project;
+
+                        if (priority != SettingsPriority::Undefined) {
+                            if (SettingsProvider::the().add(filename, priority, value.as_object())) {
+                                s_loaded_settings_files.append(filename);
+                            }
+                        } else
+                            fprintf(stderr, "Unknown settings priority %s found in JSON file.\n", key.characters());
+                    });
+            });
+    }
+}
+
+void load_meta_all(Vector<String> files)
+{
+    auto file = Core::File::construct();
+    for (auto& filename : files) {
+        file->set_filename(filename);
+        if (file->filename().is_empty() || !file->exists())
+            continue;
+
+        /* load json file */
+        if (!file->open(Core::IODevice::ReadOnly)) {
+            fprintf(stderr, "Couldn't open %s for reading: %s\n", file->filename().characters(), file->error_string());
+            continue;
+        }
+
+        auto json = JsonValue::from_string(file->read_all());
 
         if (json.is_object()) {
             json.as_object().for_each_member([&](auto& key, auto& value) {
-                if (settings_only) {
-                    if (key == "settings")
-                        value.as_object().for_each_member(parse_settings);
+                if (key == "toolchain") {
+                    fprintf(stderr, "Found toolchain, adding to DB.\n");
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
+#ifdef META_DEBUG
+                        fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
+#endif
+                        ToolchainDB::the().add(key, value.as_object());
+                    });
+                } else if (key == "package") {
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
+#ifdef META_DEBUG
+                        fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
+#endif
+                        bool result = PackageDB::the().add(filename, key, value.as_object());
+                        if (!result) {
+                            fprintf(stderr, "Could not add package to DB: Already existing\n");
+                            fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
+                            auto package = PackageDB::the().get(key);
+                            fprintf(stderr, "- Existing: %s from file %s\n", key.characters(), package->filename().characters());
+                        }
+                    });
+                } else if (key == "settings") {
+                    if (s_loaded_settings_files.find(filename) == s_loaded_settings_files.end()) // not already loaded
+                        value.as_object().for_each_member([&](auto& key, auto& value) {
+                            SettingsPriority priority { SettingsPriority::Undefined };
+                            if (key == "user")
+                                priority = SettingsPriority::User;
+                            else if (key == "project")
+                                priority = SettingsPriority::Project;
+
+                            if (priority != SettingsPriority::Undefined)
+                                SettingsProvider::the().add(filename, priority, value.as_object());
+                            else
+                                fprintf(stderr, "Unknown settings priority %s found in JSON file.\n", key.characters());
+                        });
+                } else if (key == "image") {
+                    // TODO: Fixme
                 } else {
-                    if (key == "toolchain") {
-                        value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
-                            fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
-#endif
-                            ToolchainDB::the().add(key, value.as_object());
-                        });
-                    } else if (key == "package") {
-                        value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
-                            fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
-#endif
-                            bool result = PackageDB::the().add(filename, key, value.as_object());
-                            if (!result) {
-                                fprintf(stderr, "Could not add package to DB: Already existing\n");
-                                fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
-                                auto package = PackageDB::the().get(key);
-                                fprintf(stderr, "- Existing: %s from file %s\n", key.characters(), package->filename().characters());
-                            }
-                        });
-                    } else if (key == "settings") {
-                        // TODO: shall settings are allowed in the second round?
-                        //value.as_object().for_each_member(parse_settings);
-                    } else if (key == "image") {
-                        // TODO: Fixme
-                    } else {
-                        fprintf(stderr, "Unknown key %s found in JSON file.\n", key.characters());
-                    }
+                    fprintf(stderr, "Unknown key %s found in JSON file.\n", key.characters());
                 }
             });
         } else if (json.is_array()) {
@@ -203,15 +236,15 @@ int main(int argc, char** argv)
         fprintf(stderr, "usage: \n");
         if (cmd == PrimaryCommand::None || (cmd == PrimaryCommand::Config && config_subcmd == ConfigSubCommand::None)) {
             fprintf(stderr, "  Config:\n");
-        fprintf(stderr, "    meta config list\n");
-        fprintf(stderr, "    meta config get <param>\n");
-        fprintf(stderr, "    meta config set <param> <value>\n");
+            fprintf(stderr, "    meta config list\n");
+            fprintf(stderr, "    meta config get <param>\n");
+            fprintf(stderr, "    meta config set <param> <value>\n");
         }
         if (cmd == PrimaryCommand::None || cmd == PrimaryCommand::Build) {
             fprintf(stderr, "  Build:\n");
-        fprintf(stderr, "    meta build <toolchain>\n");
-        fprintf(stderr, "    meta build <application>\n");
-        fprintf(stderr, "    meta build <image>\n");
+            fprintf(stderr, "    meta build <toolchain>\n");
+            fprintf(stderr, "    meta build <application>\n");
+            fprintf(stderr, "    meta build <image>\n");
         }
         if (cmd == PrimaryCommand::None || cmd == PrimaryCommand::Run) {
             fprintf(stderr, "  Run:\n");
@@ -232,7 +265,11 @@ int main(int argc, char** argv)
         fprintf(stderr, "* %s\n", file.characters());
     }
 #endif
-    load_meta_json_files(files, true);
+
+    // First, load all files that we can find from the current directory.
+    // This is needed to find the project settings. After loading the
+    // Settings, we likely know that we
+    load_meta_settings(files);
 
     if (cmd == PrimaryCommand::Config) {
         switch (config_subcmd) {
@@ -264,7 +301,8 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    load_meta_json_files(files);
+    files = FileProvider::the().glob_all_meta_json_files(SettingsProvider::the().get_string("root").value_or(root));
+    load_meta_all(files);
 
     //    Toolchain& toolchain = Toolchain::the();
     //    if (!toolchain.check_native_apps()) {

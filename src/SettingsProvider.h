@@ -29,7 +29,7 @@ public:
     static SettingsProvider& the();
     ~SettingsProvider();
 
-    void add(const String& filename, SettingsPriority priority, const JsonObject& settings_object);
+    bool add(const String& filename, SettingsPriority priority, const JsonObject& settings_object);
     Optional<SettingsParameter> get(const String& parameter);
     Optional<String> get_string(const String& parameter);
 
