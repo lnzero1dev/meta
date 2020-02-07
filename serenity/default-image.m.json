@@ -3,7 +3,21 @@
         "default-image": {
             "install": "*",
             "build_tool": "build_qemu",
-            "run_tool": "run_qemu"
+            "run_tool": "run_qemu",
+            "install_dirs": {
+                "bindir": "bin",
+                "sbindir": "sbin",
+                "libexecdir": "libexec",
+                "sysconfdir": "etc",
+                "sharedstatedir": "shared",
+                "localstatedir": "var",
+                "includedir": "include",
+                "datarootdir": "share",
+                "datadir": "${datarootdir}",
+                "infodir": "${datarootdir}/info",
+                "localedir": "${datarootdir}/locale",
+                "mandir": "${datarootdir}/man"
+            }
         }
     }
 }

@@ -374,9 +374,14 @@ int main(int argc, char** argv)
 
         // TODO: Do what the framework must do, before the generator is invoked:
         // * calculate dependencies
-        // * check for missing executables / dependencies
-        // * calculate other requirements
-        // * do plausbility check, resolution of missing things....
+        // * -> check for missing executables / dependencies and exit if something cannot be found
+        // * calculate needed native tools
+        // * create package build queue (in order... native tools, packages)
+        // * work on queue that contains all leaves, if all dependencies of a package are satisfied, enqueue package
+        //   _ run generator(s) depending on package sources (file extension tool mappings --> generators must be natively built before!)
+        //   _ build
+        //   _ on_finish() callback's
+        // * if image is being built, execute image tools (build)
 
         // TODO: Lookahead into the future, that would be nice to have plugins to load
         // Find/load the generator plugin and execute it... for now, everything is static.

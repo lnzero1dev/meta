@@ -6,6 +6,7 @@ DEFINES = -g
 
 OBJS = \
     src/main.o \
+    src/StringUtils.o \
     src/Settings.o \
     src/SettingsProvider.o \
     src/SettingsParameter.o \

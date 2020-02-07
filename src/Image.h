@@ -4,6 +4,31 @@
 #include <AK/JsonValue.h>
 #include <AK/String.h>
 
+enum class InstallDir : uint8_t {
+    Undefined,
+    BinDir,
+    SbinDir,
+    LibexecDir,
+    SysconfDir,
+    SharedstateDir,
+    LocalstateDir,
+    IncludeDir,
+    DatarootDir,
+    DataDir,
+    InfoDir,
+    LocaleDir,
+    ManDir,
+};
+
+namespace AK {
+template<>
+struct Traits<InstallDir> : public GenericTraits<InstallDir> {
+    static constexpr bool is_trivial() { return true; }
+    static unsigned hash(InstallDir i) { return int_hash((int)i); }
+    static void dump(InstallDir i) { kprintf("%d", (int)i); }
+};
+}
+
 class Image {
 
 public:
@@ -23,4 +48,6 @@ private:
 
     String m_build_tool;
     String m_run_tool;
+    HashMap<InstallDir, String> imageInstallDirs;
+    void set_default_install_dirs();
 };

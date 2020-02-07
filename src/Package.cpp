@@ -1,7 +1,7 @@
 #include "Package.h"
 #include "FileProvider.h"
 #include "SettingsProvider.h"
-#include <regex>
+#include "StringUtils.h"
 
 LinkageType string_to_linkage_type(String type)
 {
@@ -23,24 +23,6 @@ static bool is_glob(const StringView& s)
             return true;
     }
     return false;
-}
-
-static bool contains_variable(const StringView& s)
-{
-    for (size_t i = 0; i < s.length(); i++) {
-        char c = s.characters_without_null_termination()[i];
-        if (c == '$') {
-            return true;
-        }
-    }
-    return false;
-}
-
-String replace_variables(const StringView& s)
-{
-    std::string str(s.characters_without_null_termination(), s.length());
-    std::string replaced = std::regex_replace(str, std::regex("\\$\\{root\\}"), String { SettingsProvider::the().get_string("root").value_or("") }.characters());
-    return replaced.c_str();
 }
 
 Package::Package(String filename, JsonObject json_obj)
@@ -148,8 +130,8 @@ Package::Package(String filename, JsonObject json_obj)
             for (auto& value : values) {
                 String source = value.as_string();
                 String search_dir = m_directory;
-                if (contains_variable(source)) {
-                    source = replace_variables(source);
+                if (potentially_contains_variable(source)) {
+                    source = replace_variables(source, "root", SettingsProvider::the().get_string("root").value_or(""));
                     // instead of setting the place to search here directly,
                     // it would be also possible (and maybe more performant)
                     // to first search in m_directory, and if nothing is being
@@ -176,8 +158,8 @@ Package::Package(String filename, JsonObject json_obj)
             for (auto& value : values) {
                 String include = value.as_string();
                 String search_dir = m_directory;
-                if (contains_variable(include)) {
-                    include = replace_variables(include);
+                if (potentially_contains_variable(include)) {
+                    include = replace_variables(include, "root", SettingsProvider::the().get_string("root").value_or(""));
                     search_dir = SettingsProvider::the().get_string("root").value_or("");
                 }
                 if (is_glob(include)) {
