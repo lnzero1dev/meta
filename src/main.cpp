@@ -1,4 +1,5 @@
 #include "CMakeGenerator.h"
+#include "DependencyResolver.h"
 #include "FileProvider.h"
 #include "ImageDB.h"
 #include "PackageDB.h"
@@ -376,12 +377,21 @@ int main(int argc, char** argv)
         // * calculate dependencies
         // * -> check for missing executables / dependencies and exit if something cannot be found
         // * calculate needed native tools
+        // optional for build [
         // * create package build queue (in order... native tools, packages)
         // * work on queue that contains all leaves, if all dependencies of a package are satisfied, enqueue package
         //   _ run generator(s) depending on package sources (file extension tool mappings --> generators must be natively built before!)
         //   _ build
         //   _ on_finish() callback's
+        // ]
         // * if image is being built, execute image tools (build)
+
+        if (!DependencyResolver::the().resolve_dependencies(PackageDB::the().packages())) {
+            fprintf(stderr, "Could not resolve all dependencies. Missing dependencies:\n");
+            for (auto& dependency : DependencyResolver::the().missing_dependencies()) {
+                fprintf(stderr, "* %s\n", dependency.characters());
+            }
+        }
 
         // TODO: Lookahead into the future, that would be nice to have plugins to load
         // Find/load the generator plugin and execute it... for now, everything is static.

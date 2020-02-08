@@ -21,7 +21,7 @@ bool PackageDB::add(String filename, String name, JsonObject json_obj)
     if (m_packages.find(name) != m_packages.end())
         return false;
 
-    m_packages.set(name, { filename, json_obj });
+    m_packages.set(name, { filename, name, json_obj });
     return true;
 }
 

@@ -39,16 +39,19 @@ struct PackageVersion {
 class Package {
 
 public:
-    Package(String, JsonObject);
+    Package(String, String, JsonObject);
     ~Package();
 
     const Vector<String>& toolchain_steps() const { return m_toolchain_steps; }
     const Vector<String>& sources() const { return m_sources; }
     const Vector<String>& includes() const { return m_includes; }
+    const String& name() const { return m_name; }
     PackageType type() const { return m_type; }
     const String& filename() const { return m_filename; }
 
     bool is_consistent() const { return m_consistent; }
+
+    const HashMap<String, LinkageType>& dependencies() const { return m_dependencies; }
 
 private:
     bool m_consistent = true;
@@ -56,6 +59,7 @@ private:
     String m_filename;
     String m_directory;
 
+    String m_name;
     PackageType m_type;
     PackageVersion m_version;
 

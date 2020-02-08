@@ -25,11 +25,12 @@ static bool is_glob(const StringView& s)
     return false;
 }
 
-Package::Package(String filename, JsonObject json_obj)
+Package::Package(String filename, String name, JsonObject json_obj)
 {
     FileSystemPath path { filename };
     m_directory = path.dirname();
     m_filename = filename;
+    m_name = name;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "type") {
