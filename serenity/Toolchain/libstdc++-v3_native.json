@@ -1,0 +1,41 @@
+{
+    "package": {
+        "libstdc++-v3": {
+            "version": "9.2.0",
+            "type": "collection",
+            "provides": {
+                "library": [
+                    "libstdc++-v3"
+                ]
+            },
+            "toolchain": {
+                "native": true,
+                "steps": [
+                    "download",
+                    "patch",
+                    "configure",
+                    "build",
+                    "install"
+                ],
+                "options": {
+                    "download": {
+                        "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}.tar.xz",
+                        "url_hash": "3818ad8600447f05349098232c2ddc78",
+                        "url_hash_type": "md5"
+                    },
+                    "patch": {
+                        "file": "${root}/Toolchain/Patches/gcc.patch"
+                    },
+                    "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++",
+                    "build": "all-target-libstdc++-v3",
+                    "install": "install-target-libstdc++-v3"
+                }
+            },
+            "dependency": [
+                "binutils",
+                "libc",
+                "libm"
+            ]
+        }
+    }
+}

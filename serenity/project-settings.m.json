@@ -4,7 +4,7 @@
             "root": "../../..",
             "toolchain": "default",
             "build_directory": "build",
-            "gendata_directory": "gendata",
+            "gendata_directory": "build-gen",
             "build_generator": "cmake",
             "build_generator_configuration": {
                 "build_tool": "ninja",

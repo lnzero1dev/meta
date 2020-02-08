@@ -1,6 +1,6 @@
 {
     "package": {
-        "binutils-serenity": {
+        "binutils": {
             "version": "2.33.1",
             "type": "collection",
             "toolchain": {
@@ -8,13 +8,14 @@
                     "download",
                     "patch",
                     "configure",
-                    "make",
+                    "build",
                     "install"
                 ],
                 "options": {
                     "download": {
-                        "url": "http://ftp.gnu.org/gnu/binutils/binutils-${version}.tar.gz",
-                        "md5sum": "e03739b042a14376d727ddcfd05a9bc3"
+                        "url": "http://ftp.gnu.org/gnu/binutils/binutils-${version}.tar.xz",
+                        "url_hash": "9406231b7d9dd93731c2d06cefe8aaf1",
+                        "url_hash_type": "md5"
                     },
                     "patch": {
                         "file": "patches/gcc.patch"
@@ -22,12 +23,7 @@
                     "configure": "--target=i686-pc-serenity --enable-shared --disable-nls",
                     "install": "install"
                 }
-            },
-            "dependency": [
-                "bin-utils-serenity",
-                "serenity-LibC",
-                "serenity-LibM"
-            ]
+            }
         }
     }
 }

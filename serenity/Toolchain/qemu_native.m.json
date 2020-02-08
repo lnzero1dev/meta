@@ -13,13 +13,14 @@
                 "steps": [
                     "download",
                     "configure",
-                    "make",
+                    "build",
                     "install"
                 ],
                 "options": {
                     "download": {
                         "url": "https://download.qemu.org/qemu-${version}.tar.xz",
-                        "md5sum": "cdf2b5ca52b9abac9bacb5842fa420f8"
+                        "url_hash": "cdf2b5ca52b9abac9bacb5842fa420f8",
+                        "url_hash_type": "md5"
                     },
                     "configure": "--target-list=i386-softmmu --enable-gtk"
                 }

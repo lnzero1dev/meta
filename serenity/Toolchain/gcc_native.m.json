@@ -1,6 +1,6 @@
 {
     "package": {
-        "g++-serenity": {
+        "gcc": {
             "version": "9.2.0",
             "type": "collection",
             "provides": {
@@ -11,33 +11,36 @@
                     "i686-pc-serenity-ld",
                     "i686-pc-serenity-ranlib",
                     "i686-pc-serenity-ar"
+                ],
+                "library": [
+                    "libgcc"
                 ]
             },
             "toolchain": {
+                "native": true,
                 "steps": [
                     "download",
                     "patch",
                     "configure",
-                    "make",
+                    "build",
                     "install"
                 ],
                 "options": {
                     "download": {
-                        "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}.tar.gz",
-                        "md5sum": "e03739b042a14376d727ddcfd05a9bc3"
+                        "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}.tar.xz",
+                        "url_hash": "3818ad8600447f05349098232c2ddc78",
+                        "url_hash_type": "md5"
                     },
                     "patch": {
-                        "file": "patches/gcc.patch"
+                        "file": "${root}/Toolchain/Patches/gcc.patch"
                     },
                     "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++",
-                    "make": "all-gcc all-target-libgcc all-target-libstdc++-v3",
-                    "install": "install-gcc install-target-libgcc install-target-libstdc++-v3"
+                    "build": "all-gcc all-target-libgcc",
+                    "install": "install-gcc install-target-libgcc"
                 }
             },
             "dependency": [
-                "bin-utils-serenity",
-                "serenity-LibC",
-                "serenity-LibM"
+                "binutils"
             ]
         }
     }

@@ -1,12 +1,12 @@
 {
     "package": {
-        "serenity-LibC": {
+        "libm": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibC/**/*.cpp"
+                "${root}/Libraries/LibM/**/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibC"
+                "${root}/Libraries/LibM"
             ]
         }
     }
