@@ -351,6 +351,12 @@ int main(int argc, char** argv)
             }
         }
 
+        // TODO: For the toolchain it is essential that only the tools of the used toolchain are beeing checked.
+        // For example, tools for a different toolchain may be not available on your system. Thererfore, the
+        // Dependency resolver shall only check the tools of the used toolchain. Furthermore, it could also check
+        // only the dependencies of the selected package, or the packages contained in the selecte image.
+        // For now, all dependencies are checked, regardless if they must be built or not.
+
         bool isImage = false;
         bool isPackage = false;
         String parameter { argv[2], strlen(argv[2]) };
@@ -373,6 +379,11 @@ int main(int argc, char** argv)
                 return IterationDecision::Continue;
             });
 
+        if (!isImage && !isPackage) {
+            fprintf(stderr, "No package or image name matching provided name: %s.\n", parameter.characters());
+            return -1;
+        }
+
         // TODO: Do what the framework must do, before the generator is invoked:
         // * calculate dependencies
         // * -> check for missing executables / dependencies and exit if something cannot be found
@@ -391,6 +402,7 @@ int main(int argc, char** argv)
             for (auto& dependency : DependencyResolver::the().missing_dependencies()) {
                 fprintf(stderr, "* %s\n", dependency.characters());
             }
+            return -1;
         }
 
         // TODO: Lookahead into the future, that would be nice to have plugins to load
@@ -405,10 +417,48 @@ int main(int argc, char** argv)
             switch (buildGenerator) {
             case BuildGenerator::CMake: {
                 auto& cmakegen = CMakeGenerator::the();
+
+                Vector<Package> native_packages;
+                PackageDB::the().for_each_package([&](auto&, auto& data) {
+                    if (data.is_native()) {
+                        native_packages.append(data);
+                    }
+                    return IterationDecision::Continue;
+                });
+
+                ASSERT(toolchain);
+                cmakegen.gen_toolchain(*toolchain, native_packages);
+
                 if (isImage) {
-                    cmakegen.gen_image(parameter);
+                    auto image = ImageDB::the().get(parameter);
+                    ASSERT(image);
+                    cmakegen.gen_image(*image);
+                    if (image->install_all()) {
+                        PackageDB::the().for_each_package([&](auto&, auto& data) {
+                            if (!data.is_native()) {
+                                cmakegen.gen_package(data);
+                            }
+                            return IterationDecision::Continue;
+                        });
+                    } else {
+                        for (auto& package_name : image->install()) {
+                            Package* package;
+                            if (!(package = PackageDB::the().get(package_name))) {
+                                fprintf(stderr, "Image %s configured to install package %s. Package not found!", parameter.characters(), package_name.characters());
+                                return -1;
+                            }
+                            ASSERT(package);
+                            cmakegen.gen_package(*package);
+                        }
+                    }
                 } else if (isPackage) {
-                    cmakegen.gen_package(parameter);
+                    Package* package;
+                    if (!(package = PackageDB::the().get(parameter))) {
+                        fprintf(stderr, "Package %s not found!", parameter.characters());
+                        return -1;
+                    }
+                    ASSERT(package);
+                    cmakegen.gen_package(*package);
                 }
                 break;
             }
