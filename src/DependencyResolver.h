@@ -16,5 +16,7 @@ public:
 private:
     DependencyResolver();
 
+    const Vector<String> find_missing_dependencies(const HashMap<String, Package>&, const Vector<String>&);
+
     Vector<String> m_missing_dependencies;
 };

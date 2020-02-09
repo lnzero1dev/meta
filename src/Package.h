@@ -50,8 +50,10 @@ public:
     const String& filename() const { return m_filename; }
 
     bool is_consistent() const { return m_consistent; }
+    bool is_native() const { return m_is_native; }
 
     const HashMap<String, LinkageType>& dependencies() const { return m_dependencies; }
+    const HashMap<PackageType, Vector<String>>& provides() const { return m_provides; }
 
 private:
     bool m_consistent = true;
@@ -74,4 +76,6 @@ private:
 
     HashMap<String, LinkageType> m_dependencies;
     LinkageType m_dependency_linkage = LinkageType::Static;
+
+    bool m_is_native { false };
 };

@@ -34,6 +34,13 @@ Vector<String> FileProvider::glob_all_meta_json_files(String root_directory)
     if (opt_build_dir.has_value()) {
         skip_paths.append(opt_build_dir.value().as_string());
     }
+
+    skip_paths.append("/home/ema/checkout/serenity/Base");
+    skip_paths.append("/home/ema/checkout/serenity/Ports");
+    skip_paths.append("/home/ema/checkout/serenity/Root");
+    skip_paths.append("/home/ema/checkout/serenity/DevTools/meta/serenity/build");
+    skip_paths.append("/home/ema/checkout/serenity/Toolchain");
+
     return recursive_glob("**/*.m.json", root_directory, skip_paths);
 }
 

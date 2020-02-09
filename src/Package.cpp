@@ -15,14 +15,27 @@ LinkageType string_to_linkage_type(String type)
         return LinkageType::Unknown;
 }
 
-static bool is_glob(const StringView& s)
+static bool is_glob(const String& s)
 {
     for (size_t i = 0; i < s.length(); i++) {
-        char c = s.characters_without_null_termination()[i];
+        char c = s.characters()[i];
         if (c == '*' || c == '?')
             return true;
     }
     return false;
+}
+
+static const String get_max_path_without_glob(const String& s)
+{
+    auto parts = s.split_view('/');
+    StringBuilder builder;
+    for (auto& part : parts) {
+        if (is_glob(part))
+            break;
+        builder.append("/");
+        builder.append(part);
+    }
+    return builder.build();
 }
 
 Package::Package(String filename, String name, JsonObject json_obj)
@@ -31,6 +44,8 @@ Package::Package(String filename, String name, JsonObject json_obj)
     m_directory = path.dirname();
     m_filename = filename;
     m_name = name;
+
+    m_is_native = filename.contains("_native.m.json");
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "type") {
@@ -133,13 +148,15 @@ Package::Package(String filename, String name, JsonObject json_obj)
                 String search_dir = m_directory;
                 if (potentially_contains_variable(source)) {
                     source = replace_variables(source, "root", SettingsProvider::the().get_string("root").value_or(""));
-                    // instead of setting the place to search here directly,
-                    // it would be also possible (and maybe more performant)
-                    // to first search in m_directory, and if nothing is being
-                    // found, search again in root.
-                    search_dir = SettingsProvider::the().get_string("root").value_or("");
                 }
                 if (is_glob(source)) {
+
+                    // get the last path element, before the glob sign occurs
+                    search_dir = get_max_path_without_glob(source);
+                    if (search_dir.is_empty()) {
+                        search_dir = SettingsProvider::the().get_string("root").value_or("");
+                    }
+
                     auto files = FileProvider::the().recursive_glob(source, search_dir);
                     for (auto& file : files) {
                         m_sources.append(file);
@@ -161,12 +178,14 @@ Package::Package(String filename, String name, JsonObject json_obj)
                 String search_dir = m_directory;
                 if (potentially_contains_variable(include)) {
                     include = replace_variables(include, "root", SettingsProvider::the().get_string("root").value_or(""));
-                    search_dir = SettingsProvider::the().get_string("root").value_or("");
                 }
                 if (is_glob(include)) {
-                    auto files = FileProvider::the().recursive_glob(include, search_dir);
-                    for (auto& file : files)
-                        m_includes.append(file);
+                    // get the last path element, before the glob sign occurs
+                    search_dir = get_max_path_without_glob(include);
+                    if (search_dir.is_empty()) {
+                        search_dir = SettingsProvider::the().get_string("root").value_or("");
+                    }
+
                 } else
                     m_includes.append(value.as_string());
             }
