@@ -1,0 +1,40 @@
+{
+    "package": {
+        "LibAudio": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibAudio/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibAudio",
+                "${gendata}/LibAudio"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibHTML",
+                "LibDraw",
+                "LibIPC",
+                "LibProtocol",
+                "LibCore"
+            ],
+            "run_generators": {
+                "IPCCompiler": {
+                    "input": "${root}/Servers/AudioServer/AudioClient.ipc"
+                }
+            },
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "audio",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibAudio/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibAudio"
+                }
+            ]
+        }
+    }
+}

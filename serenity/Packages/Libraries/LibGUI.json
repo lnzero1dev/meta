@@ -1,0 +1,32 @@
+{
+    "package": {
+        "LibGUI": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibGUI/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibGUI",
+                "${gendata}/LibGUI"
+            ],
+            "run_generators": {
+                "IPCCompiler": {
+                    "input": "${root}/Servers/WindowServer/WindowServer.ipc"
+                }
+            },
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "audio",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibGUI/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibGUI"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibThread": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibThread/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibThread"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "thread",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibThread/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibThread"
+                }
+            ]
+        }
+    }
+}

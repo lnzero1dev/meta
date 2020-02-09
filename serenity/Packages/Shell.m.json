@@ -1,0 +1,16 @@
+{
+    "package": {
+        "Shell": {
+            "type": "executable",
+            "source": [
+                "${root}/Shell/*.cpp"
+            ],
+            "include": [
+                "${root}/Shell"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "package": {
+        "Audio.MenuApplet": {
+            "type": "executable",
+            "source": [
+                "${root}/MenuApplets/Audio/*.cpp"
+            ],
+            "include": [
+                "${root}/MenuApplets/Audio"
+            ],
+            "dependency": [
+                "LibAudio",
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

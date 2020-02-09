@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibCore": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibCore/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibCore"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "core",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibCore/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibCore"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "package": {
+        "HackStudio": {
+            "type": "executable",
+            "source": [
+                "${root}/DevTools/HackStudio/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/HackStudio"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibHTML",
+                "LibVT",
+                "LibProtocol",
+                "LibMarkdown",
+                "LibDraw",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

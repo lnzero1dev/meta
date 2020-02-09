@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibPCIDB": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibPCIDB/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibPCIDB"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "pcidb",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibPCIDB/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibPCIDB"
+                }
+            ]
+        }
+    }
+}

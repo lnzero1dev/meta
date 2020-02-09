@@ -1,0 +1,19 @@
+{
+    "package": {
+        "VisualBuilder": {
+            "type": "executable",
+            "source": [
+                "${root}/DevTools/VisualBuilder/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/VisualBuilder"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

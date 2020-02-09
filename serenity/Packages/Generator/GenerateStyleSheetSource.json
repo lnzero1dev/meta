@@ -1,6 +1,6 @@
 {
     "package": {
-        "build-qemu-image-linux": {
+        "GenerateStyleSheetSource": {
             "type": "script",
             "toolchain": {
                 "steps": [
@@ -8,14 +8,10 @@
                 ],
                 "options": {
                     "execute": {
-                        "file": "build-qemu-image-linux.sh"
+                        "file": "${root}/Libraries/LibHTML/Scripts/GenerateStyleSheetSource.sh"
                     }
                 }
-            },
-            "dependency": [
-                "qemu-img",
-                "mke2fs"
-            ]
+            }
         }
     }
 }

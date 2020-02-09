@@ -1,0 +1,16 @@
+{
+    "package": {
+        "LookupServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/LookupServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/LookupServer"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        }
+    }
+}

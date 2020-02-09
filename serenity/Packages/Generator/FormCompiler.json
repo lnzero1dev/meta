@@ -1,0 +1,20 @@
+{
+    "package": {
+        "FormCompiler": {
+            "type": "executable",
+            "source": [
+                "${root}/DevTools/FormCompiler/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/FormCompiler"
+            ],
+            "dependency": [
+                "LibAK",
+                "LibCore"
+            ],
+            "toolchain": {
+                "native": true
+            }
+        }
+    }
+}

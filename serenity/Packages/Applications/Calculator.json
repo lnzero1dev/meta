@@ -1,0 +1,19 @@
+{
+    "package": {
+        "Calculator": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/Calculator/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/Calculator"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

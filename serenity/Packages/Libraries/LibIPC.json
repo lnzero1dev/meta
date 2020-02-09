@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibIPC": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibIPC/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibIPC"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "ipc",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibIPC/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibIPC"
+                }
+            ]
+        }
+    }
+}

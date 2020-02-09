@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibMarkdown": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibMarkdown/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibMarkdown"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "ipc",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibMarkdown/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibMarkdown"
+                }
+            ]
+        }
+    }
+}

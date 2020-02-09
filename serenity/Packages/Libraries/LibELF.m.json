@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibELF": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibELF/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibELF"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "elf",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibELF/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibELF"
+                }
+            ]
+        }
+    }
+}

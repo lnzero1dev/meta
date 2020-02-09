@@ -1,0 +1,20 @@
+{
+    "package": {
+        "IPCCompiler": {
+            "type": "executable",
+            "source": [
+                "${root}/DevTools/IPCCompiler/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/IPCCompiler"
+            ],
+            "dependency": [
+                "LibAK",
+                "LibCore"
+            ],
+            "toolchain": {
+                "native": true
+            }
+        }
+    }
+}

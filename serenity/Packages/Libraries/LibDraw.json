@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibDraw": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibDraw/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibDraw"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "draw",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibDraw/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibDraw"
+                }
+            ]
+        }
+    }
+}

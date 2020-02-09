@@ -1,0 +1,47 @@
+{
+    "package": {
+        "kernel": {
+            "type": "executable",
+            "source": [
+                "${root}/Kernel/**/*.cpp",
+                "${root}/Kernel/Arch/i386/Boot/boot.S"
+            ],
+            "include": [
+                "${root}/Kernel",
+                "${build_sysroot}/i686-pc-serenity/include/c++/9.2.0/",
+                "${build_sysroot}/i686-pc-serenity/include/c++/9.2.0/i686-pc-serenity/"
+            ],
+            "dependency": [
+                "AK",
+                "LibELF"
+            ],
+            "defines": [
+                "KERNEL"
+            ],
+            "cxx": {
+                "flags": [
+                    "-pie -fPIE -ffreestanding -fbuiltin -mno-80387 -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables",
+                    "-nostdlib -nostdinc -nostdinc++ -g3"
+                ]
+            },
+            "link": {
+                "flags": [
+                    "-Wl,-T linker.ld -nostdlib -lgcc -lstdc++ -g3"
+                ]
+            },
+            "run_generators": {
+                "MkMap": {
+                    "input": "executable",
+                    "output": "kernel.map"
+                }
+            },
+            "deploy": [
+                {
+                    "type": "files",
+                    "pattern": "${root}/Kernel/*.h",
+                    "dest": "${IncludeDir}/Kernel"
+                }
+            ]
+        }
+    }
+}

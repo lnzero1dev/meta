@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibVT": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibVT/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibVT"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "vt",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibVT/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibVT"
+                }
+            ]
+        }
+    }
+}

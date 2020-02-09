@@ -1,0 +1,21 @@
+{
+    "package": {
+        "DisplayProperties": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/DisplayProperties/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/DisplayProperties"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

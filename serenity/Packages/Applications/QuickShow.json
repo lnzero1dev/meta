@@ -1,0 +1,22 @@
+{
+    "package": {
+        "QuickShow": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/QuickShow/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/QuickShow"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibProtocol",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

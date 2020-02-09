@@ -1,0 +1,19 @@
+{
+    "package": {
+        "Inspector": {
+            "type": "executable",
+            "source": [
+                "${root}/DevTools/Inspector/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/Inspector"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

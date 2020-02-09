@@ -1,0 +1,21 @@
+{
+    "package": {
+        "ChanViewer": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/ChanViewer/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/ChanViewer"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

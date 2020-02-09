@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibPthread": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibPthread/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibPthread"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "pthread",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibPthread/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}"
+                }
+            ]
+        }
+    }
+}

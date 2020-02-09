@@ -1,0 +1,49 @@
+{
+    "package": {
+        "LibC": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibC/**/*.cpp",
+                "${root}/Libraries/LibC/**/*.S"
+            ],
+            "include": [
+                "${root}/Libraries/LibC"
+            ],
+            "dependency": [
+                "LibELF",
+                "AK"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "c",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibC/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}"
+                },
+                {
+                    "type": "file",
+                    "source": "${bindir}/crt0.cpp.o",
+                    "dest": "${LibDir}",
+                    "rename": "crt0.o"
+                },
+                {
+                    "type": "file",
+                    "source": "${bindir}/crti.cpp.ao",
+                    "dest": "${LibDir}",
+                    "rename": "crti.o"
+                },
+                {
+                    "type": "file",
+                    "source": "${bindir}/crtn.cpp.ao",
+                    "dest": "${LibDir}",
+                    "rename": "crtn.o"
+                }
+            ]
+        }
+    }
+}

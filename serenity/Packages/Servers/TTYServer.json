@@ -1,0 +1,13 @@
+{
+    "package": {
+        "TTYServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/TTYServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/TTYServer"
+            ]
+        }
+    }
+}

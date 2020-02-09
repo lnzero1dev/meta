@@ -1,0 +1,21 @@
+{
+    "package": {
+        "HexEditor": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/HexEditor/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/HexEditor"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

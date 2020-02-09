@@ -1,0 +1,32 @@
+{
+    "package": {
+        "LibProtocol": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibProtocol/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibProtocol",
+                "${gendata}/LibProtocol"
+            ],
+            "run_generators": {
+                "IPCCompiler": {
+                    "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc"
+                }
+            },
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "protocol",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibProtocol/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibProtocol"
+                }
+            ]
+        }
+    }
+}

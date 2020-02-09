@@ -1,0 +1,19 @@
+{
+    "package": {
+        "SystemDialog": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/SystemDialog/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/SystemDialog"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

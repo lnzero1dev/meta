@@ -1,12 +1,12 @@
 {
     "package": {
-        "libm": {
+        "AK": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibM/**/*.cpp"
+                "${root}/AK/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibM"
+                "${root}/AK"
             ]
         }
     }

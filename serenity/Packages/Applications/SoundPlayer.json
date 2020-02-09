@@ -1,0 +1,22 @@
+{
+    "package": {
+        "SoundPlayer": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/SoundPlayer/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/SoundPlayer"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibAudio",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

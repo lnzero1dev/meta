@@ -1,0 +1,19 @@
+{
+    "package": {
+        "Snake": {
+            "type": "executable",
+            "source": [
+                "${root}/Games/Snake/*.cpp"
+            ],
+            "include": [
+                "${root}/Games/Snake"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

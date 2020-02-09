@@ -1,0 +1,29 @@
+{
+    "package": {
+        "LibM": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibM/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibM"
+            ],
+            "dependency": {
+                "LibC": "header_only"
+            },
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "m",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibM/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}"
+                }
+            ]
+        }
+    }
+}

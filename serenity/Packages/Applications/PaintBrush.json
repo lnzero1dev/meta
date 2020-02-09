@@ -1,0 +1,21 @@
+{
+    "package": {
+        "PaintBrush": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/PaintBrush/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/PaintBrush"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibThread",
+                "LibPthread",
+                "LibCore"
+            ]
+        }
+    }
+}

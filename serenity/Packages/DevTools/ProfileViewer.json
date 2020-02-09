@@ -1,0 +1,19 @@
+{
+    "package": {
+        "ProfileViewer": {
+            "type": "executable",
+            "source": [
+                "${root}/DevTools/ProfileViewer/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/ProfileViewer"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

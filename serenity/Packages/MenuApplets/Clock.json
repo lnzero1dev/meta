@@ -1,0 +1,19 @@
+{
+    "package": {
+        "Clock.MenuApplet": {
+            "type": "executable",
+            "source": [
+                "${root}/MenuApplets/Clock/*.cpp"
+            ],
+            "include": [
+                "${root}/MenuApplets/Clock"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

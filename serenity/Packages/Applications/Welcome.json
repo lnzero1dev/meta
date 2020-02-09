@@ -1,0 +1,20 @@
+{
+    "package": {
+        "Welcome": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/Welcome/*.cpp",
+                "${root}/Applications/Welcome/*.png"
+            ],
+            "include": [
+                "${root}/Applications/Welcome"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibDraw",
+                "LibIPC",
+                "LibCore"
+            ]
+        }
+    }
+}

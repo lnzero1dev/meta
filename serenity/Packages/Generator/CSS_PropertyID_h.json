@@ -1,0 +1,20 @@
+{
+    "package": {
+        "CSS_PropertyID_h": {
+            "type": "executable",
+            "source": [
+                "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/"
+            ],
+            "dependency": [
+                "LibAK",
+                "LibCore"
+            ],
+            "toolchain": {
+                "native": true
+            }
+        }
+    }
+}
