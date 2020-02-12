@@ -1,24 +1,27 @@
 {
     "package": {
-        "LibDraw": {
+        "LibPthread": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibDraw/*.cpp"
+                "${root}/Libraries/LibPthread/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibDraw"
+                "${root}/Libraries/LibPthread"
             ],
+            "dependency": {
+                "LibC": "header_only"
+            },
             "deploy": [
                 {
                     "type": "target",
-                    "name": "draw",
+                    "name": "pthread",
                     "dest": "${LibDir}"
                 },
                 {
                     "type": "directory",
-                    "source": "${root}/Libraries/LibDraw/",
+                    "source": "${root}/Libraries/LibPthread/",
                     "pattern": "*.h",
-                    "dest": "${IncludeDir}/LibDraw"
+                    "dest": "${IncludeDir}"
                 }
             ]
         }

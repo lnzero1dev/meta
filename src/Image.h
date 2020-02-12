@@ -32,10 +32,11 @@ struct Traits<InstallDir> : public GenericTraits<InstallDir> {
 class Image {
 
 public:
-    Image(String, JsonObject);
+    Image(const String&, const String&, JsonObject);
     ~Image();
 
     const String& filename() const { return m_filename; }
+    const String& name() const { return m_name; }
     const Vector<String>& install() const { return m_install; }
     bool install_all() const { return m_install_all; }
     const String& build_tool() { return m_build_tool; }
@@ -43,6 +44,7 @@ public:
 
 private:
     String m_filename;
+    String m_name;
     Vector<String> m_install;
     bool m_install_all = false;
 

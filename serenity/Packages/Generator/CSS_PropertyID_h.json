@@ -2,6 +2,7 @@
     "package": {
         "CSS_PropertyID_h": {
             "type": "executable",
+            "machine": "host",
             "source": [
                 "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/*.cpp"
             ],
@@ -11,10 +12,7 @@
             "dependency": [
                 "LibAK",
                 "LibCore"
-            ],
-            "toolchain": {
-                "native": true
-            }
+            ]
         }
     }
 }

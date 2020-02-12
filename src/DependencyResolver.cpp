@@ -1,5 +1,15 @@
 #include "DependencyResolver.h"
-#include <sys/wait.h>
+#include "FileProvider.h"
+#include "PackageDB.h"
+
+DependencyNode::DependencyNode()
+{
+    children.clear();
+}
+
+DependencyNode::~DependencyNode()
+{
+}
 
 DependencyResolver::DependencyResolver()
 {
@@ -17,117 +27,85 @@ DependencyResolver& DependencyResolver::the()
     return *s_the;
 }
 
-bool DependencyResolver::resolve_dependencies(const HashMap<String, Package>& packages)
+// TODO: add infinit loop prevention of circular dependencies
+
+NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Package& package) const
 {
-    Vector<String> needed_dependencies, needed_native_dependencies;
-    m_missing_dependencies.clear();
+    auto m = make<DependencyNode>();
+    m->package = &package;
 
-    for (auto& package : packages) {
-        if (package.value.dependencies().size()) {
-            for (auto& dependency : package.value.dependencies()) {
-                if (package.value.is_native())
-                    needed_native_dependencies.append(dependency.key);
-                else
-                    needed_dependencies.append(dependency.key);
+    for (auto& dependency : package.dependencies()) {
+        bool found_package = false;
+        Package* dependent_package = PackageDB::the().get(dependency.key);
+
+        //fprintf(stderr, "Package %s has dependency: %s\n", package.name().characters(), dependency.key.characters());
+
+        if (dependent_package) {
+            // dependencies can only be of the same type! But: Allow host packages to have dependency to target, because we know what we can do ;-)
+            if (package.machine() == dependent_package->machine() || (package.machine() == "host" && dependent_package->machine() == "target")) {
+                found_package = true;
+                m->children.append(get_dependency_tree(*dependent_package));
+                //fprintf(stderr, "Package %s has now %i children.\n", package.name().characters(), m->children.size());
             }
-        }
-    }
-
-    for (auto& dependency : find_missing_dependencies(packages, needed_dependencies)) {
-        if (!m_missing_dependencies.contains_slow(dependency))
-            m_missing_dependencies.append(dependency);
-    }
-
-    for (auto& dependency : find_missing_dependencies(packages, needed_native_dependencies)) {
-        bool found = false;
-        // check system if dependency is installed!
-        fprintf(stdout, "Checking system availability for: %s\n", dependency.characters());
-        if (dependency.contains("lib")) {
-            // checking for lib
-            StringBuilder builder;
-            builder.append("ldconfig -p | grep ");
-            builder.append(dependency);
-
-            pid_t pid = fork();
-            if (pid == 0) {
-                int rc = execl("/bin/sh", "sh", "-c", builder.build().characters(), nullptr);
-                if (rc < 0)
-                    perror("execl");
-                exit(1);
-            }
-            int status;
-
-            waitpid(pid, &status, 0);
-
-            if (WIFEXITED(status)) {
-                int exit_status = WEXITSTATUS(status);
-                if (!exit_status) {
-                    found = true;
-                }
-            }
-
         } else {
-            // checking for executable
-            pid_t pid = fork();
-            if (pid == 0) {
-                int rc = execl("/usr/bin/env", "/usr/bin/env", "which", dependency.characters(), nullptr);
-                if (rc < 0)
-                    perror("execl");
-                exit(1);
-            }
-
-            int status;
-
-            waitpid(pid, &status, 0);
-
-            if (WIFEXITED(status)) {
-                int exit_status = WEXITSTATUS(status);
-                if (!exit_status) {
-                    found = true;
-                }
-            }
-        }
-
-        if (!found && !m_missing_dependencies.contains_slow(dependency))
-            m_missing_dependencies.append(dependency);
-    }
-    return m_missing_dependencies.size() == 0;
-}
-
-const Vector<String> DependencyResolver::find_missing_dependencies(const HashMap<String, Package>& packages, const Vector<String>& needed_dependencies)
-{
-    Vector<String> missing;
-
-    for (auto& dependency : needed_dependencies) {
-        bool found = false;
-        String resolved_dependency = dependency;
-        for (auto& package : packages) {
-            if (package.key == dependency) {
-                found = true;
-                break;
-            }
-            if (package.value.provides().size())
-                for (auto& provides : package.value.provides()) {
-                    for (auto& provide_value : provides.value) {
-                        if (provide_value == dependency) {
-                            found = true;
-                            // exchange the dependency with the name of the package that provides the dependant
-                            resolved_dependency = package.key;
-                            break;
+            // search for package that provides this dependency in 'provides' attribute
+            PackageDB::the().for_each_package([&](auto&, auto& package_provides) {
+                if (package_provides.provides().size()) {
+                    for (auto& provides : package_provides.provides()) {
+                        for (auto& provide_value : provides.value) {
+                            if (provide_value == dependency.key) {
+                                if (package.machine() == package_provides.machine() || (package.machine() == "host" && package_provides.machine() == "target")) {
+                                    found_package = true;
+                                    m->children.append(get_dependency_tree(package_provides));
+                                    return IterationDecision::Break;
+                                }
+                            }
                         }
                     }
-                    if (found) {
-                        break;
-                    }
                 }
-            if (found)
-                break;
+                return IterationDecision::Continue;
+            });
         }
-        if (!found) {
-            if (!missing.contains_slow(resolved_dependency))
-                missing.append(resolved_dependency);
+
+        if (!found_package && package.machine() == "host") {
+            // When it's a host package, check the host machine (i.e. build machine), if the executable / library is existing
+            // This could (must!) be done in the generated code, but for now, we do it here.
+            // TODO: we can only check build tools for existence, move check of host tools into the host toolchain!
+
+            fprintf(stderr, "Checking for %s (which is a dependency of %s)\n", dependency.key.characters(), package.name().characters());
+
+            if (dependency.key.contains("lib")) {
+                if (FileProvider::the().check_host_library_available(dependency.key))
+                    found_package = true;
+            } else {
+                if (FileProvider::the().check_host_command_available(dependency.key))
+                    found_package = true;
+            }
         }
+
+        if (!found_package)
+            m->missing_dependencies.append(dependency.key);
     }
+
+    return m;
+}
+
+const Vector<String> DependencyResolver::missing_dependencies(const DependencyNode* node) const
+{
+    if (!node)
+        return {};
+
+    Vector<String> missing;
+
+    // Append node's missing dependencies
+    for (auto& dependency : node->missing_dependencies)
+        missing.append(dependency);
+
+    // Append node's children's missing dependencies
+    //    for (auto& child : node->children) {
+    //        for (auto& dependency : missing_dependencies(child))
+    //            missing.append(dependency);
+    //    }
 
     return missing;
 }

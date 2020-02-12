@@ -145,13 +145,15 @@ void statistics()
     auto& toolchains = ToolchainDB::the().toolchains();
     StringBuilder toolchain_list;
     u32 number_of_target_tools = 0;
-    u32 number_of_native_tools = 0;
+    u32 number_of_host_tools = 0;
+    u32 number_of_build_tools = 0;
     u32 number_of_file_tool_mappings = 0;
     ToolchainDB::the().for_each_toolchain([&](auto& name, auto& toolchain) {
         toolchain_list.append(name);
         toolchain_list.append(", ");
         number_of_target_tools += toolchain.target_tools().size();
-        number_of_native_tools += toolchain.native_tools().size();
+        number_of_host_tools += toolchain.host_tools().size();
+        number_of_build_tools += toolchain.build_tools().size();
         number_of_file_tool_mappings += toolchain.file_tool_mapping().size();
         return IterationDecision::Continue;
     });
@@ -199,17 +201,18 @@ void statistics()
     fprintf(stdout, "Toolchains: %i\n", toolchains.size());
     if (toolchains.size())
         fprintf(stdout, "* %s\033[2D \n", toolchain_list.build().characters());
+    fprintf(stdout, "Build tools: %i\n", number_of_build_tools);
+    fprintf(stdout, "Host tools: %i\n", number_of_host_tools);
     fprintf(stdout, "Target tools: %i\n", number_of_target_tools);
-    fprintf(stdout, "Native tools: %i\n", number_of_native_tools);
     fprintf(stdout, "File extension tool mappings: %i\n", number_of_file_tool_mappings);
     fprintf(stdout, "----- ---------- -----\n");
     fprintf(stdout, "Packages: %i\n", packages.size());
     if (packages.size())
         fprintf(stdout, "* %s\033[2D \n", package_list.build().characters());
-    fprintf(stdout, "Packages that are Libraries: %i\n", type_library);
-    fprintf(stdout, "Packages that are Executables: %i\n", type_executable);
-    fprintf(stdout, "Packages that are Collections: %i\n", type_collection);
-    fprintf(stdout, "Packages that are Unknown type: %i\n", type_unknown);
+    fprintf(stdout, "Packages with type Library: %i\n", type_library);
+    fprintf(stdout, "Packages with type Executable: %i\n", type_executable);
+    fprintf(stdout, "Packages with type Collection: %i\n", type_collection);
+    fprintf(stdout, "Packages with unknown type: %i\n", type_unknown);
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
     fprintf(stdout, "----- ---------- -----\n");
@@ -397,9 +400,21 @@ int main(int argc, char** argv)
         // ]
         // * if image is being built, execute image tools (build)
 
-        if (!DependencyResolver::the().resolve_dependencies(PackageDB::the().packages())) {
+        Vector<String> missing_dependencies;
+
+        PackageDB::the().for_each_package([&](auto&, auto& package) {
+            if (package.machine() == "target") {
+                auto node = DependencyResolver::the().get_dependency_tree(package);
+                auto& missing = DependencyResolver::the().missing_dependencies(node);
+                for (auto& dependency : missing)
+                    missing_dependencies.append(dependency);
+            }
+            return IterationDecision::Continue;
+        });
+
+        if (missing_dependencies.size()) {
             fprintf(stderr, "Could not resolve all dependencies. Missing dependencies:\n");
-            for (auto& dependency : DependencyResolver::the().missing_dependencies()) {
+            for (auto& dependency : missing_dependencies) {
                 fprintf(stderr, "* %s\n", dependency.characters());
             }
             return -1;
@@ -418,25 +433,45 @@ int main(int argc, char** argv)
             case BuildGenerator::CMake: {
                 auto& cmakegen = CMakeGenerator::the();
 
-                Vector<Package> native_packages;
-                PackageDB::the().for_each_package([&](auto&, auto& data) {
-                    if (data.is_native()) {
-                        native_packages.append(data);
-                    }
-                    return IterationDecision::Continue;
-                });
-
                 ASSERT(toolchain);
-                cmakegen.gen_toolchain(*toolchain, native_packages);
+
+                Vector<Package> packages_to_build;
+
+                for (auto& target : toolchain->build_machine_build_targets()) {
+                    Package* package = PackageDB::the().get(target);
+                    if (package) {
+                        packages_to_build.append(*package);
+                    } else {
+                        fprintf(stderr, "Could not find package for native build target: %s\n", target.characters());
+                    }
+                }
+
+                cmakegen.gen_toolchain(*toolchain, packages_to_build);
 
                 if (isImage) {
+
+                    Vector<const Package*> host_packages_in_order;
                     auto image = ImageDB::the().get(parameter);
                     ASSERT(image);
-                    cmakegen.gen_image(*image);
                     if (image->install_all()) {
                         PackageDB::the().for_each_package([&](auto&, auto& data) {
-                            if (!data.is_native()) {
-                                cmakegen.gen_package(data);
+                            if (data.machine() == "target") {
+                                if (cmakegen.gen_package(data)) {
+                                    auto node = DependencyResolver::the().get_dependency_tree(data);
+                                    // add all packages, beginning from leave
+                                    DependencyNode::start_by_leave(node, [&](auto& package) {
+                                        bool found = false;
+                                        for (auto& p : host_packages_in_order) {
+                                            if (p->name() == package.name()) {
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!found)
+                                            host_packages_in_order.prepend(&package);
+                                    });
+                                }
                             }
                             return IterationDecision::Continue;
                         });
@@ -448,9 +483,27 @@ int main(int argc, char** argv)
                                 return -1;
                             }
                             ASSERT(package);
-                            cmakegen.gen_package(*package);
+                            if (cmakegen.gen_package(*package)) {
+                                auto node = DependencyResolver::the().get_dependency_tree(*package);
+                                // add all packages, beginning from leave
+                                DependencyNode::start_by_leave(node, [&](auto& package) {
+                                    bool found = false;
+                                    for (auto& p : host_packages_in_order) {
+                                        if (p->name() == package.name()) {
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!found)
+                                        host_packages_in_order.prepend(&package);
+                                });
+                            }
                         }
                     }
+                    fprintf(stderr, "Generate Image: %s!\n", image->name().characters());
+                    cmakegen.gen_image(*image, host_packages_in_order);
+
                 } else if (isPackage) {
                     Package* package;
                     if (!(package = PackageDB::the().get(parameter))) {

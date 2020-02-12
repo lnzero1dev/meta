@@ -2,6 +2,7 @@
     "package": {
         "GenerateStyleSheetSource": {
             "type": "script",
+            "machine": "host",
             "toolchain": {
                 "steps": [
                     "execute"

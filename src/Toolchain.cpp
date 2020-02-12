@@ -48,8 +48,23 @@ Toolchain::Toolchain(JsonObject json_obj)
             insert_tool(m_target_tools, value.as_object());
             return;
         }
-        if (key == "native_tools") {
-            insert_tool(m_native_tools, value.as_object());
+        if (key == "build_tools") {
+            insert_tool(m_build_tools, value.as_object());
+            return;
+        }
+        if (key == "host_tools") {
+            insert_tool(m_host_tools, value.as_object());
+            return;
+        }
+        if (key == "build_machine_build_targets") {
+            if (value.is_array()) {
+                auto values = value.as_array().values();
+                for (auto value : values) {
+                    m_build_machine_build_targets.append(value.as_string());
+                }
+            } else if (value.is_string()) {
+                m_build_machine_build_targets.append(value.as_string());
+            }
             return;
         }
         fprintf(stderr, "Unknown toolchain key found: %s\n", key.characters());

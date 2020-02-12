@@ -26,6 +26,8 @@ public:
 
     const HashMap<String, Package>& packages() { return m_packages; }
 
+    Package* find_package_that_provides(const String& executable);
+
 private:
     PackageDB();
 

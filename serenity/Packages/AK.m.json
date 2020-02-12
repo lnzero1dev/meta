@@ -6,7 +6,11 @@
                 "${root}/AK/*.cpp"
             ],
             "include": [
-                "${root}/AK"
+                "${root}/AK",
+                "${root}"
+            ],
+            "dependency": [
+                "LibC"
             ]
         }
     }

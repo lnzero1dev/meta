@@ -14,6 +14,9 @@
                     "input": "${root}/Servers/WindowServer/WindowServer.ipc"
                 }
             },
+            "dependency": [
+                "AK"
+            ],
             "deploy": [
                 {
                     "type": "target",

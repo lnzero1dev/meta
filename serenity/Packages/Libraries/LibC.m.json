@@ -4,14 +4,14 @@
             "type": "library",
             "source": [
                 "${root}/Libraries/LibC/**/*.cpp",
-                "${root}/Libraries/LibC/**/*.S"
+                "${root}/Libraries/LibC/**/*.S",
+                "${root}/Libraries/LibELF/*.cpp",
+                "${root}/AK/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibC"
-            ],
-            "dependency": [
-                "LibELF",
-                "AK"
+                "${root}/Libraries/LibC",
+                "${root}/Libraries",
+                "${root}"
             ],
             "deploy": [
                 {

@@ -31,10 +31,11 @@ InstallDir string_to_install_dir(String type)
         return InstallDir::Undefined;
 }
 
-Image::Image(String filename, JsonObject json_obj)
+Image::Image(const String& filename, const String& name, JsonObject json_obj)
 {
     set_default_install_dirs();
     m_filename = filename;
+    m_name = name;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "install") {

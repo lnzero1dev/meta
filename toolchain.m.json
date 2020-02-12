@@ -26,40 +26,7 @@
                 "MinSizeRel": {},
                 "DebWithRelInfo": {}
             },
-            "target_tools": {
-                "cxx": {
-                    "executable": "i686-pc-serenity-g++",
-                    "flags": [
-                        "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
-                        "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
-                        "-fno-exceptions -fno-rtti -fstack-protector"
-                    ]
-                },
-                "cc": {
-                    "executable": "i686-pc-serenity-gcc",
-                    "flags": [
-                        "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
-                        "-fstack-protector"
-                    ]
-                },
-                "as": {
-                    "executable": "i686-pc-serenity-as",
-                    "flags": ""
-                },
-                "link": {
-                    "executable": "i686-pc-serenity-ld",
-                    "flags": ""
-                },
-                "ranlib": {
-                    "executable": "i686-pc-serenity-ranlib",
-                    "flags": ""
-                },
-                "ar": {
-                    "executable": "i686-pc-serenity-ar",
-                    "flags": ""
-                }
-            },
-            "native_tools": {
+            "build_tools": {
                 "cxx": {
                     "executable": "g++",
                     "flags": [
@@ -92,18 +59,14 @@
                     "flags": ""
                 },
                 "download": {
-                    "binary": "wget",
+                    "executable": "wget",
                     "flags": "-O-"
                 },
                 "patch": {
                     "executable": "patch",
                     "flags": ""
                 },
-                "configure": {
-                    "executable": "./configure",
-                    "flags": ""
-                },
-                "make": {
+                "build": {
                     "executable": "make",
                     "flags": ""
                 },
@@ -111,18 +74,47 @@
                     "executable": "make",
                     "flags": "install"
                 },
-                "cmake": {
+                "build-generator": {
                     "executable": "cmake",
                     "flags": ""
+                }
+            },
+            "host_tools": {
+                "cxx": {
+                    "executable": "i686-pc-serenity-g++",
+                    "flags": [
+                        "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
+                        "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
+                        "-fno-exceptions -fno-rtti -fstack-protector"
+                    ]
                 },
-                "ninja": {
-                    "executable": "ninja",
+                "cc": {
+                    "executable": "i686-pc-serenity-gcc",
+                    "flags": [
+                        "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
+                        "-fstack-protector"
+                    ]
+                },
+                "as": {
+                    "executable": "i686-pc-serenity-as",
                     "flags": ""
                 },
-                "build_qemu": {
+                "link": {
+                    "executable": "i686-pc-serenity-ld",
+                    "flags": ""
+                },
+                "ranlib": {
+                    "executable": "i686-pc-serenity-ranlib",
+                    "flags": ""
+                },
+                "ar": {
+                    "executable": "i686-pc-serenity-ar",
+                    "flags": ""
+                },
+                "build-image": {
                     "executable": "build-qemu-image-linux"
                 },
-                "run_qemu": {
+                "run-image": {
                     "executable": "qemu-system-i386",
                     "flags": [
                         "-s -m 256M -cpu max -machine q35 -d cpu_reset,guest_errors -device VGA,vgamem_mb=64 -device piix3-ide",
@@ -131,7 +123,11 @@
                         "-device e1000,netdev=breh -kernel kernel -append hello"
                     ]
                 }
-            }
+            },
+
+            "build_machine_build_targets": [
+                "libstdc++-v3"
+            ]
         }
     }
 }

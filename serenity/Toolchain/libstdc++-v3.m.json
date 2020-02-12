@@ -3,13 +3,13 @@
         "libstdc++-v3": {
             "version": "9.2.0",
             "type": "collection",
+            "machine": "host",
             "provides": {
                 "library": [
                     "libstdc++-v3"
                 ]
             },
             "toolchain": {
-                "native": true,
                 "steps": [
                     "download",
                     "patch",
@@ -26,13 +26,28 @@
                     "patch": {
                         "file": "${root}/Toolchain/Patches/gcc.patch"
                     },
-                    "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++",
-                    "build": "all-target-libstdc++-v3",
-                    "install": "install-target-libstdc++-v3"
+                    "configure": {
+                        "flags": [
+                            "--prefix=${sysroot}",
+                            "--with-sysroot=${sysroot}",
+                            "--target=i686-pc-serenity",
+                            "--disable-nls",
+                            "--with-newlib",
+                            "--enable-shared",
+                            "--enable-languages=c,c++"
+                        ]
+                    },
+                    "build": {
+                        "targets": "all-target-libstdc++-v3"
+                    },
+                    "install": {
+                        "targets": "install-target-libstdc++-v3"
+                    }
                 }
             },
             "dependency": [
                 "binutils",
+                "gcc",
                 "LibC",
                 "LibM"
             ]

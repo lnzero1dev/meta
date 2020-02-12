@@ -3,6 +3,7 @@
         "qemu": {
             "version": "4.1.0",
             "type": "collection",
+            "machine": "host",
             "provides": {
                 "executable": [
                     "qemu-img",
@@ -22,7 +23,14 @@
                         "url_hash": "cdf2b5ca52b9abac9bacb5842fa420f8",
                         "url_hash_type": "md5"
                     },
-                    "configure": "--target-list=i386-softmmu --enable-gtk"
+                    "configure": {
+                        "flags": [
+                            "--prefix=${sysroot}",
+                            "--with-sysroot=${sysroot}",
+                            "--target-list=i386-softmmu",
+                            "--enable-gtk"
+                        ]
+                    }
                 }
             },
             "dependency": [

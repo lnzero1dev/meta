@@ -3,6 +3,7 @@
         "gcc": {
             "version": "9.2.0",
             "type": "collection",
+            "machine": "host",
             "provides": {
                 "executable": [
                     "i686-pc-serenity-g++",
@@ -17,7 +18,6 @@
                 ]
             },
             "toolchain": {
-                "native": true,
                 "steps": [
                     "download",
                     "patch",
@@ -27,16 +27,30 @@
                 ],
                 "options": {
                     "download": {
-                        "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}.tar.xz",
+                        "url": "http://ftp.gnu.org/gnu/gcc/gcc-${version}/gcc-${version}.tar.xz",
                         "url_hash": "3818ad8600447f05349098232c2ddc78",
                         "url_hash_type": "md5"
                     },
                     "patch": {
                         "file": "${root}/Toolchain/Patches/gcc.patch"
                     },
-                    "configure": "--target=i686-pc-serenity --disable-nls --with-newlib --enable-shared --enable-languages=c,c++",
-                    "build": "all-gcc all-target-libgcc",
-                    "install": "install-gcc install-target-libgcc"
+                    "configure": {
+                        "flags": [
+                            "--prefix=${sysroot}",
+                            "--with-sysroot=${sysroot}",
+                            "--target=i686-pc-serenity",
+                            "--disable-nls",
+                            "--with-newlib",
+                            "--enable-shared",
+                            "--enable-languages=c,c++"
+                        ]
+                    },
+                    "build": {
+                        "targets": "all-gcc all-target-libgcc"
+                    },
+                    "install": {
+                        "targets": "install-gcc install-target-libgcc"
+                    }
                 }
             },
             "dependency": [

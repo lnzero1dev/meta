@@ -18,7 +18,12 @@ String replace_variables(const String& haystack, const String& varname, const St
     sb.append("\\$\\{");
     sb.append(varname);
     sb.append("\\}");
+    return replace(haystack, sb.build(), replacement);
+}
+
+String replace(const String& haystack, const String& needle, const String& replacement)
+{
     std::string hs(haystack.characters(), haystack.length());
-    std::string replaced = std::regex_replace(hs, std::regex(sb.build().characters()), replacement.characters());
+    std::string replaced = std::regex_replace(hs, std::regex(needle.characters()), replacement.characters());
     return replaced.c_str();
 }

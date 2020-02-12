@@ -2,6 +2,7 @@
 
 #include <AK/JsonObject.h>
 #include <AK/Traits.h>
+#include <string>
 
 enum class LinkageType : uint8_t {
     Inherit = 0,
@@ -43,14 +44,29 @@ public:
     ~Package();
 
     const Vector<String>& toolchain_steps() const { return m_toolchain_steps; }
+    const HashMap<String, JsonObject>& toolchain_options() const { return m_toolchain_options; }
     const Vector<String>& sources() const { return m_sources; }
     const Vector<String>& includes() const { return m_includes; }
     const String& name() const { return m_name; }
     PackageType type() const { return m_type; }
     const String& filename() const { return m_filename; }
+    const String version() const
+    {
+        if (!m_version.other.is_empty())
+            return m_version.other;
+        else {
+            StringBuilder builder;
+            builder.appendf("%i", m_version.major);
+            builder.append(".");
+            builder.appendf("%i", m_version.minor);
+            builder.append(".");
+            builder.appendf("%i", m_version.bugfix);
+            return builder.build();
+        }
+    }
 
     bool is_consistent() const { return m_consistent; }
-    bool is_native() const { return m_is_native; }
+    const String& machine() const { return m_machine; }
 
     const HashMap<String, LinkageType>& dependencies() const { return m_dependencies; }
     const HashMap<PackageType, Vector<String>>& provides() const { return m_provides; }
@@ -77,5 +93,5 @@ private:
     HashMap<String, LinkageType> m_dependencies;
     LinkageType m_dependency_linkage = LinkageType::Static;
 
-    bool m_is_native { false };
+    String m_machine;
 };

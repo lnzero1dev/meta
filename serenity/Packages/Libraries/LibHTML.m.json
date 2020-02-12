@@ -13,6 +13,10 @@
                 "${root}/Libraries/LibHTML",
                 "${gendata}/LibHTML"
             ],
+            "dependency": [
+                "AK",
+                "LibM"
+            ],
             "run_generators": {
                 "CSS_PropertyID_h": {
                     "input": "${root}/Libraries/LibHTML/CSS/Properties.json"

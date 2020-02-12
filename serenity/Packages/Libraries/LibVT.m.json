@@ -6,7 +6,8 @@
                 "${root}/Libraries/LibVT/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibVT"
+                "${root}/Libraries/LibVT",
+                "${root}/Libraries"
             ],
             "deploy": [
                 {

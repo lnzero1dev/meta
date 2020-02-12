@@ -2,6 +2,7 @@
     "package": {
         "build-qemu-image-linux": {
             "type": "script",
+            "machine": "host",
             "toolchain": {
                 "steps": [
                     "execute"

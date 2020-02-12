@@ -2,8 +2,14 @@
     "image": {
         "default-image": {
             "install": "*",
-            "build_tool": "build_qemu",
-            "run_tool": "run_qemu",
+
+            "toolchain": {
+                "type": "cross",
+                "build": "x86_64",
+                "host": "x86_64",
+                "target": "i686"
+            },
+
             "install_dirs": {
                 "bindir": "bin",
                 "sbindir": "sbin",

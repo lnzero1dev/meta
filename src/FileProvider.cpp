@@ -3,6 +3,7 @@
 #include <AK/StringBuilder.h>
 #include <LibCore/CDirIterator.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 FileProvider::FileProvider(StringView current_dir)
     : m_current_dir { current_dir }
@@ -223,4 +224,55 @@ bool FileProvider::update_if_relative(String& path, String base)
         }
     }
     return true;
+}
+
+bool FileProvider::check_host_library_available(const String& library)
+{
+    bool found = false;
+    StringBuilder builder;
+    builder.append("ldconfig -p | grep ");
+    builder.append(library);
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        int rc = execl("/bin/sh", "sh", "-c", builder.build().characters(), nullptr);
+        if (rc < 0)
+            perror("execl");
+        exit(1);
+    }
+    int status;
+
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status)) {
+        int exit_status = WEXITSTATUS(status);
+        if (!exit_status) {
+            found = true;
+        }
+    }
+    return found;
+}
+
+bool FileProvider::check_host_command_available(const String& command)
+{
+    bool found = false;
+    pid_t pid = fork();
+    if (pid == 0) {
+        int rc = execl("/usr/bin/env", "/usr/bin/env", "which", command.characters(), nullptr);
+        if (rc < 0)
+            perror("execl");
+        exit(1);
+    }
+
+    int status;
+
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status)) {
+        int exit_status = WEXITSTATUS(status);
+        if (!exit_status) {
+            found = true;
+        }
+    }
+    return found;
 }

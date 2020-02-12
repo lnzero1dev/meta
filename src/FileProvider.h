@@ -45,6 +45,9 @@ public:
 
     bool update_if_relative(String& path, String base);
 
+    bool check_host_library_available(const String&);
+    bool check_host_command_available(const String&);
+
 private:
     FileProvider(StringView current_dir);
 

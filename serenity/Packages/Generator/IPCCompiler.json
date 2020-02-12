@@ -2,6 +2,7 @@
     "package": {
         "IPCCompiler": {
             "type": "executable",
+            "machine": "host",
             "source": [
                 "${root}/DevTools/IPCCompiler/*.cpp"
             ],
@@ -11,10 +12,7 @@
             "dependency": [
                 "LibAK",
                 "LibCore"
-            ],
-            "toolchain": {
-                "native": true
-            }
+            ]
         }
     }
 }

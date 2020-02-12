@@ -4,3 +4,4 @@
 
 bool potentially_contains_variable(const String& haystack);
 String replace_variables(const String& haystack, const String& varname, const String& replacement);
+String replace(const String& haystack, const String& needle, const String& replacement);

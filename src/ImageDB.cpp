@@ -21,7 +21,7 @@ bool ImageDB::add(String filename, String name, JsonObject json_obj)
     if (m_images.find(name) != m_images.end())
         return false;
 
-    m_images.set(name, { filename, json_obj });
+    m_images.set(name, { filename, name, json_obj });
     return true;
 }
 

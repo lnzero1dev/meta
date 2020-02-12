@@ -3,7 +3,7 @@
         "LibM": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibM/*.cpp"
+                "${root}/Libraries/LibM/math.cpp"
             ],
             "include": [
                 "${root}/Libraries/LibM"

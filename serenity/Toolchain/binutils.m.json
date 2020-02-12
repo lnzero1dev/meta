@@ -3,6 +3,7 @@
         "binutils": {
             "version": "2.33.1",
             "type": "collection",
+            "machine": "host",
             "toolchain": {
                 "steps": [
                     "download",
@@ -18,10 +19,17 @@
                         "url_hash_type": "md5"
                     },
                     "patch": {
-                        "file": "patches/gcc.patch"
+                        "file": "${root}/Toolchain/Patches/binutils.patch"
                     },
-                    "configure": "--target=i686-pc-serenity --enable-shared --disable-nls",
-                    "install": "install"
+                    "configure": {
+                        "flags": [
+                            "--prefix=${sysroot}",
+                            "--with-sysroot=${sysroot}",
+                            "--target=i686-pc-serenity",
+                            "--enable-shared",
+                            "--disable-nls"
+                        ]
+                    }
                 }
             }
         }

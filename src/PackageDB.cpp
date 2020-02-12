@@ -33,3 +33,26 @@ Package* PackageDB::get(StringView name)
 
     return &(*it).value;
 }
+
+Package* PackageDB::find_package_that_provides(const String& executable)
+{
+    Package* ret { nullptr };
+    for_each_package([&](auto& name, auto& package) {
+        if (package.type() == PackageType::Executable && name == executable) {
+            ret = &package;
+            return IterationDecision::Break;
+        }
+
+        for (auto& provides : package.provides()) {
+            for (auto& provide_value : provides.value) {
+                if (provide_value == executable) {
+                    ret = &package;
+                    return IterationDecision::Break;
+                }
+            }
+        }
+
+        return IterationDecision::Continue;
+    });
+    return ret;
+}

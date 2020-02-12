@@ -45,7 +45,7 @@ Package::Package(String filename, String name, JsonObject json_obj)
     m_filename = filename;
     m_name = name;
 
-    m_is_native = filename.contains("_native.m.json");
+    m_machine = "target";
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "type") {
@@ -80,6 +80,10 @@ Package::Package(String filename, String name, JsonObject json_obj)
             }
             return;
         }
+        if (key == "machine") {
+            m_machine = value.as_string();
+            return;
+        }
         if (key == "provides") {
             if (value.is_object()) {
                 value.as_object().for_each_member([&](auto& key, auto& value) {
@@ -103,11 +107,27 @@ Package::Package(String filename, String name, JsonObject json_obj)
         }
         if (key == "toolchain") {
             // get steps and options...
-            if (value.as_object().has("steps")) {
-                auto values = value.as_object().get("steps").as_array().values();
-                for (auto& value : values) {
-                    m_toolchain_steps.append(value.as_string());
-                }
+            if (value.is_object()) {
+                value.as_object().for_each_member([&](auto& key, auto& value) {
+                    if (key == "steps") {
+                        if (value.is_array()) {
+                            auto values = value.as_array().values();
+                            for (auto& step_value : values) {
+                                m_toolchain_steps.append(step_value.as_string());
+                            }
+                        }
+                        return;
+                    }
+                    if (key == "options") {
+                        if (value.is_object()) {
+                            value.as_object().for_each_member([&](auto& key, auto& value) {
+                                m_toolchain_options.set(key, value.as_object());
+                            });
+                        }
+                        return;
+                    }
+                });
+                return;
             }
             return;
         }

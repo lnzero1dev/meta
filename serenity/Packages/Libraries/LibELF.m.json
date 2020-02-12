@@ -6,7 +6,9 @@
                 "${root}/Libraries/LibELF/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibELF"
+                "${root}/Libraries/LibELF",
+                "${root}/Libraries",
+                "${root}"
             ],
             "deploy": [
                 {
