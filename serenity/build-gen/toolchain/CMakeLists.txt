@@ -85,7 +85,7 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES binutils)
 # Target package: LibC
 ExternalProject_Add(LibC
     PREFIX ${CMAKE_BINARY_DIR}/LibC
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../packages/LibC
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/LibC
     CMAKE_ARGS
       -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot
       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake
@@ -97,7 +97,7 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES LibC)
 ExternalProject_Add(LibM
     DEPENDS LibC 
     PREFIX ${CMAKE_BINARY_DIR}/LibM
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../packages/LibM
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/LibM
     CMAKE_ARGS
       -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot
       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake
@@ -148,4 +148,39 @@ ExternalProject_Add(libstdc++-v3
 )
 
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES libstdc++-v3)
+
+# Target package: AK
+ExternalProject_Add(AK
+    DEPENDS LibC 
+    PREFIX ${CMAKE_BINARY_DIR}/AK
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/AK
+    CMAKE_ARGS
+      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot
+      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake
+    BINARY_DIR ${CMAKE_BINARY_DIR}/AK
+    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroot $(MAKE) install)
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES AK)
+
+# Target package: LibCore
+ExternalProject_Add(LibCore
+    PREFIX ${CMAKE_BINARY_DIR}/LibCore
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/LibCore
+    CMAKE_ARGS
+      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot
+      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake
+    BINARY_DIR ${CMAKE_BINARY_DIR}/LibCore
+    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroot $(MAKE) install)
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES LibCore)
+
+# Host package: IPCCompiler
+ExternalProject_Add(IPCCompiler
+    DEPENDS AK LibCore 
+    PREFIX ${CMAKE_BINARY_DIR}/IPCCompiler
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/IPCCompiler
+    CMAKE_ARGS
+      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot
+      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake
+    BINARY_DIR ${CMAKE_BINARY_DIR}/IPCCompiler
+    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroot $(MAKE) install)
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES IPCCompiler)
 

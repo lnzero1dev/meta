@@ -10,7 +10,7 @@
                 "${root}/DevTools/IPCCompiler"
             ],
             "dependency": [
-                "LibAK",
+                "AK",
                 "LibCore"
             ]
         }

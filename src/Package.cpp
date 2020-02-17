@@ -51,9 +51,11 @@ Package::Package(String filename, String name, JsonObject json_obj)
         if (key == "type") {
             if (value.as_string().matches("library"))
                 m_type = PackageType::Library;
-            else if (value.as_string().matches("executable"))
+            else if (value.as_string().matches("executable")) {
                 m_type = PackageType::Executable;
-            else if (value.as_string().matches("collection"))
+                fprintf(stderr, "Executable: %s\n", name.characters());
+
+            } else if (value.as_string().matches("collection"))
                 m_type = PackageType::Collection;
             else
                 m_consistent = false;

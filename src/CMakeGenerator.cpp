@@ -165,17 +165,22 @@ bool CMakeGenerator::gen_package(const Package& package)
     auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
 
     if (gen_path.is_empty()) {
+        fprintf(stderr, "Empty gen path, check configuration!\n");
         return false;
     }
 
     if (!create_dir(gen_path, "package"))
         return false;
 
-    if (package.type() != PackageType::Library || package.type() == PackageType::Executable)
+    if (package.type() != PackageType::Library && package.type() != PackageType::Executable) {
+        fprintf(stderr, "Package %s not of type Library or Executable.\n", package.name().characters());
         return false;
+    }
 
-    if (package.machine() != "target")
+    if (package.machine() != "target" && package.machine() != "host") {
+        fprintf(stderr, "Package %s machine is not target or host. It is %s!\n", package.name().characters(), package.machine().characters());
         return false;
+    }
 
     StringBuilder cmakelists_txt;
 
@@ -454,11 +459,11 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
         cmakelists_txt.append(package.name());
         cmakelists_txt.append("\n");
 
-        if (package.machine() == "host") {
             // get package toolchain!
-            auto& pkg_toolchain_steps = package.toolchain_steps();
-            auto& pkg_toolchain_options = package.toolchain_options();
+        auto& pkg_toolchain_steps = package.toolchain_steps();
+        auto& pkg_toolchain_options = package.toolchain_options();
 
+        if (pkg_toolchain_steps.size()) {
             /** 
              * Example ExternalProject for build machine package
              * 
@@ -586,7 +591,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
              * ExternalProject_Add(LibC
              *     DEPENDS gcc
              *     PREFIX ${CMAKE_BINARY_DIR}/libc
-             *     SOURCE_DIR ${CMAKE_SOURCE_DIR}/../packages/libc
+             *     SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/libc
              *     CMAKE_ARGS
              *       -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot
              *       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake
@@ -595,7 +600,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
              * 
              *     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "libc")
              */
-            cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../packages/");
+            cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../package/");
             cmakelists_txt.append(package.name());
             cmakelists_txt.append("\n");
             cmakelists_txt.append("    CMAKE_ARGS");
@@ -609,6 +614,10 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
             cmakelists_txt.append("\n");
             cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroot $(MAKE) install");
             cmakelists_txt.append(")\n");
+
+            // ensure that the package CMakeLists.txt file is also generated
+            if (!gen_package(package))
+                fprintf(stderr, "Could not generate package: %s\n", package.name().characters());
         }
 
         cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ");
@@ -616,11 +625,11 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
         cmakelists_txt.append(")\n\n");
     };
 
+    Vector<String> processed_packages;
     for (auto& package : packages_to_build) {
         auto node = DependencyResolver::the().get_dependency_tree(package);
         if (node) {
             // got to leaves
-            Vector<String> processed_packages;
             DependencyNode::start_by_leave(node, [&](auto& package) {
                 if (!processed_packages.contains_slow(package.name())) {
                     process_package(package);

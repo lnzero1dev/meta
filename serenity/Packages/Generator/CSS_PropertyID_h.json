@@ -10,7 +10,7 @@
                 "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/"
             ],
             "dependency": [
-                "LibAK",
+                "AK",
                 "LibCore"
             ]
         }

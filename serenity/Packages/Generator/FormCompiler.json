@@ -10,7 +10,7 @@
                 "${root}/DevTools/FormCompiler"
             ],
             "dependency": [
-                "LibAK",
+                "AK",
                 "LibCore"
             ]
         }

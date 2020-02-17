@@ -83,8 +83,10 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
             }
         }
 
-        if (!found_package)
+        if (!found_package) {
+            fprintf(stderr, "Did not find %s, which is a dependency of %s!\n", dependency.key.characters(), package.name().characters());
             m->missing_dependencies.append(dependency.key);
+        }
     }
 
     return m;
