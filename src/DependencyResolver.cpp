@@ -36,16 +36,23 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
 
     for (auto& dependency : package.dependencies()) {
         bool found_package = false;
+
+        if (dependency.value == LinkageType::Direct || dependency.value == LinkageType::HeaderOnly)
+            continue;
+
         Package* dependent_package = PackageDB::the().get(dependency.key);
 
-        //fprintf(stderr, "Package %s has dependency: %s\n", package.name().characters(), dependency.key.characters());
-
+#ifdef DEBUG_META
+        fprintf(stderr, "Package %s has dependency: %s\n", package.name().characters(), dependency.key.characters());
+#endif
         if (dependent_package) {
             // dependencies can only be of the same type! But: Allow host packages to have dependency to target, because we know what we can do ;-)
             if (package.machine() == dependent_package->machine() || (package.machine() == "host" && dependent_package->machine() == "target")) {
                 found_package = true;
                 m->children.append(get_dependency_tree(*dependent_package));
-                //fprintf(stderr, "Package %s has now %i children.\n", package.name().characters(), m->children.size());
+#ifdef DEBUG_META
+                fprintf(stderr, "Package %s has now %i children.\n", package.name().characters(), m->children.size());
+#endif
             }
         } else {
             // search for package that provides this dependency in 'provides' attribute
@@ -72,7 +79,9 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
             // This could (must!) be done in the generated code, but for now, we do it here.
             // TODO: we can only check build tools for existence, move check of host tools into the host toolchain!
 
+#ifdef DEBUG_META
             fprintf(stderr, "Checking for %s (which is a dependency of %s)\n", dependency.key.characters(), package.name().characters());
+#endif
 
             if (dependency.key.contains("lib")) {
                 if (FileProvider::the().check_host_library_available(dependency.key))

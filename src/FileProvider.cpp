@@ -19,7 +19,7 @@ FileProvider& FileProvider::the()
     static FileProvider* s_the;
     auto* cwd = getcwd(nullptr, 0);
 
-#ifdef META_DEBUG
+#ifdef DEBUG_META
     fprintf(stderr, "Current working dir: %s\n", cwd);
 #endif
 
@@ -60,7 +60,7 @@ bool FileProvider::match(const GlobState& state, String path)
 
     int reti = regexec(&state.compiled_regex, path.characters(), 0, NULL, 0);
     if (!reti) {
-#ifdef META_DEBUG
+#ifdef DEBUG_META
         fprintf(stderr, "Regex match: %s - %s\n", state.pattern.characters(), path.characters());
 #endif
         return true;
@@ -82,17 +82,18 @@ static regex_t compile_regex(const StringView& pattern)
         if (pattern[i] == '.') {
             pattern_builder.append("\\.");
         } else if (pattern[i] == '?') {
-            pattern_builder.append("\\(.\\)");
+            pattern_builder.append(".");
         } else if (pattern[i] == '/') {
             pattern_builder.append("\\/");
         } else if (pattern[i] == '*' && i < pattern.length() - 1 && pattern[i + 1] == '*') {
-            pattern_builder.append("\\(.*\\/\\)\\?");
+            pattern_builder.append("(.*\\/)?");
             ++i;
             if (i < pattern.length() - 1 && pattern[i + 1] == '/') {
                 ++i;
             }
         } else if (pattern[i] == '*') {
-            pattern_builder.append("\\(.*\\)");
+            pattern_builder.append("[^\\/]*");
+
         } else {
             pattern_builder.append(pattern[i]);
         }
@@ -100,12 +101,12 @@ static regex_t compile_regex(const StringView& pattern)
 
     const char* regexp = pattern_builder.build().characters();
 
-#ifdef META_DEBUG
+#ifdef DEBUG_META
     fprintf(stderr, "compile_regexp: %s\n", regexp);
 #endif
 
     regex_t regex;
-    if (regcomp(&regex, regexp, 0)) {
+    if (regcomp(&regex, regexp, REG_EXTENDED)) {
         perror("regcomp");
     }
 
@@ -182,7 +183,7 @@ Vector<String> FileProvider::recursive_glob(GlobState state, const StringView& c
         }
     }
 
-#ifdef META_DEBUG
+#ifdef DEBUG_META
     fprintf(stdout, "recursive_glob found:\n");
     for (auto& file : vec) {
         fprintf(stdout, "file: %s\n", file.characters());

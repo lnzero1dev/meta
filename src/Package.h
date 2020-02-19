@@ -1,14 +1,17 @@
 #pragma once
 
+#include "Toolchain.h"
 #include <AK/JsonObject.h>
 #include <AK/Traits.h>
+#include <LibCore/CObject.h>
 #include <string>
 
 enum class LinkageType : uint8_t {
     Inherit = 0,
     Static,
     Dynamic,
-    NoLib,
+    Direct,
+    HeaderOnly,
 
     Unknown = 0xFF
 };
@@ -17,6 +20,7 @@ enum class PackageType : uint8_t {
     Library = 0, // Exactly one library
     Executable,  // Exactly one executable
     Collection,  // Collection of 1..n libraries/executables
+    Deployment,  // Just deployment for specific machine
 
     Unknown = 0xFF
 };
@@ -30,11 +34,62 @@ struct Traits<PackageType> : public GenericTraits<PackageType> {
 };
 }
 
+enum class DeploymentType : u8 {
+    Undefined = 0,
+    Target,
+    File,
+    Directory,
+    Object,
+};
+
+class Deployment : public Core::Object {
+    C_OBJECT(Deployment)
+public:
+    explicit Deployment(DeploymentType);
+    explicit Deployment(const String&);
+    ~Deployment();
+
+    void set(const String&, const String&);
+    void set(const String&, const String&, const String&);
+
+    DeploymentType type() const { return m_type; }
+
+    void set_name(const String&);
+    void set_rename(const String&);
+    void set_dest(const String&);
+    void set_pattern(const String&);
+    void set_source(const String&);
+
+    const String& name() const { return m_name; }
+    const String& source() const { return m_source; }
+    const String& rename() const { return m_rename; }
+    const String& pattern() const { return m_pattern; }
+    const String& dest() const { return m_dest; }
+
+private:
+    DeploymentType m_type;
+    String m_name;
+    String m_source;
+    String m_rename;
+    String m_pattern;
+    String m_dest;
+};
+
 struct PackageVersion {
     int major;
     int minor;
     int bugfix;
     String other;
+};
+
+struct InputOutputTuple {
+    String input;
+    String output;
+    String flags;
+};
+
+struct Generator {
+    Vector<InputOutputTuple> input_output_tuples;
 };
 
 class Package {
@@ -70,6 +125,15 @@ public:
 
     const HashMap<String, LinkageType>& dependencies() const { return m_dependencies; }
     const HashMap<PackageType, Vector<String>>& provides() const { return m_provides; }
+    const Vector<NonnullRefPtr<Deployment>>& deploy() const { return m_deploy; }
+
+    LinkageType get_dependency_linkage(LinkageType) const;
+
+    const HashMap<String, Tool>& target_tools() const { return m_target_tools; }
+    const HashMap<String, Tool>& host_tools() const { return m_host_tools; }
+    const HashMap<String, Tool>& build_tools() const { return m_build_tools; }
+
+    const HashMap<String, Generator>& run_generators() const { return m_run_generators; }
 
 private:
     bool m_consistent = true;
@@ -92,6 +156,14 @@ private:
 
     HashMap<String, LinkageType> m_dependencies;
     LinkageType m_dependency_linkage = LinkageType::Static;
+
+    Vector<NonnullRefPtr<Deployment>> m_deploy;
+
+    HashMap<String, Tool> m_target_tools;
+    HashMap<String, Tool> m_build_tools;
+    HashMap<String, Tool> m_host_tools;
+
+    HashMap<String, Generator> m_run_generators;
 
     String m_machine;
 };

@@ -84,14 +84,14 @@ void load_meta_all(Vector<String> files)
             json.as_object().for_each_member([&](auto& key, auto& value) {
                 if (key == "toolchain") {
                     value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
+#ifdef DEBUG_META
                         fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
 #endif
                         ToolchainDB::the().add(key, value.as_object());
                     });
                 } else if (key == "package") {
                     value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
+#ifdef DEBUG_META
                         fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
 #endif
                         bool result = PackageDB::the().add(filename, key, value.as_object());
@@ -118,7 +118,7 @@ void load_meta_all(Vector<String> files)
                         });
                 } else if (key == "image") {
                     value.as_object().for_each_member([&](auto& key, auto& value) {
-#ifdef META_DEBUG
+#ifdef DEBUG_META
                         fprintf(stderr, "Found image %s, adding to DB.\n", key.characters());
 #endif
                         bool result = ImageDB::the().add(filename, key, value.as_object());
@@ -165,6 +165,7 @@ void statistics()
     u16 type_library = 0;
     u16 type_executable = 0;
     u16 type_collection = 0;
+    u16 type_deployment = 0;
     u16 type_unknown = 0;
     PackageDB::the().for_each_package([&](auto& name, auto& package) {
         package_list.append(name);
@@ -180,6 +181,9 @@ void statistics()
             break;
         case PackageType::Collection:
             ++type_collection;
+            break;
+        case PackageType::Deployment:
+            ++type_deployment;
             break;
         case PackageType::Unknown:
             ++type_unknown;
@@ -212,6 +216,7 @@ void statistics()
     fprintf(stdout, "Packages with type Library: %i\n", type_library);
     fprintf(stdout, "Packages with type Executable: %i\n", type_executable);
     fprintf(stdout, "Packages with type Collection: %i\n", type_collection);
+    fprintf(stdout, "Packages with type Deployment: %i\n", type_deployment);
     fprintf(stdout, "Packages with unknown type: %i\n", type_unknown);
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
@@ -292,7 +297,7 @@ int main(int argc, char** argv)
     String root = FileProvider::the().current_dir();
     files = FileProvider::the().glob_all_meta_json_files(root);
 
-#ifdef META_DEBUG
+#ifdef DEBUG_META
     fprintf(stderr, "Searching for meta json files in: %s\n", root.characters());
     for (auto& file : files) {
         fprintf(stderr, "* %s\n", file.characters());
@@ -337,8 +342,9 @@ int main(int argc, char** argv)
     load_meta_all(files);
 
     if (cmd == PrimaryCommand::Generate) {
+#ifdef DEBUG_META
         fprintf(stderr, "Generate!\n");
-
+#endif
         auto configured_toolchain = SettingsProvider::the().get_string("toolchain");
         auto toolchain = ToolchainDB::the().get(configured_toolchain.value_or("default"));
         if (!toolchain) {
@@ -446,6 +452,18 @@ int main(int argc, char** argv)
                     }
                 }
 
+                PackageDB::the().for_each_package([&](auto&, auto& package) { // Fixme: scan only packages that are actually in the build!
+                    for (auto& generator : package.run_generators()) {
+                        Package* package = PackageDB::the().get(generator.key);
+                        if (package) {
+                            packages_to_build.append(*package);
+                        } else {
+                            fprintf(stderr, "Could not find package for generator: %s\n", generator.key.characters());
+                        }
+                    }
+                    return IterationDecision::Continue;
+                });
+
                 cmakegen.gen_toolchain(*toolchain, packages_to_build);
 
                 if (isImage) {
@@ -458,18 +476,28 @@ int main(int argc, char** argv)
                             if (data.machine() == "target") {
                                 if (cmakegen.gen_package(data)) {
                                     auto node = DependencyResolver::the().get_dependency_tree(data);
+#ifdef DEBUG_META
+                                    fprintf(stderr, "Resolving dependency tree for package: %s\n", data.name().characters());
+#endif
                                     // add all packages, beginning from leave
                                     DependencyNode::start_by_leave(node, [&](auto& package) {
                                         bool found = false;
                                         for (auto& p : host_packages_in_order) {
                                             if (p->name() == package.name()) {
                                                 found = true;
+#ifdef DEBUG_META
+                                                fprintf(stderr, " -> Found dep: %s\n", package.name().characters());
+#endif
                                                 break;
                                             }
                                         }
 
-                                        if (!found)
-                                            host_packages_in_order.prepend(&package);
+                                        if (!found) {
+                                            host_packages_in_order.append(&package);
+#ifdef DEBUG_META
+                                            fprintf(stderr, " --> Adding dep: %s\n", package.name().characters());
+#endif
+                                        }
                                     });
                                 }
                             }
@@ -496,12 +524,12 @@ int main(int argc, char** argv)
                                     }
 
                                     if (!found)
-                                        host_packages_in_order.prepend(&package);
+                                        host_packages_in_order.append(&package);
                                 });
                             }
                         }
                     }
-                    fprintf(stderr, "Generate Image: %s!\n", image->name().characters());
+                    fprintf(stdout, "Generate Image: %s!\n", image->name().characters());
                     cmakegen.gen_image(*image, host_packages_in_order);
 
                 } else if (isPackage) {
@@ -530,7 +558,7 @@ int main(int argc, char** argv)
     }
 
     if (cmd == PrimaryCommand::Build) {
-        fprintf(stderr, "Build!\n");
+        fprintf(stdout, "Build!\n");
     }
 
     statistics();

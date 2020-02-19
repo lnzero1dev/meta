@@ -41,6 +41,10 @@ public:
     bool install_all() const { return m_install_all; }
     const String& build_tool() { return m_build_tool; }
     const String& run_tool() { return m_run_tool; }
+    const HashMap<InstallDir, String>& install_dirs() const { return m_install_dirs; }
+
+    static const String install_dir_to_string(InstallDir installDir);
+    static InstallDir string_to_install_dir(String type);
 
 private:
     String m_filename;
@@ -50,6 +54,6 @@ private:
 
     String m_build_tool;
     String m_run_tool;
-    HashMap<InstallDir, String> imageInstallDirs;
+    HashMap<InstallDir, String> m_install_dirs;
     void set_default_install_dirs();
 };

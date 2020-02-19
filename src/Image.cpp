@@ -1,34 +1,64 @@
 #include "Image.h"
 #include "StringUtils.h"
 
-InstallDir string_to_install_dir(String type)
+InstallDir Image::string_to_install_dir(String type)
 {
-    if (type.matches("bindir"))
+    if (type.matches("BinDir"))
         return InstallDir::BinDir;
-    else if (type.matches("bindir"))
+    else if (type.matches("SbinDir"))
         return InstallDir::SbinDir;
-    else if (type.matches("sbindir"))
+    else if (type.matches("LibexecDir"))
         return InstallDir::LibexecDir;
-    else if (type.matches("libexecdir"))
+    else if (type.matches("SysconfDir"))
         return InstallDir::SysconfDir;
-    else if (type.matches("sysconfdir"))
+    else if (type.matches("SharedstateDir"))
         return InstallDir::SharedstateDir;
-    else if (type.matches("sharedstatedir"))
+    else if (type.matches("LocalstateDir"))
         return InstallDir::LocalstateDir;
-    else if (type.matches("localstatedir"))
+    else if (type.matches("IncludeDir"))
         return InstallDir::IncludeDir;
-    else if (type.matches("includedir"))
+    else if (type.matches("DatarootDir"))
         return InstallDir::DatarootDir;
-    else if (type.matches("datarootdir"))
+    else if (type.matches("DataDir"))
         return InstallDir::DataDir;
-    else if (type.matches("datadir"))
+    else if (type.matches("InfoDir"))
         return InstallDir::InfoDir;
-    else if (type.matches("infodir"))
+    else if (type.matches("LocaleDir"))
         return InstallDir::LocaleDir;
-    else if (type.matches("mandir"))
+    else if (type.matches("ManDir"))
         return InstallDir::ManDir;
     else
         return InstallDir::Undefined;
+}
+
+const String Image::install_dir_to_string(InstallDir installDir)
+{
+    if (installDir == InstallDir::BinDir)
+        return "BinDir";
+    else if (installDir == InstallDir::SbinDir)
+        return "SbinDir";
+    else if (installDir == InstallDir::LibexecDir)
+        return "LibexecDir";
+    else if (installDir == InstallDir::SysconfDir)
+        return "SysconfDir";
+    else if (installDir == InstallDir::SharedstateDir)
+        return "SharedstateDir";
+    else if (installDir == InstallDir::LocalstateDir)
+        return "LocalstateDir";
+    else if (installDir == InstallDir::IncludeDir)
+        return "IncludeDir";
+    else if (installDir == InstallDir::DatarootDir)
+        return "DatarootDir";
+    else if (installDir == InstallDir::DataDir)
+        return "DataDir";
+    else if (installDir == InstallDir::InfoDir)
+        return "InfoDir";
+    else if (installDir == InstallDir::LocaleDir)
+        return "LocaleDir";
+    else if (installDir == InstallDir::ManDir)
+        return "ManDir";
+
+    return "Undefined";
 }
 
 Image::Image(const String& filename, const String& name, JsonObject json_obj)
@@ -63,11 +93,7 @@ Image::Image(const String& filename, const String& name, JsonObject json_obj)
             value.as_object().for_each_member([&](auto& key, auto& value) {
                 auto installDir = string_to_install_dir(key);
                 if (installDir != InstallDir::Undefined) {
-                    String replaced = value.as_string();
-                    if (potentially_contains_variable(replaced))
-                        replaced = replace_variables(replaced, "datarootdir", imageInstallDirs.ensure(InstallDir::DatarootDir));
-
-                    imageInstallDirs.set(installDir, replaced);
+                    m_install_dirs.set(installDir, value.as_string());
                 }
             });
         }
@@ -80,16 +106,16 @@ Image::~Image()
 
 void Image::set_default_install_dirs()
 {
-    imageInstallDirs.set(InstallDir::BinDir, "bin");
-    imageInstallDirs.set(InstallDir::SbinDir, "sbin");
-    imageInstallDirs.set(InstallDir::LibexecDir, "libexec");
-    imageInstallDirs.set(InstallDir::SysconfDir, "etc");
-    imageInstallDirs.set(InstallDir::SharedstateDir, "shared");
-    imageInstallDirs.set(InstallDir::LocalstateDir, "var");
-    imageInstallDirs.set(InstallDir::IncludeDir, "include");
-    imageInstallDirs.set(InstallDir::DatarootDir, "share");
-    imageInstallDirs.set(InstallDir::DataDir, "share");
-    imageInstallDirs.set(InstallDir::InfoDir, "share/info");
-    imageInstallDirs.set(InstallDir::LocaleDir, "share/locale");
-    imageInstallDirs.set(InstallDir::ManDir, "share/man");
+    m_install_dirs.set(InstallDir::BinDir, "bin");
+    m_install_dirs.set(InstallDir::SbinDir, "sbin");
+    m_install_dirs.set(InstallDir::LibexecDir, "libexec");
+    m_install_dirs.set(InstallDir::SysconfDir, "etc");
+    m_install_dirs.set(InstallDir::SharedstateDir, "shared");
+    m_install_dirs.set(InstallDir::LocalstateDir, "var");
+    m_install_dirs.set(InstallDir::IncludeDir, "include");
+    m_install_dirs.set(InstallDir::DatarootDir, "share");
+    m_install_dirs.set(InstallDir::DataDir, "share");
+    m_install_dirs.set(InstallDir::InfoDir, "share/info");
+    m_install_dirs.set(InstallDir::LocaleDir, "share/locale");
+    m_install_dirs.set(InstallDir::ManDir, "share/man");
 }

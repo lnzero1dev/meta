@@ -3,14 +3,60 @@
 #include "SettingsProvider.h"
 #include "StringUtils.h"
 
+Deployment::Deployment(const String& type)
+{
+    if (type == "target")
+        m_type = DeploymentType::Target;
+    else if (type == "file")
+        m_type = DeploymentType::File;
+    else if (type == "directory")
+        m_type = DeploymentType::Directory;
+    else
+        m_type = DeploymentType::Undefined;
+}
+
+Deployment::Deployment(DeploymentType type)
+    : m_type(type)
+{
+}
+
+Deployment::~Deployment() {}
+
+void Deployment::set_name(const String& name)
+{
+    m_name = name;
+}
+
+void Deployment::set_rename(const String& rename)
+{
+    m_rename = rename;
+}
+
+void Deployment::set_dest(const String& dest)
+{
+    m_dest = dest;
+}
+
+void Deployment::set_pattern(const String& pattern)
+{
+    m_pattern = pattern;
+}
+
+void Deployment::set_source(const String& source)
+{
+    m_source = source;
+}
+
 LinkageType string_to_linkage_type(String type)
 {
     if (type.matches("static"))
         return LinkageType::Static;
     else if (type.matches("dynamic"))
         return LinkageType::Dynamic;
-    else if (type.matches("nolib"))
-        return LinkageType::NoLib;
+    else if (type.matches("direct"))
+        return LinkageType::Direct;
+    else if (type.matches("header_only"))
+        return LinkageType::HeaderOnly;
     else
         return LinkageType::Unknown;
 }
@@ -53,12 +99,13 @@ Package::Package(String filename, String name, JsonObject json_obj)
                 m_type = PackageType::Library;
             else if (value.as_string().matches("executable")) {
                 m_type = PackageType::Executable;
-                fprintf(stderr, "Executable: %s\n", name.characters());
-
-            } else if (value.as_string().matches("collection"))
+            } else if (value.as_string().matches("collection")) {
                 m_type = PackageType::Collection;
-            else
+            } else if (value.as_string().matches("deployment"))
+                m_type = PackageType::Deployment;
+            else {
                 m_consistent = false;
+            }
             return;
         }
         if (key == "version") {
@@ -186,7 +233,7 @@ Package::Package(String filename, String name, JsonObject json_obj)
                 } else
                     m_sources.append(value.as_string());
             }
-#ifdef META_DEBUG
+#ifdef DEBUG_META
             for (auto& source : m_sources) {
                 fprintf(stdout, "source: %s\n", source.characters());
             }
@@ -207,15 +254,132 @@ Package::Package(String filename, String name, JsonObject json_obj)
                     if (search_dir.is_empty()) {
                         search_dir = SettingsProvider::the().get_string("root").value_or("");
                     }
-
+                    // Fixme: Globbing is broken/incomplete here, do it like above with sources, check performance... ^^
                 } else
                     m_includes.append(value.as_string());
             }
-#ifdef META_DEBUG
+#ifdef DEBUG_META
             for (auto& include : m_includes) {
                 fprintf(stdout, "include: %s\n", include.characters());
             }
 #endif
+            return;
+        }
+        if (key == "deploy") {
+            auto values = value.as_array().values();
+
+#ifdef DEBUG_META
+            fprintf(stderr, "Found %i install items for %s\n", values.size(), m_name.characters());
+#endif
+
+            for (auto& value : values) {
+                // value is an object
+                auto& obj = value.as_object();
+                if (obj.has("type")) {
+                    auto type = obj.get("type").as_string();
+#ifdef DEBUG_META
+                    fprintf(stderr, " * Type: %s\n", type.characters());
+#endif
+                    if (type == "target") {
+                        auto depl = adopt(*new Deployment(DeploymentType::Target));
+                        if (obj.has("name"))
+                            depl->set_name(obj.get("name").as_string());
+                        if (obj.has("dest"))
+                            depl->set_dest(obj.get("dest").as_string());
+                        m_deploy.append(depl);
+                    } else if (type == "file") {
+#ifdef DEBUG_META
+                        fprintf(stderr, "Install file: %s\n", obj.get("source").as_string().characters());
+#endif
+                        auto depl = adopt(*new Deployment(DeploymentType::File));
+                        if (obj.has("source"))
+                            depl->set_source(obj.get("source").as_string());
+                        if (obj.has("dest"))
+                            depl->set_dest(obj.get("dest").as_string());
+                        if (obj.has("rename"))
+                            depl->set_rename(obj.get("rename").as_string());
+                        m_deploy.append(depl);
+                    } else if (type == "directory") {
+                        auto depl = adopt(*new Deployment(DeploymentType::Directory));
+                        if (obj.has("source"))
+                            depl->set_source(obj.get("source").as_string());
+                        if (obj.has("dest"))
+                            depl->set_dest(obj.get("dest").as_string());
+                        if (obj.has("pattern"))
+                            depl->set_pattern(obj.get("pattern").as_string());
+                        m_deploy.append(depl);
+                    } else if (type == "object") {
+                        auto depl = adopt(*new Deployment(DeploymentType::Object));
+                        if (obj.has("source"))
+                            depl->set_source(obj.get("source").as_string());
+                        if (obj.has("dest"))
+                            depl->set_dest(obj.get("dest").as_string());
+                        if (obj.has("name"))
+                            depl->set_name(obj.get("name").as_string());
+                        m_deploy.append(depl);
+                    } else {
+                        fprintf(stderr, "Unknown deployment type %s is specified in %s\n", obj.get("type").as_string().characters(), m_filename.characters());
+                    }
+                } else {
+                    fprintf(stderr, "Unknown deployment in %s as no type is specified.\n", m_filename.characters());
+                }
+            }
+            return;
+        }
+        if (key == "target_tools") {
+            Toolchain::insert_tool(m_target_tools, value.as_object());
+            return;
+        }
+        if (key == "build_tools") {
+            Toolchain::insert_tool(m_build_tools, value.as_object());
+            return;
+        }
+        if (key == "host_tools") {
+            Toolchain::insert_tool(m_host_tools, value.as_object());
+            return;
+        }
+        if (key == "run_generators") {
+            if (value.is_object()) {
+                value.as_object().for_each_member([&](auto& key, auto& value) {
+                    Vector<InputOutputTuple> input_output_tuples;
+                    auto& values = value.as_array().values();
+                    for (auto& value : values) {
+                        InputOutputTuple tuple;
+                        value.as_object().for_each_member([&](auto& key, auto& value) {
+                            if (key == "input") {
+                                if (value.is_string()) {
+                                    tuple.input = value.as_string();
+                                } else {
+                                    // error
+                                }
+                                return;
+                            }
+                            if (key == "output") {
+                                if (value.is_string()) {
+                                    tuple.output = value.as_string();
+                                } else {
+                                    // error
+                                }
+                                return;
+                            }
+                            if (key == "flags") {
+                                if (value.is_string()) {
+                                    tuple.flags = value.as_string();
+                                } else {
+                                    // error
+                                }
+                                return;
+                            }
+                            fprintf(stderr, "Unknown value within run_generators in %s.\n", m_filename.characters());
+                        });
+                        input_output_tuples.append(tuple);
+                    }
+
+                    m_run_generators.set(key, { input_output_tuples });
+                });
+            } else {
+                fprintf(stderr, "Unknown value for run_generators in %s.\n", m_filename.characters());
+            }
             return;
         }
     });
@@ -225,3 +389,10 @@ Package::~Package()
 {
 }
 
+LinkageType Package::get_dependency_linkage(LinkageType type) const
+{
+    if (type == LinkageType::Inherit) {
+        return m_dependency_linkage;
+    }
+    return type;
+}
