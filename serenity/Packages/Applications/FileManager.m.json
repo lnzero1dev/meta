@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "FileManager": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/FileManager/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/FileManager"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

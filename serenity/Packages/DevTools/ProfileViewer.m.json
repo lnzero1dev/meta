@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "ProfileViewer": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/DevTools/ProfileViewer/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/DevTools/ProfileViewer"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

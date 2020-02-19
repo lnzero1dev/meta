@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "TTYServer": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Servers/TTYServer/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Servers/TTYServer"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibC"
             ]
         }
     }

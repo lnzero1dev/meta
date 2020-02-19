@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "Calculator": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/Calculator/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/Calculator"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

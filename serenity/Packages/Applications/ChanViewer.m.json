@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "ChanViewer": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/ChanViewer/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/ChanViewer"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

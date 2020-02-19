@@ -4,41 +4,52 @@
             "type": "executable",
             "source": [
                 "${root}/Kernel/**/*.cpp",
-                "${root}/Kernel/Arch/i386/Boot/boot.S"
+                "${root}/Kernel/Arch/i386/Boot/boot.S",
+                "${root}/AK/FileSystemPath.cpp",
+                "${root}/AK/JsonParser.cpp",
+                "${root}/AK/JsonValue.cpp",
+                "${root}/AK/LogStream.cpp",
+                "${root}/AK/String.cpp",
+                "${root}/AK/StringBuilder.cpp",
+                "${root}/AK/StringImpl.cpp",
+                "${root}/AK/StringView.cpp",
+                "${root}/Libraries/LibELF/ELFImage.cpp",
+                "${root}/Libraries/LibELF/ELFLoader.cpp"
             ],
             "include": [
-                "${root}/Kernel",
-                "${build_sysroot}/i686-pc-serenity/include/c++/9.2.0/",
-                "${build_sysroot}/i686-pc-serenity/include/c++/9.2.0/i686-pc-serenity/"
+                "${root}/Kernel"
             ],
             "dependency": [
-                "AK",
-                "LibELF"
+                "LibC"
             ],
-            "defines": [
-                "KERNEL"
-            ],
-            "cxx": {
-                "flags": [
-                    "-pie -fPIE -ffreestanding -fbuiltin -mno-80387 -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables",
-                    "-nostdlib -nostdinc -nostdinc++ -g3"
-                ]
-            },
-            "link": {
-                "flags": [
-                    "-Wl,-T linker.ld -nostdlib -lgcc -lstdc++ -g3"
-                ]
-            },
-            "run_generators": {
-                "MkMap": {
-                    "input": "executable",
-                    "output": "kernel.map"
+            "host_tools": {
+                "cxx": {
+                    "flags": [
+                        "-pie -fPIE -ffreestanding -fbuiltin -mno-80387 -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables",
+                        "-nostdlib -nostdinc -nostdinc++ -g3 -DKERNEL",
+                        "-I${host_sysroot}/i686-pc-serenity/include/c++/9.2.0/",
+                        "-I${host_sysroot}/i686-pc-serenity/include/c++/9.2.0/i686-pc-serenity/"
+                    ]
+                },
+                "link": {
+                    "flags": [
+                        "-Wl,-T ${root}/Kernel/linker.ld -nostdlib -lgcc -lstdc++ -g3"
+                    ]
+                },
+                "run_generators": {
+                    "MkMap": [
+                        {
+                            "input": "kernel",
+                            "output": "${gendata}/kernel.map"
+                        }
+                    ]
                 }
             },
             "deploy": [
                 {
-                    "type": "files",
-                    "pattern": "${root}/Kernel/*.h",
+                    "type": "directory",
+                    "source": "${root}/Kernel/",
+                    "pattern": "*.h",
                     "dest": "${IncludeDir}/Kernel"
                 }
             ]

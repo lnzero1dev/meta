@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "Taskbar": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/Taskbar/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/Taskbar"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

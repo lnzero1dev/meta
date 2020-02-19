@@ -7,12 +7,15 @@
             ],
             "include": [
                 "${root}/Libraries/LibProtocol",
-                "${gendata}/LibProtocol"
+                "${gendata}"
             ],
             "run_generators": {
-                "IPCCompiler": {
-                    "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc"
-                }
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
+                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                    }
+                ]
             },
             "dependency": [
                 "AK"

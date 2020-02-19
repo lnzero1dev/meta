@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "VisualBuilder": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/DevTools/VisualBuilder/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/DevTools/VisualBuilder"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

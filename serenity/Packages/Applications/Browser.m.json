@@ -1,0 +1,34 @@
+{
+    "package": {
+        "Browser": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/Browser/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/Browser",
+                "${gendata}"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibHTML",
+                "LibDraw",
+                "LibProtocol"
+            ],
+            "run_generators": {
+                "CSS_PropertyID_h": [
+                    {
+                        "input": "${root}/Libraries/LibHTML/CSS/Properties.json",
+                        "output": "${gendata}/PropertyID.h"
+                    }
+                ],
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
+                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                    }
+                ]
+            }
+        }
+    }
+}

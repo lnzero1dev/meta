@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "HexEditor": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/HexEditor/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/HexEditor"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

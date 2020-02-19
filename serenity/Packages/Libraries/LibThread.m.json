@@ -8,6 +8,10 @@
             "include": [
                 "${root}/Libraries/LibThread"
             ],
+            "dependency": [
+                "LibPthread",
+                "LibC"
+            ],
             "deploy": [
                 {
                     "type": "target",

@@ -8,6 +8,11 @@
             "include": [
                 "${root}/Libraries/LibIPC"
             ],
+            "dependency": [
+                "LibCore",
+                "AK",
+                "LibC"
+            ],
             "deploy": [
                 {
                     "type": "target",

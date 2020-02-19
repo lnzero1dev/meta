@@ -1,17 +1,16 @@
 {
     "package": {
-        "Shell": {
+        "QuickShow": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/QuickShow/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/QuickShow"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI",
+                "LibProtocol"
             ]
         }
     }

@@ -1,0 +1,30 @@
+{
+    "package": {
+        "ProtocolServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/ProtocolServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/ProtocolServer",
+                "${gendata}"
+            ],
+            "dependency": [
+                "LibCore",
+                "LibIPC"
+            ],
+            "run_generators": {
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/ProtocolServer/ProtocolServer.ipc",
+                        "output": "${gendata}/ProtocolServerEndpoint.h"
+                    },
+                    {
+                        "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
+                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                    }
+                ]
+            }
+        }
+    }
+}

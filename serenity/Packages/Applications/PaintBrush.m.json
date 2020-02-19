@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "PaintBrush": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/PaintBrush/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/PaintBrush"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

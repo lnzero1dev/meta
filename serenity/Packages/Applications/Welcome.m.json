@@ -1,12 +1,13 @@
 {
     "package": {
-        "About": {
+        "Welcome": {
             "type": "executable",
             "source": [
-                "${root}/Applications/About/*.cpp"
+                "${root}/Applications/Welcome/*.cpp",
+                "${root}/Applications/Welcome/*.png"
             ],
             "include": [
-                "${root}/Applications/About"
+                "${root}/Applications/Welcome"
             ],
             "dependency": [
                 "LibGUI"

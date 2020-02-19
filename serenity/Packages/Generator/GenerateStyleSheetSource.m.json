@@ -1,0 +1,16 @@
+{
+    "package": {
+        "GenerateStyleSheetSource": {
+            "type": "deployment",
+            "machine": "host",
+            "deploy": [
+                {
+                    "type": "file",
+                    "source": "${root}/Libraries/LibHTML/Scripts/GenerateStyleSheetSource",
+                    "dest": "${BinDir}",
+                    "permissions": 775
+                }
+            ]
+        }
+    }
+}

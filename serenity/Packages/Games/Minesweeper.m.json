@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "Minesweeper": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Games/Minesweeper/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Games/Minesweeper"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

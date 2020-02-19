@@ -1,17 +1,16 @@
 {
     "package": {
-        "Shell": {
+        "SoundPlayer": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/SoundPlayer/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/SoundPlayer"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI",
+                "LibAudio"
             ]
         }
     }

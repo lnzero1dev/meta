@@ -1,13 +1,13 @@
 {
     "package": {
-        "IPCCompiler": {
+        "FormCompiler": {
             "type": "executable",
             "machine": "host",
             "source": [
-                "${root}/DevTools/IPCCompiler/*.cpp"
+                "${root}/DevTools/FormCompiler/*.cpp"
             ],
             "include": [
-                "${root}/DevTools/IPCCompiler"
+                "${root}/DevTools/FormCompiler"
             ],
             "dependency": {
                 "AK_host": "direct",

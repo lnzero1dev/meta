@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "Snake": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Games/Snake/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Games/Snake"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

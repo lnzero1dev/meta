@@ -1,17 +1,16 @@
 {
     "package": {
-        "Shell": {
+        "Piano": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/Piano/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/Piano"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI",
+                "LibAudio"
             ]
         }
     }

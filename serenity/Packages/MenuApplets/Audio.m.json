@@ -1,17 +1,16 @@
 {
     "package": {
-        "Shell": {
+        "Audio.MenuApplet": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/MenuApplets/Audio/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/MenuApplets/Audio"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibAudio",
+                "LibGUI"
             ]
         }
     }

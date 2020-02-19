@@ -1,13 +1,17 @@
 {
     "package": {
-        "LibAudio": {
-            "type": "library",
+        "AudioServer": {
+            "type": "executable",
             "source": [
-                "${root}/Libraries/LibAudio/*.cpp"
+                "${root}/Servers/AudioServer/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibAudio",
+                "${root}/Servers/AudioServer",
                 "${gendata}"
+            ],
+            "dependency": [
+                "LibIPC",
+                "LibThread"
             ],
             "run_generators": {
                 "IPCCompiler": [
@@ -23,15 +27,10 @@
             },
             "deploy": [
                 {
-                    "type": "target",
-                    "name": "audio",
-                    "dest": "${LibDir}"
-                },
-                {
                     "type": "directory",
-                    "source": "${root}/Libraries/LibAudio/",
+                    "source": "${root}/Servers/AudioServer/",
                     "pattern": "*.h",
-                    "dest": "${IncludeDir}/LibAudio"
+                    "dest": "${IncludeDir}/AudioServer"
                 }
             ]
         }

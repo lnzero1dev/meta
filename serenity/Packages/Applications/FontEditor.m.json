@@ -1,0 +1,25 @@
+{
+    "package": {
+        "FontEditor": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/FontEditor/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/FontEditor",
+                "${gendata}"
+            ],
+            "dependency": [
+                "LibGUI"
+            ],
+            "run_generators": {
+                "FormCompiler": [
+                    {
+                        "input": "${root}/Applications/FontEditor/FontEditorBottom.frm",
+                        "output": "${gendata}/UI_FontEditorBottom.h"
+                    }
+                ]
+            }
+        }
+    }
+}

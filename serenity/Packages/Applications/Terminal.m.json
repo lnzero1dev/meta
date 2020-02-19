@@ -1,0 +1,18 @@
+{
+    "package": {
+        "Terminal": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/Terminal/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/Terminal"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibVT",
+                "LibProtocol"
+            ]
+        }
+    }
+}

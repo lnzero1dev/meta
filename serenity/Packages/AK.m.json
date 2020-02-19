@@ -7,10 +7,34 @@
             ],
             "include": [
                 "${root}/AK",
+                "${root}/Libraries/LibC",
                 "${root}"
             ],
-            "dependency": [
-                "LibC"
+            "deploy": [
+                {
+                    "type": "directory",
+                    "source": "${root}/AK",
+                    "dest": "${IncludeDir}",
+                    "pattern": "*.h"
+                }
+            ]
+        },
+        "AK_host": {
+            "type": "library",
+            "machine": "host",
+            "source": [
+                "${root}/AK/String.cpp",
+                "${root}/AK/StringImpl.cpp",
+                "${root}/AK/StringBuilder.cpp",
+                "${root}/AK/StringView.cpp",
+                "${root}/AK/JsonValue.cpp",
+                "${root}/AK/JsonParser.cpp",
+                "${root}/AK/LogStream.cpp"
+            ],
+            "include": [
+                "${root}/AK",
+                "${root}/Libraries/LibC",
+                "${root}"
             ]
         }
     }

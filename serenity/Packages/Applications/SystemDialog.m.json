@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "SystemDialog": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/SystemDialog/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/SystemDialog"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

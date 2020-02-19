@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "Inspector": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/DevTools/Inspector/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/DevTools/Inspector"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

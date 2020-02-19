@@ -10,6 +10,7 @@
             ],
             "dependency": [
                 "LibGUI",
+                "LibC",
                 "LibHTML",
                 "LibVT",
                 "LibProtocol",

@@ -1,0 +1,24 @@
+{
+    "package": {
+        "SystemServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/SystemServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/SystemServer"
+            ],
+            "dependency": [
+                "LibCore"
+            ],
+            "deploy": [
+                {
+                    "type": "directory",
+                    "source": "${root}/Servers/SystemServer/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/SystemServer"
+                }
+            ]
+        }
+    }
+}

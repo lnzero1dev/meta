@@ -10,7 +10,9 @@
             ],
             "dependency": [
                 "AK",
-                "LibM"
+                "LibM",
+                "LibC",
+                "LibCore"
             ],
             "deploy": [
                 {

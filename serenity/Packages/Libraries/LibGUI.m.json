@@ -7,20 +7,27 @@
             ],
             "include": [
                 "${root}/Libraries/LibGUI",
-                "${gendata}/LibGUI"
+                "${gendata}"
             ],
             "run_generators": {
-                "IPCCompiler": {
-                    "input": "${root}/Servers/WindowServer/WindowServer.ipc"
-                }
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/WindowServer/WindowServer.ipc",
+                        "output": "${gendata}/WindowServerEndpoint.h"
+                    }
+                ]
             },
             "dependency": [
-                "AK"
+                "AK",
+                "LibCore",
+                "LibDraw",
+                "LibIPC",
+                "LibThread"
             ],
             "deploy": [
                 {
                     "type": "target",
-                    "name": "audio",
+                    "name": "gui",
                     "dest": "${LibDir}"
                 },
                 {

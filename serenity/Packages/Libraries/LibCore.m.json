@@ -3,10 +3,14 @@
         "LibCore": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibCore/*.cpp"
+                "${root}/Libraries/LibCore/*.cpp",
+                "${root}/Libraries/LibCore/*.c"
             ],
             "include": [
                 "${root}/Libraries/LibCore"
+            ],
+            "dependency": [
+                "LibC"
             ],
             "deploy": [
                 {
@@ -20,6 +24,24 @@
                     "pattern": "*.h",
                     "dest": "${IncludeDir}/LibCore"
                 }
+            ]
+        },
+        "LibCore_host": {
+            "type": "library",
+            "machine": "host",
+            "source": [
+                "${root}/Libraries/LibCore/CIODevice.cpp",
+                "${root}/Libraries/LibCore/CFile.cpp",
+                "${root}/Libraries/LibCore/CObject.cpp",
+                "${root}/Libraries/LibCore/CEvent.cpp",
+                "${root}/Libraries/LibCore/CSocket.cpp",
+                "${root}/Libraries/LibCore/CLocalSocket.cpp",
+                "${root}/Libraries/LibCore/CNotifier.cpp",
+                "${root}/Libraries/LibCore/CLocalServer.cpp",
+                "${root}/Libraries/LibCore/CEventLoop.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibCore"
             ]
         }
     }

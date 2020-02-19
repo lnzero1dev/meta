@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "TelnetServer": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Servers/TelnetServer/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Servers/TelnetServer"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibCore"
             ]
         }
     }

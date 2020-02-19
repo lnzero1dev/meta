@@ -1,0 +1,19 @@
+{
+    "package": {
+        "Help": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/Help/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/Help"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibHTML",
+                "LibMarkdown",
+                "LibProtocol"
+            ]
+        }
+    }
+}

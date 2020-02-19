@@ -1,17 +1,16 @@
 {
     "package": {
-        "Shell": {
+        "TextEditor": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/TextEditor/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/TextEditor"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI",
+                "LibVT"
             ]
         }
     }

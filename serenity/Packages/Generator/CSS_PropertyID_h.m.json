@@ -1,13 +1,13 @@
 {
     "package": {
-        "IPCCompiler": {
+        "CSS_PropertyID_h": {
             "type": "executable",
             "machine": "host",
             "source": [
-                "${root}/DevTools/IPCCompiler/*.cpp"
+                "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/*.cpp"
             ],
             "include": [
-                "${root}/DevTools/IPCCompiler"
+                "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/"
             ],
             "dependency": {
                 "AK_host": "direct",

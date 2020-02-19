@@ -1,0 +1,18 @@
+{
+    "package": {
+        "IRCClient": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/IRCClient/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/IRCClient"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibHTML",
+                "LibProtocol"
+            ]
+        }
+    }
+}

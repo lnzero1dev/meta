@@ -3,33 +3,50 @@
         "LibHTML": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibHTML/*.cpp",
                 "${root}/Libraries/LibHTML/CSS/*.cpp",
                 "${root}/Libraries/LibHTML/DOM/*.cpp",
                 "${root}/Libraries/LibHTML/Layout/*.cpp",
-                "${root}/Libraries/LibHTML/Parser/*.cpp"
+                "${root}/Libraries/LibHTML/Parser/*.cpp",
+                "${root}/Libraries/LibHTML/*.cpp",
+                "${gendata}/DefaultStyleSheetSource.cpp",
+                "${gendata}/PropertyID.cpp"
             ],
             "include": [
                 "${root}/Libraries/LibHTML",
-                "${gendata}/LibHTML"
+                "${gendata}"
             ],
             "dependency": [
                 "AK",
-                "LibM"
+                "LibDraw",
+                "LibM",
+                "LibProtocol"
             ],
             "run_generators": {
-                "CSS_PropertyID_h": {
-                    "input": "${root}/Libraries/LibHTML/CSS/Properties.json"
-                },
-                "CSS_PropertyID_cpp": {
-                    "input": "${root}/Libraries/LibHTML/CSS/Properties.json"
-                },
-                "GenerateStyleSheetSource": {
-                    "input": "${root}/Libraries/LibHTML/CSS/Default.css"
-                },
-                "IPCCompiler": {
-                    "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc"
-                }
+                "CSS_PropertyID_h": [
+                    {
+                        "input": "${root}/Libraries/LibHTML/CSS/Properties.json",
+                        "output": "${gendata}/PropertyID.h"
+                    }
+                ],
+                "CSS_PropertyID_cpp": [
+                    {
+                        "input": "${root}/Libraries/LibHTML/CSS/Properties.json",
+                        "output": "${gendata}/PropertyID.cpp"
+                    }
+                ],
+                "GenerateStyleSheetSource": [
+                    {
+                        "flags": "default_stylesheet_source",
+                        "input": "${root}/Libraries/LibHTML/CSS/Default.css",
+                        "output": "${gendata}/DefaultStyleSheetSource.cpp"
+                    }
+                ],
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
+                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                    }
+                ]
             },
             "deploy": [
                 {

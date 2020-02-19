@@ -8,9 +8,9 @@
             "include": [
                 "${root}/Libraries/LibPthread"
             ],
-            "dependency": {
-                "LibC": "header_only"
-            },
+            "dependency": [
+                "LibC"
+            ],
             "deploy": [
                 {
                     "type": "target",

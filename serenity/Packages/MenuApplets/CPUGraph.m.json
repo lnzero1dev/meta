@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "CPUGraph.MenuApplet": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/MenuApplets/CPUGraph/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/MenuApplets/CPUGraph"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

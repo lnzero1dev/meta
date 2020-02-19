@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "Clock.MenuApplet": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/MenuApplets/Clock/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/MenuApplets/Clock"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

@@ -1,0 +1,18 @@
+{
+    "package": {
+        "SystemMonitor": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/SystemMonitor/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/SystemMonitor"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibProtocol",
+                "LibPCIDB"
+            ]
+        }
+    }
+}

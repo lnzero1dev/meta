@@ -1,17 +1,15 @@
 {
     "package": {
-        "Shell": {
+        "DisplayProperties": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/DisplayProperties/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/DisplayProperties"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM"
+                "LibGUI"
             ]
         }
     }

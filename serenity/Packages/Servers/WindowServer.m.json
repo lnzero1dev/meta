@@ -1,0 +1,39 @@
+{
+    "package": {
+        "WindowServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/WindowServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/WindowServer",
+                "${gendata}"
+            ],
+            "dependency": [
+                "LibDraw",
+                "LibIPC",
+                "LibThread"
+            ],
+            "run_generators": {
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/WindowServer/WindowServer.ipc",
+                        "output": "${gendata}/WindowServerEndpoint.h"
+                    },
+                    {
+                        "input": "${root}/Servers/WindowServer/WindowClient.ipc",
+                        "output": "${gendata}/WindowClientEndpoint.h"
+                    }
+                ]
+            },
+            "deploy": [
+                {
+                    "type": "directory",
+                    "source": "${root}/Servers/WindowServer/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/WindowServer"
+                }
+            ]
+        }
+    }
+}
