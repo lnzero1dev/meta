@@ -1,5 +1,0 @@
-add_subdirectory(../../package/LibC LibC)
-add_subdirectory(../../package/LibM LibM)
-add_subdirectory(../../package/LibELF LibELF)
-add_subdirectory(../../package/LibCore LibCore)
-add_subdirectory(../../package/AK AK)
