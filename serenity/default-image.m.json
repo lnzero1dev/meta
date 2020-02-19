@@ -11,18 +11,18 @@
             },
 
             "install_dirs": {
-                "bindir": "bin",
-                "sbindir": "sbin",
-                "libexecdir": "libexec",
-                "sysconfdir": "etc",
-                "sharedstatedir": "shared",
-                "localstatedir": "var",
-                "includedir": "include",
-                "datarootdir": "share",
-                "datadir": "${datarootdir}",
-                "infodir": "${datarootdir}/info",
-                "localedir": "${datarootdir}/locale",
-                "mandir": "${datarootdir}/man"
+                "BinDir": "bin",
+                "SbinDir": "sbin",
+                "LibexecDir": "libexec",
+                "SysconfDir": "etc",
+                "SharedstateDir": "shared",
+                "LocalstateDir": "var",
+                "IncludeDir": "include",
+                "DatarootDir": "share",
+                "DataDir": "share",
+                "InfoDir": "share/info",
+                "LocaleDir": "share/locale",
+                "ManDir": "share/man"
             }
         }
     }

@@ -85,14 +85,17 @@
                     "flags": [
                         "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
                         "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
-                        "-fno-exceptions -fno-rtti -fstack-protector"
+                        "-fno-exceptions -fno-rtti",
+                        "-I${root}",
+                        "-I${root}/DevTools",
+                        "-I${root}/Libraries",
+                        "-I${root}/Servers"
                     ]
                 },
                 "cc": {
                     "executable": "i686-pc-serenity-gcc",
                     "flags": [
-                        "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
-                        "-fstack-protector"
+                        "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined"
                     ]
                 },
                 "as": {
@@ -126,9 +129,11 @@
             },
 
             "build_machine_build_targets": [
-                "libstdc++-v3",
-                "IPCCompiler"
-            ]
+                "libstdc++-v3"
+            ],
+            "build_machine_inject_dependencies": {
+                "LibC": "gcc"
+            }
         }
     }
 }
