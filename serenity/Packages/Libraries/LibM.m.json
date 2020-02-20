@@ -8,9 +8,9 @@
             "include": [
                 "${root}/Libraries/LibM"
             ],
-            "dependency": {
-                "LibC": "header_only"
-            },
+            "dependency": [
+                "LibC"
+            ],
             "deploy": [
                 {
                     "type": "target",

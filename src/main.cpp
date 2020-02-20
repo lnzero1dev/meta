@@ -15,7 +15,8 @@ enum class PrimaryCommand : u8 {
     Build,
     Generate,
     Config,
-    Run
+    Run,
+    Statistics
 };
 
 enum class ConfigSubCommand : u8 {
@@ -234,33 +235,37 @@ int main(int argc, char** argv)
     ConfigSubCommand config_subcmd = ConfigSubCommand::None;
 
     if (argc >= minarg) {
-        int arg_len = strlen(argv[1]);
+        String arg1 { argv[1], strlen(argv[1]) };
 
-        if (strncmp("build", argv[1], arg_len) == 0 && arg_len == 5) {
+        if (arg1 == "build") {
             minarg = 3;
             cmd = PrimaryCommand::Build;
-        } else if (strncmp("gen", argv[1], arg_len) == 0 && arg_len == 3) {
+        } else if (arg1 == "st" || arg1 == "stats") {
+            minarg = 2;
+            cmd = PrimaryCommand::Statistics;
+        } else if (arg1 == "gen") {
             minarg = 3;
             cmd = PrimaryCommand::Generate;
-        } else if (strncmp("config", argv[1], arg_len) == 0 && arg_len == 6) {
+        } else if (arg1 == "config") {
             cmd = PrimaryCommand::Config;
             ++minarg;
             if (argc >= minarg) {
-                int subarg_len = strlen(argv[2]);
-                if (strncmp(argv[2], "set", subarg_len) == 0 && subarg_len == 3) {
+                String arg2 { argv[2], strlen(argv[2]) };
+
+                if (arg2 == "set") {
                     minarg = 5;
                     config_subcmd = ConfigSubCommand::Set;
-                } else if (strncmp(argv[2], "get", subarg_len) == 0 && subarg_len == 3) {
+                } else if (arg2 == "get") {
                     minarg = 4;
                     config_subcmd = ConfigSubCommand::Get;
-                } else if (strncmp(argv[2], "list", subarg_len) == 0 && subarg_len == 4) {
+                } else if (arg2 == "list") {
                     minarg = 3;
                     config_subcmd = ConfigSubCommand::List;
                 } else {
                     minarg = -1;
                 }
             }
-        } else if (strncmp(argv[1], "run", arg_len) == 0 && arg_len == 3) {
+        } else if (arg1 == "run") {
             cmd = PrimaryCommand::Run;
             minarg = 2;
         }
@@ -287,6 +292,11 @@ int main(int argc, char** argv)
         if (cmd == PrimaryCommand::None || cmd == PrimaryCommand::Run) {
             fprintf(stderr, "  Run:\n");
             fprintf(stderr, "    meta run [<image>]\n");
+        }
+        if (cmd == PrimaryCommand::None) {
+            fprintf(stderr, "  Statistics:\n");
+            fprintf(stderr, "    meta st\n");
+            fprintf(stderr, "    meta stats\n");
         }
         return 0;
     }
@@ -441,31 +451,6 @@ int main(int argc, char** argv)
 
                 ASSERT(toolchain);
 
-                Vector<Package> packages_to_build;
-
-                for (auto& target : toolchain->build_machine_build_targets()) {
-                    Package* package = PackageDB::the().get(target);
-                    if (package) {
-                        packages_to_build.append(*package);
-                    } else {
-                        fprintf(stderr, "Could not find package for native build target: %s\n", target.characters());
-                    }
-                }
-
-                PackageDB::the().for_each_package([&](auto&, auto& package) { // Fixme: scan only packages that are actually in the build!
-                    for (auto& generator : package.run_generators()) {
-                        Package* package = PackageDB::the().get(generator.key);
-                        if (package) {
-                            packages_to_build.append(*package);
-                        } else {
-                            fprintf(stderr, "Could not find package for generator: %s\n", generator.key.characters());
-                        }
-                    }
-                    return IterationDecision::Continue;
-                });
-
-                cmakegen.gen_toolchain(*toolchain, packages_to_build);
-
                 if (isImage) {
 
                     Vector<const Package*> host_packages_in_order;
@@ -541,6 +526,42 @@ int main(int argc, char** argv)
                     ASSERT(package);
                     cmakegen.gen_package(*package);
                 }
+
+                Vector<Package> packages_to_build;
+
+                PackageDB::the().for_each_package([&](auto&, auto& package) {
+                    if (toolchain->build_machine_inject_dependencies().contains(package.name())) {
+                        auto dependency = toolchain->build_machine_inject_dependencies().get(package.name()).value_or("");
+#ifdef DEBUG_META
+                        fprintf(stderr, "Inject dependency: %s to %s\n", dependency.characters(), package.name().characters());
+#endif
+                        const_cast<Package*>(&package)->inject_dependency(dependency, LinkageType::Static);
+                    }
+                    return IterationDecision::Continue;
+                });
+
+                for (auto& target : toolchain->build_machine_build_targets()) {
+                    Package* package = PackageDB::the().get(target);
+                    if (package) {
+                        packages_to_build.append(*package);
+                    } else {
+                        fprintf(stderr, "Could not find package for native build target: %s\n", target.characters());
+                    }
+                }
+
+                PackageDB::the().for_each_package([&](auto&, auto& package) { // Fixme: scan only packages that are actually in the build!
+                    for (auto& generator : package.run_generators()) {
+                        Package* package = PackageDB::the().get(generator.key);
+                        if (package) {
+                            packages_to_build.append(*package);
+                        } else {
+                            fprintf(stderr, "Could not find package for generator: %s\n", generator.key.characters());
+                        }
+                    }
+                    return IterationDecision::Continue;
+                });
+
+                cmakegen.gen_toolchain(*toolchain, packages_to_build);
                 break;
             }
             default:
@@ -561,7 +582,13 @@ int main(int argc, char** argv)
         fprintf(stdout, "Build!\n");
     }
 
-    statistics();
+    if (cmd == PrimaryCommand::Run) {
+        fprintf(stdout, "Run!\n");
+    }
+
+    if (cmd == PrimaryCommand::Statistics) {
+        statistics();
+    }
 
     return 0;
 }

@@ -135,6 +135,11 @@ public:
 
     const HashMap<String, Generator>& run_generators() const { return m_run_generators; }
 
+    void inject_dependency(const String& name, LinkageType type)
+    {
+        m_dependencies.set(name, type);
+    }
+
 private:
     bool m_consistent = true;
 

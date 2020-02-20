@@ -787,20 +787,15 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
         cmakelists_txt.append(package.name());
         cmakelists_txt.append("\n");
 
-        bool has_injected_dep = toolchain.build_machine_inject_dependencies().contains(package.name());
-
         StringBuilder depends_builder;
         depends_builder.append("");
 
-        if (package.dependencies().size() || has_injected_dep) {
+        if (package.dependencies().size()) {
             for (auto& dependency : package.dependencies()) {
                 if (dependency.value == LinkageType::Direct || dependency.value == LinkageType::HeaderOnly)
                     continue;
                 depends_builder.append(dependency.key);
                 depends_builder.append(" ");
-            }
-            if (has_injected_dep) {
-                depends_builder.append(toolchain.build_machine_inject_dependencies().get(package.name()).value_or("FAILED_TO_GET_DEPENDENCY"));
             }
         }
 
@@ -961,7 +956,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
             cmakelists_txt.append("\n");
             cmakelists_txt.append("    CMAKE_ARGS\n");
             if (package.machine() == "target") {
-                cmakelists_txt.append("      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot\n");
+                //cmakelists_txt.append("      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot\n");
                 cmakelists_txt.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake\n");
             } else if (package.machine() == "host") {
                 cmakelists_txt.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/host.cmake\n");
