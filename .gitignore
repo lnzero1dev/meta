@@ -26,5 +26,4 @@
 compile_commands.json
 .clang_complete
 
-build
-build-gen
+build*
