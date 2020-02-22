@@ -1,11 +1,6 @@
 {
     "toolchain": {
         "default": {
-            "file_tool_mapping": {
-                "cpp": "cxx",
-                "c": "cc",
-                "S": "as"
-            },
             "configuration": {
                 "Debug": {
                     "cxx": {
@@ -32,7 +27,11 @@
                     "flags": [
                         "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
                         "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
-                        "-fno-exceptions -fno-rtti -fstack-protector -Os"
+                        "-fno-exceptions -fno-rtti -fstack-protector -Os",
+                        "-I${root}",
+                        "-I${root}/DevTools",
+                        "-I${root}/Libraries",
+                        "-I${root}/Servers"
                     ]
                 },
                 "cc": {
@@ -114,25 +113,24 @@
                     "executable": "i686-pc-serenity-ar",
                     "flags": ""
                 },
-                "build-image": {
-                    "executable": "build-qemu-image-linux"
+                "build_image": {
+                    "executable": "build-image-qemu.sh",
+                    "flags": "${root}",
+                    "run_as_su": true,
+                    "add_as_target": true
                 },
-                "run-image": {
-                    "executable": "qemu-system-i386",
-                    "flags": [
-                        "-s -m 256M -cpu max -machine q35 -d cpu_reset,guest_errors -device VGA,vgamem_mb=64 -device piix3-ide",
-                        "-drive file=_disk_image,id=disk,if=none -device ide-hd,bus=ide.6,drive=disk,unit=0 -debugcon stdio",
-                        "-soundhw pcspk -soundhw sb16 -netdev user,id=breh,hostfwd=tcp:127.0.0.1:8888-10.0.2.15:8888,hostfwd=tcp:127.0.0.1:8823-10.0.2.15:23",
-                        "-device e1000,netdev=breh -kernel kernel -append hello"
-                    ]
+                "run": {
+                    "executable": "run.sh",
+                    "flags": "${target_sysroot}/boot/kernel",
+                    "add_as_target": true
                 }
             },
 
             "build_machine_build_targets": [
-                "libstdc++-v3"
+                "libstdc++-v3",
+                "qemu"
             ],
             "build_machine_inject_dependencies": {
-                "LibC": "gcc"
             }
         }
     }

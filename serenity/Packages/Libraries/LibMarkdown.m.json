@@ -11,7 +11,7 @@
             "deploy": [
                 {
                     "type": "target",
-                    "name": "ipc",
+                    "name": "markdown",
                     "dest": "${LibDir}"
                 },
                 {

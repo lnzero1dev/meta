@@ -9,6 +9,9 @@
                 "${root}/Libraries/LibAudio",
                 "${gendata}"
             ],
+            "dependency": [
+                "LibIPC"
+            ],
             "run_generators": {
                 "IPCCompiler": [
                     {

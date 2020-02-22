@@ -26,7 +26,6 @@
                     "configure": {
                         "flags": [
                             "--prefix=${sysroot}",
-                            "--with-sysroot=${sysroot}",
                             "--target-list=i386-softmmu",
                             "--enable-gtk"
                         ]

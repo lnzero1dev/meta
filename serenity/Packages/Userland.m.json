@@ -1,0 +1,885 @@
+{
+    "package": {
+        "al": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/al.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "allocate": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/allocate.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "avol": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/avol.cpp"
+            ],
+            "dependency": [
+                "LibAudio"
+            ]
+        },
+        "basename": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/basename.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "cal": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/cal.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "cat": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/cat.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "chgrp": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/chgrp.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "chmod": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/chmod.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "chown": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/chown.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "chroot": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/chroot.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "clear": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/clear.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "copy": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/copy.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibGUI"
+            ]
+        },
+        "cp": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/cp.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "crash": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/crash.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "cut": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/cut.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "date": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/date.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "df": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/df.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "disk_benchmark": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/disk_benchmark.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "dmesg": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/dmesg.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "echo": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/echo.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "env": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/env.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "false": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/false.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "fgrep": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/fgrep.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "flock": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/flock.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "gron": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/gron.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "head": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/head.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "host": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/host.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "hostname": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/hostname.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "html": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/html.cpp"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibHTML"
+            ]
+        },
+        "id": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/id.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "ifconfig": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/ifconfig.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "jp": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/jp.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "keymap": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/keymap.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "kill": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/kill.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "killall": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/killall.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "ln": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/ln.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "ls": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/ls.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "lspci": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/lspci.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore",
+                "LibPCIDB"
+            ]
+        },
+        "man": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/man.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore",
+                "LibMarkdown"
+            ]
+        },
+        "md": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/md.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore",
+                "LibMarkdown"
+            ]
+        },
+        "mkdir": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/mkdir.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "mknod": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/mknod.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "modload": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/modload.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "modunload": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/modunload.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "mon": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/mon.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "more": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/more.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "mount": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/mount.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "munch": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/munch.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "mv": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/mv.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "nc": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/nc.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "nl": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/nl.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "pape": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/pape.cpp"
+            ],
+            "dependency": [
+                "LibGUI"
+            ]
+        },
+        "paste": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/paste.cpp"
+            ],
+            "dependency": [
+                "LibGUI"
+            ]
+        },
+        "pidof": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/pidof.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "ping": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/ping.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "pro": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/pro.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore",
+                "LibProtocol"
+            ]
+        },
+        "profile": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/profile.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "ps": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/ps.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "purge": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/purge.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "realpath": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/realpath.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "reboot": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/reboot.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "rm": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/rm.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "rmdir": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/rmdir.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "rpcdump": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/rpcdump.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "shutdown": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/shutdown.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "sleep": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/sleep.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "sort": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/sort.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "stat": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/stat.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "strace": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/strace.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "su": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/su.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "sync": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/sync.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "syscall": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/syscall.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "sysctl": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/sysctl.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "tail": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/tail.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "tee": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/tee.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "test_efault": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/test_efault.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "test_io": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/test_io.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "top": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/top.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "touch": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/touch.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "tr": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/tr.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "true": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/true.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "truncate": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/truncate.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "tt": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/tt.cpp"
+            ],
+            "dependency": [
+                "LibC",
+                "LibThread"
+            ]
+        },
+        "tty": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/tty.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "umount": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/umount.cpp"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        },
+        "uname": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/uname.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "uptime": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/uptime.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "useradd": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/useradd.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "wc": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/wc.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "which": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/which.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibC"
+            ]
+        },
+        "whoami": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/whoami.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        },
+        "yes": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/yes.cpp"
+            ],
+            "dependency": [
+                "LibC"
+            ]
+        }
+
+    }
+}

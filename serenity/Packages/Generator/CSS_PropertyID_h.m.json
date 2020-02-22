@@ -11,7 +11,8 @@
             ],
             "dependency": {
                 "AK_host": "direct",
-                "LibCore_host": "direct"
+                "LibCore_host": "direct",
+                "libstdc++-v3": "injected"
             }
         }
     }

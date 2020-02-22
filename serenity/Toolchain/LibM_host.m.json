@@ -1,0 +1,38 @@
+{
+    "package": {
+        "LibM_host": {
+            "type": "library",
+            "machine": "host",
+            "toolchain": {
+                "options": {
+                    "build": {
+                        "use_toolchain": "target"
+                    }
+                }
+            },
+            "source": [
+                "${root}/Libraries/LibM/math.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibM"
+            ],
+            "dependency": [
+                "LibC_host",
+                "gcc"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "m",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibM/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}"
+                }
+            ]
+        }
+    }
+}

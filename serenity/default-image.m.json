@@ -11,12 +11,13 @@
             },
 
             "install_dirs": {
-                "BinDir": "bin",
+                "BinDir": "/bin",
                 "SbinDir": "sbin",
                 "LibexecDir": "libexec",
                 "SysconfDir": "etc",
                 "SharedstateDir": "shared",
                 "LocalstateDir": "var",
+                "LibDir": "lib",
                 "IncludeDir": "include",
                 "DatarootDir": "share",
                 "DataDir": "share",

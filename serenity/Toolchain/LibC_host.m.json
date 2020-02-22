@@ -1,8 +1,15 @@
 {
     "package": {
-        "LibC": {
+        "LibC_host": {
             "type": "library",
-            "machine": "target",
+            "machine": "host",
+            "toolchain": {
+                "options": {
+                    "build": {
+                        "use_toolchain": "target"
+                    }
+                }
+            },
             "source": [
                 "${root}/Libraries/LibC/**/*.cpp",
                 "${root}/Libraries/LibC/**/*.S",
@@ -25,6 +32,16 @@
                 "${root}/Libraries",
                 "${root}"
             ],
+            "host_tools": {
+                "cxx": {
+                    "flags": [
+                        "-DSERENITY_LIBC_BUILD"
+                    ]
+                }
+            },
+            "dependency": [
+                "gcc"
+            ],
             "deploy": [
                 {
                     "type": "target",
@@ -36,6 +53,24 @@
                     "source": "${root}/Libraries/LibC/",
                     "pattern": "*.h",
                     "dest": "${IncludeDir}"
+                },
+                {
+                    "type": "object",
+                    "source": "${root}/Libraries/LibC/crt0.cpp",
+                    "name": "crt0.o",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "object",
+                    "source": "${root}/Libraries/LibC/crti.S",
+                    "name": "crti.o",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "object",
+                    "source": "${root}/Libraries/LibC/crtn.S",
+                    "name": "crtn.o",
+                    "dest": "${LibDir}"
                 }
             ]
         }

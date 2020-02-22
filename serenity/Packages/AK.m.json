@@ -33,7 +33,6 @@
             ],
             "include": [
                 "${root}/AK",
-                "${root}/Libraries/LibC",
                 "${root}"
             ]
         }

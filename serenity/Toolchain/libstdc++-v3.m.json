@@ -48,8 +48,8 @@
             "dependency": [
                 "binutils",
                 "gcc",
-                "LibC",
-                "LibM"
+                "LibC_host",
+                "LibM_host"
             ]
         }
     }

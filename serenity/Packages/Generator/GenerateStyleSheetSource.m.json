@@ -8,7 +8,7 @@
                     "type": "file",
                     "source": "${root}/Libraries/LibHTML/Scripts/GenerateStyleSheetSource",
                     "dest": "${BinDir}",
-                    "permissions": 775
+                    "permission": "775"
                 }
             ]
         }

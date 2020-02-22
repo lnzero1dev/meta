@@ -3,7 +3,38 @@
         "kernel": {
             "type": "executable",
             "source": [
-                "${root}/Kernel/**/*.cpp",
+                "${root}/Kernel/CMOS.cpp",
+                "${root}/Kernel/Console.cpp",
+                "${root}/Kernel/DoubleBuffer.cpp",
+                "${root}/Kernel/init.cpp",
+                "${root}/Kernel/IRQHandler.cpp",
+                "${root}/Kernel/KBufferBuilder.cpp",
+                "${root}/Kernel/KParams.cpp",
+                "${root}/Kernel/kprintf.cpp",
+                "${root}/Kernel/KSyms.cpp",
+                "${root}/Kernel/Lock.cpp",
+                "${root}/Kernel/PerformanceEventBuffer.cpp",
+                "${root}/Kernel/Process.cpp",
+                "${root}/Kernel/ProcessTracer.cpp",
+                "${root}/Kernel/Profiling.cpp",
+                "${root}/Kernel/Random.cpp",
+                "${root}/Kernel/RTC.cpp",
+                "${root}/Kernel/Scheduler.cpp",
+                "${root}/Kernel/SharedBuffer.cpp",
+                "${root}/Kernel/StdLib.cpp",
+                "${root}/Kernel/Syscall.cpp",
+                "${root}/Kernel/Thread.cpp",
+                "${root}/Kernel/TimerQueue.cpp",
+                "${root}/Kernel/WaitQueue.cpp",
+                "${root}/Kernel/ACPI/*.cpp",
+                "${root}/Kernel/Arch/i386/*.cpp",
+                "${root}/Kernel/Devices/*.cpp",
+                "${root}/Kernel/FileSystem/*.cpp",
+                "${root}/Kernel/Heap/*.cpp",
+                "${root}/Kernel/Net/*.cpp",
+                "${root}/Kernel/PCI/*.cpp",
+                "${root}/Kernel/TTY/*.cpp",
+                "${root}/Kernel/VM/*.cpp",
                 "${root}/Kernel/Arch/i386/Boot/boot.S",
                 "${root}/AK/FileSystemPath.cpp",
                 "${root}/AK/JsonParser.cpp",
@@ -17,16 +48,14 @@
                 "${root}/Libraries/LibELF/ELFLoader.cpp"
             ],
             "include": [
-                "${root}/Kernel"
-            ],
-            "dependency": [
-                "LibC"
+                "${root}/Kernel",
+                "${root}/Libraries/LibC"
             ],
             "host_tools": {
                 "cxx": {
                     "flags": [
                         "-pie -fPIE -ffreestanding -fbuiltin -mno-80387 -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables",
-                        "-nostdlib -nostdinc -nostdinc++ -g3 -DKERNEL",
+                        "-nostdlib -nostdinc -nostdinc++ -g3 -DKERNEL -Os",
                         "-I${host_sysroot}/i686-pc-serenity/include/c++/9.2.0/",
                         "-I${host_sysroot}/i686-pc-serenity/include/c++/9.2.0/i686-pc-serenity/"
                     ]
@@ -35,17 +64,13 @@
                     "flags": [
                         "-Wl,-T ${root}/Kernel/linker.ld -nostdlib -lgcc -lstdc++ -g3"
                     ]
-                },
-                "run_generators": {
-                    "MkMap": [
-                        {
-                            "input": "kernel",
-                            "output": "${gendata}/kernel.map"
-                        }
-                    ]
                 }
             },
             "deploy": [
+                {
+                    "type": "target",
+                    "dest": "/boot"
+                },
                 {
                     "type": "directory",
                     "source": "${root}/Kernel/",

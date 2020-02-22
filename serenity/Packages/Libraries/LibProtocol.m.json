@@ -18,7 +18,8 @@
                 ]
             },
             "dependency": [
-                "AK"
+                "AK",
+                "LibIPC"
             ],
             "deploy": [
                 {
