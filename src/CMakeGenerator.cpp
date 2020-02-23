@@ -118,7 +118,7 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
 
     cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"");
     cmakelists_txt.append(image.install_prefix());
-    cmakelists_txt.append("\")");
+    cmakelists_txt.append("\" CACHE INTERNAL \"\" FORCE)");
     cmakelists_txt.append("\n");
 
     for (auto& installDir : image.install_dirs()) {
@@ -798,6 +798,8 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
 
+    cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"/usr\" CACHE INTERNAL \"\" FORCE)\n\n");
+
     cmakelists_txt.append("string(ASCII 27 ESCAPE_CHAR)\n");
     cmakelists_txt.append("macro(warning_message msg)\n");
     cmakelists_txt.append("    message(STATUS \"${ESCAPE_CHAR}[1;${92}m${msg}${ESCAPE_CHAR}[0m\")\n");
@@ -1041,6 +1043,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
             } else if (package.machine() == "host") {
                 cmakelists_txt.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/host.cmake\n");
             }
+            cmakelists_txt.append("      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}\n");
             cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/");
             cmakelists_txt.append(package.name());
             cmakelists_txt.append("\n");
