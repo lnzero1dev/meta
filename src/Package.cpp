@@ -356,15 +356,15 @@ Package::Package(String filename, String name, JsonObject json_obj)
             return;
         }
         if (key == "target_tools") {
-            Toolchain::insert_tool(m_target_tools, value.as_object());
+            Toolchain::insert_tool(m_target_tools, value.as_object(), filename);
             return;
         }
         if (key == "build_tools") {
-            Toolchain::insert_tool(m_build_tools, value.as_object());
+            Toolchain::insert_tool(m_build_tools, value.as_object(), filename);
             return;
         }
         if (key == "host_tools") {
-            Toolchain::insert_tool(m_host_tools, value.as_object());
+            Toolchain::insert_tool(m_host_tools, value.as_object(), filename);
             return;
         }
         if (key == "run_generators") {

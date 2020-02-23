@@ -30,7 +30,7 @@ public:
     const Vector<String>& build_machine_build_targets() const { return m_build_machine_build_targets; }
     const HashMap<String, String>& build_machine_inject_dependencies() const { return m_build_machine_inject_dependencies; }
 
-    static void insert_tool(HashMap<String, Tool>&, JsonObject);
+    static void insert_tool(HashMap<String, Tool>&, JsonObject, const String&);
 
 private:
     String m_filename;

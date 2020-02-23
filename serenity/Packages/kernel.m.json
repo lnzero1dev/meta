@@ -32,7 +32,10 @@
                 "${root}/Kernel/FileSystem/*.cpp",
                 "${root}/Kernel/Heap/*.cpp",
                 "${root}/Kernel/Net/*.cpp",
-                "${root}/Kernel/PCI/*.cpp",
+                "${root}/Kernel/PCI/Access.cpp",
+                "${root}/Kernel/PCI/Initializer.cpp",
+                "${root}/Kernel/PCI/IOAccess.cpp",
+                "${root}/Kernel/PCI/MMIOAccess.cpp",
                 "${root}/Kernel/TTY/*.cpp",
                 "${root}/Kernel/VM/*.cpp",
                 "${root}/Kernel/Arch/i386/Boot/boot.S",
@@ -62,7 +65,7 @@
                 },
                 "link": {
                     "flags": [
-                        "-Wl,-T ${root}/Kernel/linker.ld -nostdlib -lgcc -lstdc++ -g3"
+                        "-Wl,-T ${current_dir}/../linker.ld -nostdlib -lgcc -lstdc++ -g3"
                     ]
                 }
             },

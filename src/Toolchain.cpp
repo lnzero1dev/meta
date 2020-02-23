@@ -1,6 +1,7 @@
 #include "Toolchain.h"
 #include "SettingsProvider.h"
 #include "StringUtils.h"
+#include <AK/FileSystemPath.h>
 
 Toolchain::Toolchain(const String& filename, JsonObject json_obj)
 {
@@ -47,15 +48,15 @@ Toolchain::Toolchain(const String& filename, JsonObject json_obj)
             return;
         }
         if (key == "target_tools") {
-            insert_tool(m_target_tools, value.as_object());
+            insert_tool(m_target_tools, value.as_object(), filename);
             return;
         }
         if (key == "build_tools") {
-            insert_tool(m_build_tools, value.as_object());
+            insert_tool(m_build_tools, value.as_object(), filename);
             return;
         }
         if (key == "host_tools") {
-            insert_tool(m_host_tools, value.as_object());
+            insert_tool(m_host_tools, value.as_object(), filename);
             return;
         }
         if (key == "build_machine_build_targets") {
@@ -86,7 +87,7 @@ Toolchain::~Toolchain()
 {
 }
 
-void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data)
+void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data, const String& filename)
 {
     tool_data.for_each_member([&](auto& key, auto& value) {
         auto& tool_name = key;
@@ -97,8 +98,11 @@ void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data)
                 return;
             }
             if (key == "flags") {
+                auto filepath = FileSystemPath(filename);
+
                 if (value.is_string()) {
                     auto str = replace_variables(value.as_string(), "root", SettingsProvider::the().get_string("root").value_or(""));
+                    str = replace_variables(str, "current_dir", filepath.dirname());
                     tool.flags = replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}");
                 } else if (value.is_array()) {
                     auto values = value.as_array().values();
@@ -108,6 +112,7 @@ void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data)
                         builder.append(" ");
 
                         auto str = replace_variables(value.as_string(), "root", SettingsProvider::the().get_string("root").value_or(""));
+                        str = replace_variables(str, "current_dir", filepath.dirname());
                         builder.append(replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}"));
                     }
                     tool.flags = builder.build();
