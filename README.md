@@ -11,6 +11,7 @@
   - [Project and User Options](#project-and-user-options)
 - [Supported OS](#supported-os)
 - [Limitations](#limitations)
+- [How to build serenity](#how-to-build-serenity)
 
 ## What Meta is
 
@@ -293,3 +294,16 @@ Currently only `linux` is supported as host for the meta program and also the ge
 
 # Limitations
 This software is in an very early stage. Lot of things are not working yet and there are a ton of things that can be improved, reworked.
+
+
+# How to build serenity
+```bash
+cd serenity/DevTools/
+git clone https://github.com/lnzero1dev/meta.git
+cd meta/serenity
+make
+meta gen default-image
+mkdir build
+cmake ../build-gen && make -j$(nproc)
+make build_image && make run
+```
