@@ -19,7 +19,7 @@
 * Meta is based on the concept of images that contain packages
   * This is flexible enough to build and run images created with the exact packages intended to be within that image
 * Descriptive
-  * This is a crucial part of the concept: To be not able to "script" the corner-cases into the build system. Instead, there must be a possibility that the generated files can be extended, e.g. with templates, that the user can modify some stuff. In general, this should not be needed.
+  * This is a crucial part of the concept: The build files contain the absolute minimum that is needed to build the software. There is no possibility to implement corner-cases in the build files. This moves to the generator. Corner cases and special things must be implemented in the respective build system generator.
 * Single source
   * For some build systems (e.g. yocto/openembedded) you need descriptions for the source packages and the source packages itself. With generating both, the descriptive meta files act as single source for multi staged build systems.
 
