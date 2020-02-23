@@ -3,7 +3,7 @@
 #include "Image.h"
 #include "Package.h"
 #include "Toolchain.h"
-#include <LibCore/CObject.h>
+#include <LibCore/Object.h>
 
 class CMakeGenerator : public Core::Object {
     C_OBJECT(CMakeGenerator)

@@ -1,7 +1,7 @@
 #include "FileProvider.h"
 #include "SettingsProvider.h"
 #include <AK/StringBuilder.h>
-#include <LibCore/CDirIterator.h>
+#include <LibCore/DirIterator.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 

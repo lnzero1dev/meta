@@ -3,7 +3,7 @@
 #include "Toolchain.h"
 #include <AK/JsonObject.h>
 #include <AK/Traits.h>
-#include <LibCore/CObject.h>
+#include <LibCore/Object.h>
 #include <string>
 
 enum class LinkageType : uint8_t {

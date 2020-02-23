@@ -4,8 +4,8 @@
 #include <AK/Badge.h>
 #include <AK/JsonObject.h>
 #include <AK/Optional.h>
-#include <LibCore/CFile.h>
-#include <LibCore/CObject.h>
+#include <LibCore/File.h>
+#include <LibCore/Object.h>
 
 class SettingsProvider;
 

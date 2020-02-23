@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Package.h"
-#include <LibCore/CObject.h>
+#include <AK/NonnullOwnPtr.h>
+#include <LibCore/Object.h>
 
 class DependencyNode {
 public:

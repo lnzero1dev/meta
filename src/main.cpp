@@ -8,6 +8,7 @@
 #include <AK/JsonValue.h>
 #include <AK/String.h>
 #include <AK/Types.h>
+#include <LibCore/File.h>
 #include <stdio.h>
 
 enum class PrimaryCommand : u8 {
@@ -33,7 +34,7 @@ void load_meta_settings(Vector<String> files)
     auto file = Core::File::construct();
     for (auto& filename : files) {
         file->set_filename(filename);
-        if (file->filename().is_empty() || !file->exists())
+        if (file->filename().is_empty() || !file->exists(filename))
             continue;
 
         /* load json file */
@@ -70,7 +71,7 @@ void load_meta_all(Vector<String> files)
     auto file = Core::File::construct();
     for (auto& filename : files) {
         file->set_filename(filename);
-        if (file->filename().is_empty() || !file->exists())
+        if (file->filename().is_empty() || !file->exists(filename))
             continue;
 
         /* load json file */

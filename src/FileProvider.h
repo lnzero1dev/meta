@@ -2,8 +2,8 @@
 
 #include <AK/FileSystemPath.h>
 #include <AK/Optional.h>
-#include <LibCore/CFile.h>
-#include <LibCore/CObject.h>
+#include <LibCore/File.h>
+#include <LibCore/Object.h>
 #include <regex.h>
 
 struct GlobState {

@@ -4,7 +4,7 @@
 #include <AK/HashMap.h>
 #include <AK/JsonObject.h>
 #include <AK/Types.h>
-#include <LibCore/CObject.h>
+#include <LibCore/Object.h>
 
 enum class SettingsPriority : u8 {
     Undefined = 0,
