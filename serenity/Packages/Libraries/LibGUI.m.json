@@ -20,7 +20,7 @@
             "dependency": [
                 "AK",
                 "LibCore",
-                "LibDraw",
+                "LibGfx",
                 "LibIPC",
                 "LibThread"
             ],

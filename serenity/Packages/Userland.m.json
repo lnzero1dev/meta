@@ -153,7 +153,7 @@
                 "${root}/Userland/date.cpp"
             ],
             "dependency": [
-                "LibC"
+                "LibCore"
             ]
         },
         "df": {
@@ -256,7 +256,7 @@
                 "${root}/Userland/host.cpp"
             ],
             "dependency": [
-                "LibC"
+                "LibCore"
             ]
         },
         "hostname": {
@@ -470,7 +470,7 @@
             ],
             "dependency": [
                 "AK",
-                "LibC"
+                "LibCore"
             ]
         },
         "nc": {
@@ -546,7 +546,7 @@
                 "${root}/Userland/profile.cpp"
             ],
             "dependency": [
-                "LibC"
+                "LibCore"
             ]
         },
         "ps": {
@@ -649,7 +649,7 @@
                 "${root}/Userland/stat.cpp"
             ],
             "dependency": [
-                "LibC"
+                "LibCore"
             ]
         },
         "strace": {

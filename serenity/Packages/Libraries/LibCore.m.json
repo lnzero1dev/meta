@@ -30,15 +30,15 @@
             "type": "library",
             "machine": "host",
             "source": [
-                "${root}/Libraries/LibCore/CIODevice.cpp",
-                "${root}/Libraries/LibCore/CFile.cpp",
-                "${root}/Libraries/LibCore/CObject.cpp",
-                "${root}/Libraries/LibCore/CEvent.cpp",
-                "${root}/Libraries/LibCore/CSocket.cpp",
-                "${root}/Libraries/LibCore/CLocalSocket.cpp",
-                "${root}/Libraries/LibCore/CNotifier.cpp",
-                "${root}/Libraries/LibCore/CLocalServer.cpp",
-                "${root}/Libraries/LibCore/CEventLoop.cpp"
+                "${root}/Libraries/LibCore/IODevice.cpp",
+                "${root}/Libraries/LibCore/File.cpp",
+                "${root}/Libraries/LibCore/Object.cpp",
+                "${root}/Libraries/LibCore/Event.cpp",
+                "${root}/Libraries/LibCore/Socket.cpp",
+                "${root}/Libraries/LibCore/LocalSocket.cpp",
+                "${root}/Libraries/LibCore/Notifier.cpp",
+                "${root}/Libraries/LibCore/LocalServer.cpp",
+                "${root}/Libraries/LibCore/EventLoop.cpp"
             ],
             "include": [
                 "${root}/Libraries/LibCore"

@@ -1,0 +1,38 @@
+{
+    "package": {
+        "NotificationServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/NotificationServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/NotificationServer",
+                "${gendata}"
+            ],
+            "dependency": [
+                "LibGUI",
+                "LibGfx"
+            ],
+            "run_generators": {
+                "IPCCompiler": [
+                    {
+                        "input": "${root}/Servers/NotificationServer/NotificationClient.ipc",
+                        "output": "${gendata}/NotificationClientEndpoint.h"
+                    },
+                    {
+                        "input": "${root}/Servers/NotificationServer/NotificationServer.ipc",
+                        "output": "${gendata}/NotificationServerEndpoint.h"
+                    }
+                ]
+            },
+            "deploy": [
+                {
+                    "type": "directory",
+                    "source": "${root}/Servers/NotificationServer/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/NotificationServer"
+                }
+            ]
+        }
+    }
+}

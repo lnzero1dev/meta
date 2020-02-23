@@ -10,7 +10,7 @@
                 "${gendata}"
             ],
             "dependency": [
-                "LibDraw",
+                "LibGfx",
                 "LibIPC",
                 "LibThread"
             ],

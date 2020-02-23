@@ -17,7 +17,7 @@
             ],
             "dependency": [
                 "AK",
-                "LibDraw",
+                "LibGfx",
                 "LibM",
                 "LibProtocol"
             ],

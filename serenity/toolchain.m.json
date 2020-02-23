@@ -25,7 +25,7 @@
                 "cxx": {
                     "executable": "g++",
                     "flags": [
-                        "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
+                        "-MMD -MP -std=c++2a -Wno-sized-deallocation -fno-sized-deallocation",
                         "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
                         "-fno-exceptions -fno-rtti -fstack-protector -Os",
                         "-I${root}",
@@ -82,7 +82,7 @@
                 "cxx": {
                     "executable": "i686-pc-serenity-g++",
                     "flags": [
-                        "-MMD -MP -std=c++17 -Wno-sized-deallocation -fno-sized-deallocation",
+                        "-MMD -MP -std=c++2a -Wno-sized-deallocation -fno-sized-deallocation",
                         "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
                         "-fno-exceptions -fno-rtti",
                         "-I${root}",

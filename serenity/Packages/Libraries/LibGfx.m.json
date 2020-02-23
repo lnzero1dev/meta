@@ -1,12 +1,12 @@
 {
     "package": {
-        "LibDraw": {
+        "LibGfx": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibDraw/*.cpp"
+                "${root}/Libraries/LibGfx/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibDraw"
+                "${root}/Libraries/LibGfx"
             ],
             "dependency": [
                 "AK",
@@ -22,9 +22,9 @@
                 },
                 {
                     "type": "directory",
-                    "source": "${root}/Libraries/LibDraw/",
+                    "source": "${root}/Libraries/LibGfx/",
                     "pattern": "*.h",
-                    "dest": "${IncludeDir}/LibDraw"
+                    "dest": "${IncludeDir}/LibGfx"
                 }
             ]
         }

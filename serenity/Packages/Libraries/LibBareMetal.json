@@ -1,0 +1,31 @@
+{
+    "package": {
+        "LibBareMetal": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibBareMetal/Output/Console.cpp",
+                "${root}/Libraries/LibBareMetal/Output/kprintf.cpp",
+                "${root}/Libraries/LibBareMetal/StdLib.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibBareMetal"
+            ],
+            "dependency": [
+                "LibC"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "baremetal",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibBareMetal/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibBareMetal"
+                }
+            ]
+        }
+    }
+}

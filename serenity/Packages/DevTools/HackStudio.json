@@ -15,7 +15,7 @@
                 "LibVT",
                 "LibProtocol",
                 "LibMarkdown",
-                "LibDraw",
+                "LibGfx",
                 "LibIPC",
                 "LibThread",
                 "LibPthread",

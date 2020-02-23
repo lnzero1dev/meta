@@ -4,13 +4,11 @@
             "type": "executable",
             "source": [
                 "${root}/Kernel/CMOS.cpp",
-                "${root}/Kernel/Console.cpp",
                 "${root}/Kernel/DoubleBuffer.cpp",
                 "${root}/Kernel/init.cpp",
                 "${root}/Kernel/IRQHandler.cpp",
                 "${root}/Kernel/KBufferBuilder.cpp",
                 "${root}/Kernel/KParams.cpp",
-                "${root}/Kernel/kprintf.cpp",
                 "${root}/Kernel/KSyms.cpp",
                 "${root}/Kernel/Lock.cpp",
                 "${root}/Kernel/PerformanceEventBuffer.cpp",
@@ -21,7 +19,6 @@
                 "${root}/Kernel/RTC.cpp",
                 "${root}/Kernel/Scheduler.cpp",
                 "${root}/Kernel/SharedBuffer.cpp",
-                "${root}/Kernel/StdLib.cpp",
                 "${root}/Kernel/Syscall.cpp",
                 "${root}/Kernel/Thread.cpp",
                 "${root}/Kernel/TimerQueue.cpp",
@@ -47,6 +44,9 @@
                 "${root}/AK/StringBuilder.cpp",
                 "${root}/AK/StringImpl.cpp",
                 "${root}/AK/StringView.cpp",
+                "${root}/Libraries/LibBareMetal/Output/Console.cpp",
+                "${root}/Libraries/LibBareMetal/Output/kprintf.cpp",
+                "${root}/Libraries/LibBareMetal/StdLib.cpp",
                 "${root}/Libraries/LibELF/ELFImage.cpp",
                 "${root}/Libraries/LibELF/ELFLoader.cpp"
             ],
@@ -58,14 +58,14 @@
                 "cxx": {
                     "flags": [
                         "-pie -fPIE -ffreestanding -fbuiltin -mno-80387 -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables",
-                        "-nostdlib -nostdinc -nostdinc++ -g3 -DKERNEL -Os",
+                        "-nostdlib -nostdinc -nostdinc++ -DKERNEL -Os",
                         "-I${host_sysroot}/i686-pc-serenity/include/c++/9.2.0/",
                         "-I${host_sysroot}/i686-pc-serenity/include/c++/9.2.0/i686-pc-serenity/"
                     ]
                 },
                 "link": {
                     "flags": [
-                        "-Wl,-T ${current_dir}/../linker.ld -nostdlib -lgcc -lstdc++ -g3"
+                        "-Wl,-T ${current_dir}/../linker.ld -nostdlib -lgcc -lstdc++"
                     ]
                 }
             },

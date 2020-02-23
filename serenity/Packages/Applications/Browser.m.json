@@ -12,7 +12,7 @@
             "dependency": [
                 "LibGUI",
                 "LibHTML",
-                "LibDraw",
+                "LibGfx",
                 "LibProtocol"
             ],
             "run_generators": {
