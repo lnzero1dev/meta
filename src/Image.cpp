@@ -100,6 +100,11 @@ Image::Image(const String& filename, const String& name, JsonObject json_obj)
                     m_install_dirs.set(installDir, value.as_string());
                 }
             });
+            return;
+        }
+        if (key == "install_prefix") {
+            m_install_prefix = value.as_string();
+            return;
         }
     });
 }
@@ -110,6 +115,7 @@ Image::~Image()
 
 void Image::set_default_install_dirs()
 {
+    m_install_prefix = "/usr";
     m_install_dirs.set(InstallDir::BinDir, "bin");
     m_install_dirs.set(InstallDir::SbinDir, "sbin");
     m_install_dirs.set(InstallDir::LibexecDir, "libexec");

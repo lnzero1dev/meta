@@ -115,6 +115,12 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
 
     // generate install variables
     cmakelists_txt.append("include(GNUInstallDirs)\n");
+
+    cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"");
+    cmakelists_txt.append(image.install_prefix());
+    cmakelists_txt.append("\")");
+    cmakelists_txt.append("\n");
+
     for (auto& installDir : image.install_dirs()) {
         cmakelists_txt.append("set(CMAKE_INSTALL_");
         cmakelists_txt.append(image.install_dir_to_string(installDir.key).to_uppercase());
@@ -676,9 +682,6 @@ const String CMakeGenerator::gen_toolchain_content(const HashMap<String, Tool>& 
     }
 
     serenity_cmake.append("set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)");
-    serenity_cmake.append("\n");
-    serenity_cmake.append("set(CMAKE_INSTALL_PREFIX \"/usr\" CACHE INTERNAL \"\" FORCE)");
-    serenity_cmake.append("\n");
     serenity_cmake.append("\n");
 
     if (toolchain_configuration.has_value()) {

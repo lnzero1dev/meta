@@ -40,9 +40,10 @@ public:
     const String& name() const { return m_name; }
     const Vector<String>& install() const { return m_install; }
     bool install_all() const { return m_install_all; }
-    const String& build_tool() { return m_build_tool; }
-    const String& run_tool() { return m_run_tool; }
+    const String& build_tool() const { return m_build_tool; }
+    const String& run_tool() const { return m_run_tool; }
     const HashMap<InstallDir, String>& install_dirs() const { return m_install_dirs; }
+    const String& install_prefix() const { return m_install_prefix; }
 
     static const String install_dir_to_string(InstallDir installDir);
     static InstallDir string_to_install_dir(String type);
@@ -57,4 +58,5 @@ private:
     String m_run_tool;
     HashMap<InstallDir, String> m_install_dirs;
     void set_default_install_dirs();
+    String m_install_prefix;
 };
