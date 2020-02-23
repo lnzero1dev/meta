@@ -130,6 +130,10 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     }
     cmakelists_txt.append("\n");
 
+    cmakelists_txt.append("include_directories(");
+    cmakelists_txt.append(SettingsProvider::the().get_string("gendata_directory").value_or(""));
+    cmakelists_txt.append("/package)\n\n");
+
     for (auto& package : packages) {
         ASSERT(package);
         cmakelists_txt.append("add_subdirectory(../../package/");
@@ -821,6 +825,14 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
     }
     cmakelists_txt.append("\n");
 
+    cmakelists_txt.append("# Workaround: Ninja doesn't support $ signs... \n");
+    cmakelists_txt.append("string(FIND ${CMAKE_MAKE_PROGRAM} \"ninja\" NINJA_USED)\n");
+    cmakelists_txt.append("if(NOT \"${NINJA_USED}\" STREQUAL \"-1\")\n");
+    cmakelists_txt.append("    set(BUILD_CMD \"make\")\n");
+    cmakelists_txt.append("else()\n");
+    cmakelists_txt.append("    set(BUILD_CMD \"$(MAKE)\")\n");
+    cmakelists_txt.append("endif()\n\n");
+
     cmakelists_txt.append("include(ExternalProject)");
     cmakelists_txt.append("\n");
     cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES sysroot)");
@@ -972,12 +984,12 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
                             }
                         }
                     } else if (step == "build") {
-                        cmakelists_txt.append("    BUILD_COMMAND $(MAKE) ");
+                        cmakelists_txt.append("    BUILD_COMMAND ${BUILD_CMD} ");
                         if (options.has("targets"))
                             cmakelists_txt.append(options.get("targets").as_string());
                         cmakelists_txt.append("\n");
                     } else if (step == "install") {
-                        cmakelists_txt.append("    INSTALL_COMMAND $(MAKE) ");
+                        cmakelists_txt.append("    INSTALL_COMMAND ${BUILD_CMD} ");
                         if (options.has("targets"))
                             cmakelists_txt.append(options.get("targets").as_string());
                         cmakelists_txt.append("\n");
@@ -985,10 +997,10 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
                 } else {
                     if (step == "build") {
                         // build step without options.... ok
-                        cmakelists_txt.append("    BUILD_COMMAND $(MAKE)");
+                        cmakelists_txt.append("    BUILD_COMMAND ${BUILD_CMD}");
                         cmakelists_txt.append("\n");
                     } else if (step == "install") {
-                        cmakelists_txt.append("    INSTALL_COMMAND $(MAKE) install");
+                        cmakelists_txt.append("    INSTALL_COMMAND ${BUILD_CMD} install");
                         cmakelists_txt.append("\n");
                     } else
                         fprintf(stderr, "[%s] No options for step: %s\n", package.name().characters(), step.characters());
@@ -1144,7 +1156,6 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain)
                 cmakelists_txt.append(flags);
                 cmakelists_txt.append("\n");
             }
-            cmakelists_txt.append("    EXCLUDE_FROM_ALL\n");
             cmakelists_txt.append(")\n");
             cmakelists_txt.append("\n");
         }
