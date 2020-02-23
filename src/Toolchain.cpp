@@ -2,8 +2,9 @@
 #include "SettingsProvider.h"
 #include "StringUtils.h"
 
-Toolchain::Toolchain(JsonObject json_obj)
+Toolchain::Toolchain(const String& filename, JsonObject json_obj)
 {
+    m_filename = filename;
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "file_tool_mapping") {
             value.as_object().for_each_member([&](auto& key, auto& value) {
@@ -98,10 +99,7 @@ void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data)
             if (key == "flags") {
                 if (value.is_string()) {
                     auto str = replace_variables(value.as_string(), "root", SettingsProvider::the().get_string("root").value_or(""));
-                    StringBuilder host_sysroot;
-                    host_sysroot.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-                    host_sysroot.append("/toolchain/sysroot");
-                    tool.flags = replace_variables(str, "host_sysroot", host_sysroot.build());
+                    tool.flags = replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}");
                 } else if (value.is_array()) {
                     auto values = value.as_array().values();
                     StringBuilder builder;
@@ -110,12 +108,21 @@ void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data)
                         builder.append(" ");
 
                         auto str = replace_variables(value.as_string(), "root", SettingsProvider::the().get_string("root").value_or(""));
-                        StringBuilder host_sysroot;
-                        host_sysroot.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-                        host_sysroot.append("/toolchain/sysroot");
-                        builder.append(replace_variables(str, "host_sysroot", host_sysroot.build()));
+                        builder.append(replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}"));
                     }
                     tool.flags = builder.build();
+                }
+                return;
+            }
+            if (key == "run_as_su") {
+                if (value.is_bool()) {
+                    tool.run_as_su = value.as_bool();
+                }
+                return;
+            }
+            if (key == "add_as_target") {
+                if (value.is_bool()) {
+                    tool.add_as_target = value.as_bool();
                 }
                 return;
             }

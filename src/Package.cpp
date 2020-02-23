@@ -11,6 +11,8 @@ Deployment::Deployment(const String& type)
         m_type = DeploymentType::File;
     else if (type == "directory")
         m_type = DeploymentType::Directory;
+    else if (type == "program")
+        m_type = DeploymentType::Program;
     else
         m_type = DeploymentType::Undefined;
 }
@@ -47,6 +49,11 @@ void Deployment::set_source(const String& source)
     m_source = source;
 }
 
+void Deployment::set_permission(const DeploymentPermission& permission)
+{
+    m_permission = permission;
+}
+
 LinkageType string_to_linkage_type(String type)
 {
     if (type.matches("static"))
@@ -57,6 +64,8 @@ LinkageType string_to_linkage_type(String type)
         return LinkageType::Direct;
     else if (type.matches("header_only"))
         return LinkageType::HeaderOnly;
+    else if (type.matches("injected"))
+        return LinkageType::Injected;
     else
         return LinkageType::Unknown;
 }
@@ -82,6 +91,17 @@ static const String get_max_path_without_glob(const String& s)
         builder.append(part);
     }
     return builder.build();
+}
+
+DeploymentPermission Package::parse_permission(const String& permission)
+{
+    DeploymentPermission res;
+    for (size_t i = 0; i < permission.length(); i++) {
+        char c = permission[i];
+        int n = c - '0';
+        ((RWXPermission*)&res)[i] = (RWXPermission)n;
+    }
+    return res;
 }
 
 Package::Package(String filename, String name, JsonObject json_obj)
@@ -286,18 +306,23 @@ Package::Package(String filename, String name, JsonObject json_obj)
                             depl->set_name(obj.get("name").as_string());
                         if (obj.has("dest"))
                             depl->set_dest(obj.get("dest").as_string());
+                        if (obj.has("permission"))
+                            depl->set_permission(parse_permission(obj.get("permission").as_string()));
+
                         m_deploy.append(depl);
-                    } else if (type == "file") {
+                    } else if (type == "file" || type == "program") {
 #ifdef DEBUG_META
                         fprintf(stderr, "Install file: %s\n", obj.get("source").as_string().characters());
 #endif
-                        auto depl = adopt(*new Deployment(DeploymentType::File));
+                        auto depl = adopt(*new Deployment(type == "file" ? DeploymentType::File : DeploymentType::Program));
                         if (obj.has("source"))
                             depl->set_source(obj.get("source").as_string());
                         if (obj.has("dest"))
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("rename"))
                             depl->set_rename(obj.get("rename").as_string());
+                        if (obj.has("permission"))
+                            depl->set_permission(parse_permission(obj.get("permission").as_string()));
                         m_deploy.append(depl);
                     } else if (type == "directory") {
                         auto depl = adopt(*new Deployment(DeploymentType::Directory));
@@ -307,6 +332,8 @@ Package::Package(String filename, String name, JsonObject json_obj)
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("pattern"))
                             depl->set_pattern(obj.get("pattern").as_string());
+                        if (obj.has("permission"))
+                            depl->set_permission(parse_permission(obj.get("permission").as_string()));
                         m_deploy.append(depl);
                     } else if (type == "object") {
                         auto depl = adopt(*new Deployment(DeploymentType::Object));
@@ -316,6 +343,8 @@ Package::Package(String filename, String name, JsonObject json_obj)
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("name"))
                             depl->set_name(obj.get("name").as_string());
+                        if (obj.has("permission"))
+                            depl->set_permission(parse_permission(obj.get("permission").as_string()));
                         m_deploy.append(depl);
                     } else {
                         fprintf(stderr, "Unknown deployment type %s is specified in %s\n", obj.get("type").as_string().characters(), m_filename.characters());
@@ -388,7 +417,6 @@ Package::Package(String filename, String name, JsonObject json_obj)
 Package::~Package()
 {
 }
-
 LinkageType Package::get_dependency_linkage(LinkageType type) const
 {
     if (type == LinkageType::Inherit) {

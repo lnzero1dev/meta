@@ -235,7 +235,10 @@ bool FileProvider::check_host_library_available(const String& library)
     builder.append(library);
 
     pid_t pid = fork();
+
     if (pid == 0) {
+        int fd = open("/dev/null", O_WRONLY);
+        dup2(fd, 1);
         int rc = execl("/bin/sh", "sh", "-c", builder.build().characters(), nullptr);
         if (rc < 0)
             perror("execl");
@@ -259,6 +262,8 @@ bool FileProvider::check_host_command_available(const String& command)
     bool found = false;
     pid_t pid = fork();
     if (pid == 0) {
+        int fd = open("/dev/null", O_WRONLY);
+        dup2(fd, 1);
         int rc = execl("/usr/bin/env", "/usr/bin/env", "which", command.characters(), nullptr);
         if (rc < 0)
             perror("execl");

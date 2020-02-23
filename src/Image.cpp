@@ -15,6 +15,8 @@ InstallDir Image::string_to_install_dir(String type)
         return InstallDir::SharedstateDir;
     else if (type.matches("LocalstateDir"))
         return InstallDir::LocalstateDir;
+    else if (type.matches("LibDir"))
+        return InstallDir::LibDir;
     else if (type.matches("IncludeDir"))
         return InstallDir::IncludeDir;
     else if (type.matches("DatarootDir"))
@@ -45,6 +47,8 @@ const String Image::install_dir_to_string(InstallDir installDir)
         return "SharedstateDir";
     else if (installDir == InstallDir::LocalstateDir)
         return "LocalstateDir";
+    else if (installDir == InstallDir::LibDir)
+        return "LibDir";
     else if (installDir == InstallDir::IncludeDir)
         return "IncludeDir";
     else if (installDir == InstallDir::DatarootDir)
@@ -112,6 +116,7 @@ void Image::set_default_install_dirs()
     m_install_dirs.set(InstallDir::SysconfDir, "etc");
     m_install_dirs.set(InstallDir::SharedstateDir, "shared");
     m_install_dirs.set(InstallDir::LocalstateDir, "var");
+    m_install_dirs.set(InstallDir::LibDir, "lib");
     m_install_dirs.set(InstallDir::IncludeDir, "include");
     m_install_dirs.set(InstallDir::DatarootDir, "share");
     m_install_dirs.set(InstallDir::DataDir, "share");

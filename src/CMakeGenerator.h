@@ -15,9 +15,12 @@ public:
     void gen_image(const Image&, const Vector<const Package*>);
     bool gen_package(const Package&);
     void gen_toolchain(const Toolchain&, const Vector<Package>&);
+    void gen_root(const Toolchain&);
 
 private:
     CMakeGenerator();
+
+    const String gen_toolchain_content(const HashMap<String, Tool>&, Optional<const HashMap<String, HashMap<String, ToolConfiguration>>>);
 
     const String gen_header() const;
     const String cmake_minimum_version() const;

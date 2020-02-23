@@ -88,7 +88,7 @@ void load_meta_all(Vector<String> files)
 #ifdef DEBUG_META
                         fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
 #endif
-                        ToolchainDB::the().add(key, value.as_object());
+                        ToolchainDB::the().add(filename, key, value.as_object());
                     });
                 } else if (key == "package") {
                     value.as_object().for_each_member([&](auto& key, auto& value) {
@@ -516,6 +516,7 @@ int main(int argc, char** argv)
                     }
                     fprintf(stdout, "Generate Image: %s!\n", image->name().characters());
                     cmakegen.gen_image(*image, host_packages_in_order);
+                    cmakegen.gen_root(*toolchain);
 
                 } else if (isPackage) {
                     Package* package;
@@ -535,7 +536,7 @@ int main(int argc, char** argv)
 #ifdef DEBUG_META
                         fprintf(stderr, "Inject dependency: %s to %s\n", dependency.characters(), package.name().characters());
 #endif
-                        const_cast<Package*>(&package)->inject_dependency(dependency, LinkageType::Static);
+                        const_cast<Package*>(&package)->inject_dependency(dependency, LinkageType::Injected);
                     }
                     return IterationDecision::Continue;
                 });

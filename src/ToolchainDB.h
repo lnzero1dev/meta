@@ -11,7 +11,7 @@ public:
     static ToolchainDB& the();
     ~ToolchainDB();
 
-    bool add(String, JsonObject);
+    bool add(String, String, JsonObject);
     Toolchain* get(StringView);
 
     template<typename Callback>

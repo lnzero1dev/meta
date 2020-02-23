@@ -81,11 +81,15 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
 #endif
 
             if (dependency.key.contains("lib")) {
-                if (FileProvider::the().check_host_library_available(dependency.key))
+                if (FileProvider::the().check_host_library_available(dependency.key)) {
                     found_package = true;
+                    const_cast<Package&>(package).remove_dependency(dependency.key);
+                }
             } else {
-                if (FileProvider::the().check_host_command_available(dependency.key))
+                if (FileProvider::the().check_host_command_available(dependency.key)) {
                     found_package = true;
+                    const_cast<Package&>(package).remove_dependency(dependency.key);
+                }
             }
         }
 

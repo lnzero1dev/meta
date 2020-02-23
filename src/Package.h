@@ -12,6 +12,7 @@ enum class LinkageType : uint8_t {
     Dynamic,
     Direct,
     HeaderOnly,
+    Injected,
 
     Unknown = 0xFF
 };
@@ -40,6 +41,23 @@ enum class DeploymentType : u8 {
     File,
     Directory,
     Object,
+    Program,
+};
+
+enum RWXPermission {
+    Read = 1,
+    Write = 2,
+    Execute = 4,
+    ReadWrite = 3,
+    ReadExecute = 5,
+    WriteExecute = 6,
+    ReadWriteExecute = 7
+};
+
+struct DeploymentPermission {
+    RWXPermission user;
+    RWXPermission group;
+    RWXPermission other;
 };
 
 class Deployment : public Core::Object {
@@ -59,12 +77,14 @@ public:
     void set_dest(const String&);
     void set_pattern(const String&);
     void set_source(const String&);
+    void set_permission(const DeploymentPermission& permission);
 
     const String& name() const { return m_name; }
     const String& source() const { return m_source; }
     const String& rename() const { return m_rename; }
     const String& pattern() const { return m_pattern; }
     const String& dest() const { return m_dest; }
+    const Optional<DeploymentPermission>& permission() const { return m_permission; }
 
 private:
     DeploymentType m_type;
@@ -73,6 +93,7 @@ private:
     String m_rename;
     String m_pattern;
     String m_dest;
+    Optional<DeploymentPermission> m_permission;
 };
 
 struct PackageVersion {
@@ -135,12 +156,19 @@ public:
 
     const HashMap<String, Generator>& run_generators() const { return m_run_generators; }
 
+    void remove_dependency(const String& name)
+    {
+        m_dependencies.remove(name);
+    }
+
     void inject_dependency(const String& name, LinkageType type)
     {
         m_dependencies.set(name, type);
     }
 
 private:
+    DeploymentPermission parse_permission(const String&);
+
     bool m_consistent = true;
 
     String m_filename;

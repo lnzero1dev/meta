@@ -1,5 +1,6 @@
 #include "CMakeGenerator.h"
 #include "DependencyResolver.h"
+#include "FileProvider.h"
 #include "PackageDB.h"
 #include "SettingsProvider.h"
 #include "StringUtils.h"
@@ -106,6 +107,7 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     StringBuilder cmakelists_txt;
 
     cmakelists_txt.append(gen_header());
+    cmakelists_txt.append(cmake_minimum_version());
 
     cmakelists_txt.append("project(");
     cmakelists_txt.append(image.name());
@@ -223,7 +225,7 @@ bool CMakeGenerator::gen_package(const Package& package)
 
     cmakelists_txt.append("include(GNUInstallDirs)\n");
 
-    auto targetName = get_target_name(package.name());
+    auto targetName = package.name(); //get_target_name(package.name());
 
     if (package.type() == PackageType::Library || package.type() == PackageType::Executable) {
 
@@ -244,10 +246,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         for (auto& include : package.includes()) {
             cmakelists_txt.append("    \"");
             String incl = include;
-            StringBuilder host_sysroot;
-            host_sysroot.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-            host_sysroot.append("/toolchain/sysroot");
-            incl = replace_variables(include, "host_sysroot", host_sysroot.build());
+            incl = replace_variables(include, "host_sysroot", "${CMAKE_SYSROOT}");
 
             StringBuilder gendata;
             gendata.append(SettingsProvider::the().get_string("gendata_directory").value_or(""));
@@ -267,7 +266,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         for (auto& dependency : package.dependencies()) {
             if (package.get_dependency_linkage(dependency.value) == LinkageType::Static) {
                 cmakelists_txt.append("    \"");
-                cmakelists_txt.append(get_target_name(dependency.key));
+                cmakelists_txt.append(dependency.key); //get_target_name(dependency.key));
                 cmakelists_txt.append("\"");
                 cmakelists_txt.append("\n");
             }
@@ -324,8 +323,23 @@ bool CMakeGenerator::gen_package(const Package& package)
         if (package.host_tools().size()) {
             for (auto& tool : package.host_tools()) {
                 if (tool.value.flags.length()) {
-                    if (tool.key == "cxx" || tool.key == "link") {
-                        cmakelists_txt.append(tool.key == "cxx" ? "target_compile_options(" : "target_link_libraries(");
+                    if (tool.key == "cxx") {
+                        cmakelists_txt.append("foreach(type DEBUG RELEASE MINSIZEREL RELWITHDEBINFO)\n");
+                        cmakelists_txt.append("    set(CMAKE_CXX_FLAGS_${type} \"\")\n");
+                        cmakelists_txt.append("endforeach()\n\n");
+                        cmakelists_txt.append("foreach(file ${SOURCES})\n");
+                        cmakelists_txt.append("    get_filename_component(extension ${file} EXT)\n");
+                        cmakelists_txt.append("    string(SUBSTRING ${extension} 1 -1 extension)\n");
+                        cmakelists_txt.append("    list(FIND CMAKE_CXX_SOURCE_FILE_EXTENSIONS ${extension} index)\n");
+                        cmakelists_txt.append("    if(NOT \"${index}\" STREQUAL \"-1\")\n");
+                        cmakelists_txt.append("        set_property(SOURCE ${file} PROPERTY COMPILE_FLAGS \"");
+                        cmakelists_txt.append(tool.value.flags);
+                        cmakelists_txt.append("\")\n");
+                        cmakelists_txt.append("    endif()\n");
+                        cmakelists_txt.append("endforeach()\n\n");
+
+                    } else if (tool.key == "link") {
+                        cmakelists_txt.append("target_link_libraries(");
                         cmakelists_txt.append(targetName);
                         cmakelists_txt.append(" PUBLIC ");
                         cmakelists_txt.append(tool.value.flags);
@@ -335,12 +349,36 @@ bool CMakeGenerator::gen_package(const Package& package)
             }
         }
 
+        String target_dest;
+        for (auto& deployment : package.deploy()) {
+            if (deployment.ptr()->type() == DeploymentType::Target) {
+                target_dest = deployment.ptr()->dest();
+                break;
+            }
+        }
+
         cmakelists_txt.append("install(TARGETS ");
         cmakelists_txt.append(targetName);
         cmakelists_txt.append("\n");
-        cmakelists_txt.append("   RUNTIME DESTINATION bin\n");
-        cmakelists_txt.append("   LIBRARY DESTINATION lib\n");
-        cmakelists_txt.append("   ARCHIVE DESTINATION lib\n");
+
+        if (package.type() == PackageType::Executable) {
+            cmakelists_txt.append("   RUNTIME DESTINATION ");
+            if (target_dest.is_empty())
+                target_dest = "${BinDir}";
+            cmakelists_txt.append(replace_dest_vars(target_dest));
+            cmakelists_txt.append("\n");
+        }
+        if (package.type() == PackageType::Library) {
+            cmakelists_txt.append("   LIBRARY DESTINATION ");
+            if (target_dest.is_empty())
+                target_dest = "${LibDir}";
+            cmakelists_txt.append(replace_dest_vars(target_dest));
+            cmakelists_txt.append("\n");
+
+            cmakelists_txt.append("   ARCHIVE DESTINATION ");
+            cmakelists_txt.append(replace_dest_vars(target_dest));
+            cmakelists_txt.append("\n");
+        }
         cmakelists_txt.append(")\n\n");
     }
 
@@ -348,11 +386,13 @@ bool CMakeGenerator::gen_package(const Package& package)
     if (package.deploy().size()) {
         for (auto& deployment : package.deploy()) {
             if (deployment.ptr()->type() == DeploymentType::Target) {
-                cmakelists_txt.append("set_target_properties(");
-                cmakelists_txt.append(targetName);
-                cmakelists_txt.append(" PROPERTIES OUTPUT_NAME ");
-                cmakelists_txt.append(deployment.ptr()->name());
-                cmakelists_txt.append(")\n");
+                if (!deployment.ptr()->name().is_empty()) {
+                    cmakelists_txt.append("set_target_properties(");
+                    cmakelists_txt.append(targetName);
+                    cmakelists_txt.append(" PROPERTIES OUTPUT_NAME ");
+                    cmakelists_txt.append(deployment.ptr()->name());
+                    cmakelists_txt.append(")\n");
+                }
             } else if (deployment.ptr()->type() == DeploymentType::Directory) {
                 cmakelists_txt.append("install(DIRECTORY ");
                 cmakelists_txt.append(replace_variables(deployment.ptr()->source(), "root", "${PROJECT_ROOT_DIR}"));
@@ -364,17 +404,52 @@ bool CMakeGenerator::gen_package(const Package& package)
                     cmakelists_txt.append("\"");
                 }
                 cmakelists_txt.append(")\n");
-            } else if (deployment.ptr()->type() == DeploymentType::File) {
+            } else if (deployment.ptr()->type() == DeploymentType::File || deployment.ptr()->type() == DeploymentType::Program) {
 #ifdef DEBUG_META
                 fprintf(stderr, "Install file: %s\n", deployment.ptr()->source().characters());
 #endif
-                cmakelists_txt.append("install(FILES ");
+                cmakelists_txt.append("install(");
+                cmakelists_txt.append(deployment.ptr()->type() == DeploymentType::File ? "FILES " : "PROGRAM ");
                 cmakelists_txt.append(replace_variables(deployment.ptr()->source(), "root", "${PROJECT_ROOT_DIR}"));
                 cmakelists_txt.append(" DESTINATION ");
                 cmakelists_txt.append(replace_dest_vars(deployment.ptr()->dest()));
                 if (!deployment.ptr()->rename().is_empty()) {
                     cmakelists_txt.append(" RENAME ");
                     cmakelists_txt.append(deployment.ptr()->rename());
+                }
+                if (deployment.ptr()->permission().has_value()) {
+                    cmakelists_txt.append(" PERMISSIONS ");
+                    auto& permissions = deployment.ptr()->permission().value();
+#ifdef DEBUG_META
+                    fprintf(stderr, "User: %i, Group: %i, Other: %i\n", permissions.user, permissions.group, permissions.other);
+#endif
+                    if (permissions.user & RWXPermission::Read) {
+                        cmakelists_txt.append("OWNER_READ ");
+                    }
+                    if (permissions.user & RWXPermission::Write) {
+                        cmakelists_txt.append("OWNER_WRITE ");
+                    }
+                    if (permissions.user & RWXPermission::Execute) {
+                        cmakelists_txt.append("OWNER_EXECUTE ");
+                    }
+                    if (permissions.group & RWXPermission::Read) {
+                        cmakelists_txt.append("GROUP_READ ");
+                    }
+                    if (permissions.group & RWXPermission::Write) {
+                        cmakelists_txt.append("GROUP_WRITE ");
+                    }
+                    if (permissions.group & RWXPermission::Execute) {
+                        cmakelists_txt.append("GROUP_EXECUTE ");
+                    }
+                    if (permissions.other & RWXPermission::Read) {
+                        cmakelists_txt.append("WORLD_READ ");
+                    }
+                    if (permissions.other & RWXPermission::Write) {
+                        cmakelists_txt.append("WORLD_WRITE ");
+                    }
+                    if (permissions.other & RWXPermission::Execute) {
+                        cmakelists_txt.append("WORLD_EXECUTE ");
+                    }
                 }
                 cmakelists_txt.append(")\n");
             } else if (deployment.ptr()->type() == DeploymentType::Object) {
@@ -432,7 +507,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append(generator.key);
         cmakelists_txt.append(" PATHS \"");
         cmakelists_txt.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-        cmakelists_txt.append("/toolchain/sysroot");
+        cmakelists_txt.append("/Toolchain/sysroot");
         cmakelists_txt.append("\")\n");
         cmakelists_txt.append("if(NOT ");
         cmakelists_txt.append(generator.key);
@@ -500,10 +575,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     //    for (auto& include : package.includes()) {
     //        direct_linkage_include.append("    \"");
     //        String incl = include;
-    //        StringBuilder host_sysroot;
-    //        host_sysroot.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-    //        host_sysroot.append("/toolchain/sysroot");
-    //        incl = replace_variables(include, "host_sysroot", host_sysroot.build());
+    //        incl = replace_variables(include, "host_sysroot", "${CMAKE_SYSROOT}");
 
     //        direct_linkage_include.append(replace_variables(incl, "root", "${PROJECT_ROOT_DIR}"));
 
@@ -559,47 +631,15 @@ bool CMakeGenerator::gen_package(const Package& package)
     return true;
 }
 
-void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Package>& packages_to_build)
+const String CMakeGenerator::gen_toolchain_content(const HashMap<String, Tool>& tools, Optional<const HashMap<String, HashMap<String, ToolConfiguration>>> toolchain_configuration)
 {
-    /**
-     * This generates the toolchain file: serenity.cmake
-     * This generates the toolchain file: CMakeLists.txt
-     */
-
-    /**
-     * Example serenity.cmake:
-     *
-     * set(CMAKE_C_COMPILER i686-pc-serenity-gcc)
-     * set(CMAKE_CXX_COMPILER i686-pc-serenity-g++)
-     * set(CMAKE_CXX_FLAGS "-Os -MMD -MP -std=c++17 -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -fno-exceptions -fno-rtti -fstack-protector" CACHE STRING "" FORCE)
-     * set(CMAKE_C_FLAGS "-Os -MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -fstack-protector" CACHE STRING "" FORCE)
-     * set(CMAKE_EXE_LINKER_FLAGS "" CACHE INTERNAL "")
-     * set(CMAKE_SHARED_LINKER_FLAGS "" CACHE INTERNAL "")
-     * set(CMAKE_MODULE_LINKER_FLAGS "" CACHE INTERNAL "")
-     * set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-     * set(CMAKE_INSTALL_PREFIX "/usr")
-     * add_definitions(-DSANITIZE_PTRS)
-     * add_definitions(-DDEBUG)
-     * set(CMAKE_SYSROOT "build/toolchain/sysroot")
-     */
-
-    auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
-    if (gen_path.is_empty()) {
-        return;
-    }
-
-    if (!create_dir(gen_path, "toolchain"))
-        return;
-
-    //fprintf(stdout, "Gendata directory: %s\n", gen_path.value().characters());
     StringBuilder serenity_cmake;
-
     serenity_cmake.append(gen_header());
 
     serenity_cmake.append("if(LOADED)\n     return()\nendif()\nset(LOADED true)\n\n");
     serenity_cmake.append("if(NOT CMAKE_BUILD_TYPE)\n     set(CMAKE_BUILD_TYPE Debug)\nendif()\n\n");
 
-    for (auto tool : toolchain.host_tools()) {
+    for (auto tool : tools) {
         if (tool.key == "cxx") {
             serenity_cmake.append("set(CMAKE_CXX_COMPILER ");
             serenity_cmake.append(tool.value.executable);
@@ -637,34 +677,80 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
 
     serenity_cmake.append("set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)");
     serenity_cmake.append("\n");
-    serenity_cmake.append("set(CMAKE_INSTALL_PREFIX \"/usr\")");
+    serenity_cmake.append("set(CMAKE_INSTALL_PREFIX \"/usr\" CACHE INTERNAL \"\" FORCE)");
     serenity_cmake.append("\n");
     serenity_cmake.append("\n");
 
-    for (auto& configuration : toolchain.configuration()) {
-        serenity_cmake.append("if(CMAKE_BUILD_TYPE STREQUAL \"");
-        serenity_cmake.append(configuration.key);
-        serenity_cmake.append("\")");
-        serenity_cmake.append("\n");
-        for (auto& tool : configuration.value) {
+    if (toolchain_configuration.has_value()) {
+        for (auto& configuration : toolchain_configuration.value()) {
+            serenity_cmake.append("if(CMAKE_BUILD_TYPE STREQUAL \"");
+            serenity_cmake.append(configuration.key);
+            serenity_cmake.append("\")");
+            serenity_cmake.append("\n");
+            for (auto& tool : configuration.value) {
 
-            if (tool.key == "cxx") {
-                serenity_cmake.append("    set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} ");
-                serenity_cmake.append(tool.value.flags);
-                serenity_cmake.append("\" CACHE INTERNAL \"\" FORCE)");
-                serenity_cmake.append("\n");
-            } else if (tool.key == "cc") {
-                serenity_cmake.append("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ");
-                serenity_cmake.append(tool.value.flags);
-                serenity_cmake.append("\" CACHE INTERNAL \"\" FORCE)");
-                serenity_cmake.append("\n");
+                if (tool.key == "cxx") {
+                    serenity_cmake.append("    set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} ");
+                    serenity_cmake.append(tool.value.flags);
+                    serenity_cmake.append("\" CACHE INTERNAL \"\" FORCE)");
+                    serenity_cmake.append("\n");
+                } else if (tool.key == "cc") {
+                    serenity_cmake.append("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ");
+                    serenity_cmake.append(tool.value.flags);
+                    serenity_cmake.append("\" CACHE INTERNAL \"\" FORCE)");
+                    serenity_cmake.append("\n");
+                }
             }
+            serenity_cmake.append("endif()");
+            serenity_cmake.append("\n");
         }
-        serenity_cmake.append("endif()");
-        serenity_cmake.append("\n");
     }
 
     serenity_cmake.append("set(CMAKE_ASM_CREATE_STATIC_LIBRARY \"<CMAKE_AR> crT <TARGET> <LINK_FLAGS> <OBJECTS>\")\n\n");
+    serenity_cmake.append("set(CMAKE_ASM_FLAGS_DEBUG \"\" CACHE INTERNAL \"\" FORCE)\n");
+    serenity_cmake.append("set(CMAKE_ASM_FLAGS \"\" CACHE INTERNAL \"\" FORCE)\n");
+    serenity_cmake.append("\n");
+
+    return serenity_cmake.build();
+}
+
+void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Package>& packages_to_build)
+{
+    /**
+     * This generates the toolchain file: serenity.cmake
+     * This generates the toolchain file: host.cmake
+     * This generates the toolchain file: CMakeLists.txt
+     */
+
+    /**
+     * Example serenity.cmake:
+     *
+     * set(CMAKE_C_COMPILER i686-pc-serenity-gcc)
+     * set(CMAKE_CXX_COMPILER i686-pc-serenity-g++)
+     * set(CMAKE_CXX_FLAGS "-Os -MMD -MP -std=c++17 -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -fno-exceptions -fno-rtti -fstack-protector" CACHE STRING "" FORCE)
+     * set(CMAKE_C_FLAGS "-Os -MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -fstack-protector" CACHE STRING "" FORCE)
+     * set(CMAKE_EXE_LINKER_FLAGS "" CACHE INTERNAL "")
+     * set(CMAKE_SHARED_LINKER_FLAGS "" CACHE INTERNAL "")
+     * set(CMAKE_MODULE_LINKER_FLAGS "" CACHE INTERNAL "")
+     * set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+     * set(CMAKE_INSTALL_PREFIX "/usr")
+     * add_definitions(-DSANITIZE_PTRS)
+     * add_definitions(-DDEBUG)
+     * set(CMAKE_SYSROOT "build/toolchain/sysroot")
+     */
+
+    auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
+    if (gen_path.is_empty()) {
+        return;
+    }
+
+    if (!create_dir(gen_path, "toolchain"))
+        return;
+
+    //fprintf(stdout, "Gendata directory: %s\n", gen_path.value().characters());
+
+    String serenity_cmake = gen_toolchain_content(toolchain.host_tools(), toolchain.configuration());
+    String host_cmake = gen_toolchain_content(toolchain.build_tools(), {});
 
     FILE* fd;
 
@@ -677,55 +763,27 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
     if (!fd)
         perror("fopen");
 
-    auto serenity_cmake_out = serenity_cmake.build();
-    auto bytes = fwrite(serenity_cmake_out.characters(), 1, serenity_cmake_out.length(), fd);
-    if (bytes != serenity_cmake_out.length())
+    auto bytes = fwrite(serenity_cmake.characters(), 1, serenity_cmake.length(), fd);
+    if (bytes != serenity_cmake.length())
         perror("fwrite");
 
     if (fclose(fd) < 0)
         perror("fclose");
 
-    // TODO: Write host.cmake file
-    //# - THIS FILE HAS BEEN GENERATED - DO NOT EDIT
-    //# - To regenerate, please use the meta tool.
+    StringBuilder host_cmake_filename;
+    host_cmake_filename.append(gen_path);
+    host_cmake_filename.append("/toolchain/host.cmake");
+    fd = fopen(host_cmake_filename.build().characters(), "w+");
 
-    //    if(LOADED)
-    //        return()
-    //            endif()
-    //                set(LOADED true)
+    if (!fd)
+        perror("fopen");
 
-    //            if(NOT CMAKE_BUILD_TYPE)
-    //                set(CMAKE_BUILD_TYPE Debug)
-    //                    endif()
+    bytes = fwrite(host_cmake.characters(), 1, host_cmake.length(), fd);
+    if (bytes != host_cmake.length())
+        perror("fwrite");
 
-    //            set(CMAKE_EXE_LINKER_FLAGS "" CACHE INTERNAL "" FORCE)
-    //                set(CMAKE_SHARED_LINKER_FLAGS "" CACHE INTERNAL "" FORCE)
-    //                    set(CMAKE_MODULE_LINKER_FLAGS "" CACHE INTERNAL "" FORCE)
-
-    //            set(CMAKE_CXX_COMPILER g++)
-    //                set(CMAKE_CXX_FLAGS "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option -Os -fno-exceptions -fno-rtti -fstack-protector  -std=c++17 -DSANITIZE_PTRS -I/home/ema/checkout/serenity -I/home/ema/checkout/serenity/DevTools -I/home/ema/checkout/serenity/Libraries -I/home/ema/checkout/serenity/Servers" CACHE STRING "" FORCE)
-
-    //            set(CMAKE_C_COMPILER gcc)
-    //                set(CMAKE_C_FLAGS   "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option -fstack-protector -Os -DSANITIZE_PTRS " CACHE STRING "" FORCE)
-
-    //            set(CMAKE_INSTALL_PREFIX "/usr")
-
-    // TODO: Write root cmake file
-    //    cmake_minimum_required(VERSION 3.10)
-
-    //    set(PROJECT_ROOT_DIR "/home/ema/checkout/serenity")
-
-    //# cmake-format: off
-    //#add_defines(-DGIT_COMMIT=`git rev-parse --short HEAD` -DGIT_BRANCH=`git rev-parse --abbrev-ref HEAD` -DGIT_CHANGES=`git diff-index --quiet HEAD -- && echo "tracked"|| echo "untracked"`)
-    //# cmake-format: on
-
-    //# TODO: FixMe: For selfhosting platform, native toolchain is needed.
-    //    if(BUILD_CROSS_TOOLCHAIN)
-    //        message(STATUS "BUILD_CROSS_TOOLCHAIN=${BUILD_CROSS_TOOLCHAIN}")
-    //            add_subdirectory(toolchain)
-    //                endif()
-
-    //    add_subdirectory(image/default-image)
+    if (fclose(fd) < 0)
+        perror("fclose");
 
     StringBuilder cmakelists_txt;
 
@@ -733,10 +791,10 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
 
-    serenity_cmake.append("string(ASCII 27 ESCAPE_CHAR)\n");
-    serenity_cmake.append("macro(warning_message msg)\n");
-    serenity_cmake.append("    message(STATUS \"${ESCAPE_CHAR}[1;${92}m${msg}${ESCAPE_CHAR}[0m\")\n");
-    serenity_cmake.append("endmacro()\n\n");
+    cmakelists_txt.append("string(ASCII 27 ESCAPE_CHAR)\n");
+    cmakelists_txt.append("macro(warning_message msg)\n");
+    cmakelists_txt.append("    message(STATUS \"${ESCAPE_CHAR}[1;${92}m${msg}${ESCAPE_CHAR}[0m\")\n");
+    cmakelists_txt.append("endmacro()\n\n");
 
     for (auto tool : toolchain.build_tools()) {
         if (!PackageDB::the().find_package_that_provides(tool.key)) {
@@ -955,16 +1013,25 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
             cmakelists_txt.append(package.name());
             cmakelists_txt.append("\n");
             cmakelists_txt.append("    CMAKE_ARGS\n");
-            if (package.machine() == "target") {
-                //cmakelists_txt.append("      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot\n");
-                cmakelists_txt.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake\n");
+
+            if (package.toolchain_options().contains("build")) {
+                auto options = pkg_toolchain_options.get("build").value();
+
+                if (options.has("use_toolchain")) {
+                    if (options.get("use_toolchain").as_string() == "target") {
+                        cmakelists_txt.append("      -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroot\n");
+                        cmakelists_txt.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/serenity.cmake\n");
+                    }
+                }
             } else if (package.machine() == "host") {
                 cmakelists_txt.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/host.cmake\n");
             }
             cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/");
             cmakelists_txt.append(package.name());
             cmakelists_txt.append("\n");
-            cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroot $(MAKE) install");
+            cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroot cmake --build . --target install");
+            //            cmakelists_txt.append("\n");
+            //            cmakelists_txt.append("    BUILD_ALWAYS true");
             cmakelists_txt.append(")\n");
 
             // ensure that the package CMakeLists.txt file is also generated
@@ -1002,6 +1069,95 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Pack
 
     auto cmakelists_txt_out = cmakelists_txt.build();
     bytes = fwrite(cmakelists_txt_out.characters(), 1, cmakelists_txt_out.length(), fd);
+    if (bytes != cmakelists_txt_out.length())
+        perror("fwrite");
+
+    if (fclose(fd) < 0)
+        perror("fclose");
+}
+
+void CMakeGenerator::gen_root(const Toolchain& toolchain)
+{
+
+    auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
+
+    if (gen_path.is_empty()) {
+        return;
+    }
+
+    StringBuilder cmakelists_txt;
+
+    cmakelists_txt.append(gen_header());
+    cmakelists_txt.append(cmake_minimum_version());
+    cmakelists_txt.append(project_root_dir());
+
+    cmakelists_txt.append("include(ExternalProject)\n\n");
+    cmakelists_txt.append("ExternalProject_Add(Toolchain\n");
+    cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/Toolchain\n");
+    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/toolchain\n");
+    cmakelists_txt.append("    CMAKE_ARGS\n");
+    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/toolchain/host.cmake\n");
+    cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/Toolchain\n");
+    cmakelists_txt.append("    INSTALL_COMMAND \"\"\n");
+    cmakelists_txt.append(")\n");
+    cmakelists_txt.append("# To clean up toolchain on make clean, uncomment the next line\n");
+    cmakelists_txt.append("#set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES Toolchain)\n");
+    cmakelists_txt.append("\n");
+    cmakelists_txt.append("ExternalProject_Add(Target\n");
+    cmakelists_txt.append("    DEPENDS Toolchain\n");
+    cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/Target\n");
+    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/image/default-image\n");
+    cmakelists_txt.append("    CMAKE_ARGS\n");
+    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/toolchain/serenity.cmake\n");
+    cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/Toolchain/sysroot\n");
+    cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/Target\n");
+    cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Target/sysroot cmake --build . --target install\n");
+    cmakelists_txt.append("    BUILD_ALWAYS true\n");
+    cmakelists_txt.append(")\n");
+    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES Target)\n");
+    cmakelists_txt.append("\n");
+    cmakelists_txt.append("\n");
+    cmakelists_txt.append("\n");
+
+    for (auto& tool : toolchain.host_tools()) {
+        if (tool.value.add_as_target) {
+            cmakelists_txt.append("add_custom_target(");
+            cmakelists_txt.append(tool.key);
+            cmakelists_txt.append("\n");
+            cmakelists_txt.append("    COMMAND");
+            if (tool.value.run_as_su)
+                cmakelists_txt.append(" sudo -E PATH=\"$PATH\"");
+
+            cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/Toolchain/sysroot/bin:$ENV{PATH}\" ");
+            auto filename = FileSystemPath(toolchain.filename());
+            auto abs_executable = tool.value.executable;
+            FileProvider::the().update_if_relative(abs_executable, filename.dirname());
+            cmakelists_txt.append(abs_executable);
+            if (!tool.value.flags.is_empty()) {
+                cmakelists_txt.append(" ");
+                auto flags = tool.value.flags;
+                flags = replace_variables(flags, "root", "${PROJECT_ROOT_DIR}");
+                flags = replace_variables(flags, "target_sysroot", "${CMAKE_BINARY_DIR}/Target/sysroot");
+                cmakelists_txt.append(flags);
+                cmakelists_txt.append("\n");
+            }
+            cmakelists_txt.append("    EXCLUDE_FROM_ALL\n");
+            cmakelists_txt.append(")\n");
+            cmakelists_txt.append("\n");
+        }
+    }
+
+    // write out
+    StringBuilder cmakelists_txt_filename;
+    cmakelists_txt_filename.append(gen_path);
+    cmakelists_txt_filename.append("/CMakeLists.txt");
+    FILE* fd = fopen(cmakelists_txt_filename.build().characters(), "w+");
+
+    if (!fd)
+        perror("fopen");
+
+    auto cmakelists_txt_out = cmakelists_txt.build();
+    auto bytes = fwrite(cmakelists_txt_out.characters(), 1, cmakelists_txt_out.length(), fd);
     if (bytes != cmakelists_txt_out.length())
         perror("fwrite");
 

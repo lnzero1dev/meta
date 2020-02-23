@@ -12,6 +12,7 @@ enum class InstallDir : uint8_t {
     SysconfDir,
     SharedstateDir,
     LocalstateDir,
+    LibDir,
     IncludeDir,
     DatarootDir,
     DataDir,
