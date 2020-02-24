@@ -12,7 +12,6 @@ enum class LinkageType : uint8_t {
     Dynamic,
     Direct,
     HeaderOnly,
-    Injected,
 
     Unknown = 0xFF
 };
@@ -159,11 +158,6 @@ public:
     void remove_dependency(const String& name)
     {
         m_dependencies.remove(name);
-    }
-
-    void inject_dependency(const String& name, LinkageType type)
-    {
-        m_dependencies.set(name, type);
     }
 
 private:

@@ -129,9 +129,7 @@
             "build_machine_build_targets": [
                 "libstdc++-v3",
                 "qemu"
-            ],
-            "build_machine_inject_dependencies": {
-            }
+            ]
         }
     }
 }

@@ -28,7 +28,6 @@ public:
     const HashMap<String, Tool>& build_tools() const { return m_build_tools; }
 
     const Vector<String>& build_machine_build_targets() const { return m_build_machine_build_targets; }
-    const HashMap<String, String>& build_machine_inject_dependencies() const { return m_build_machine_inject_dependencies; }
 
     static void insert_tool(HashMap<String, Tool>&, JsonObject, const String&);
 
@@ -40,5 +39,4 @@ private:
     HashMap<String, Tool> m_build_tools;
     HashMap<String, Tool> m_host_tools;
     Vector<String> m_build_machine_build_targets;
-    HashMap<String, String> m_build_machine_inject_dependencies;
 };

@@ -531,17 +531,6 @@ int main(int argc, char** argv)
 
                 Vector<Package> packages_to_build;
 
-                PackageDB::the().for_each_package([&](auto&, auto& package) {
-                    if (toolchain->build_machine_inject_dependencies().contains(package.name())) {
-                        auto dependency = toolchain->build_machine_inject_dependencies().get(package.name()).value_or("");
-#ifdef DEBUG_META
-                        fprintf(stderr, "Inject dependency: %s to %s\n", dependency.characters(), package.name().characters());
-#endif
-                        const_cast<Package*>(&package)->inject_dependency(dependency, LinkageType::Injected);
-                    }
-                    return IterationDecision::Continue;
-                });
-
                 for (auto& target : toolchain->build_machine_build_targets()) {
                     Package* package = PackageDB::the().get(target);
                     if (package) {

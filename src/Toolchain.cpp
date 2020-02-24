@@ -70,15 +70,6 @@ Toolchain::Toolchain(const String& filename, JsonObject json_obj)
             }
             return;
         }
-        if (key == "build_machine_inject_dependencies") {
-            if (value.is_object()) {
-                value.as_object().for_each_member([&](auto& key, auto& value) {
-                    ASSERT(value.is_string());
-                    m_build_machine_inject_dependencies.set(key, value.as_string());
-                });
-            }
-            return;
-        }
         fprintf(stderr, "Unknown toolchain key found: %s\n", key.characters());
     });
 }

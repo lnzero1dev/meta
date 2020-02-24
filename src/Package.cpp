@@ -64,8 +64,6 @@ LinkageType string_to_linkage_type(String type)
         return LinkageType::Direct;
     else if (type.matches("header_only"))
         return LinkageType::HeaderOnly;
-    else if (type.matches("injected"))
-        return LinkageType::Injected;
     else
         return LinkageType::Unknown;
 }
