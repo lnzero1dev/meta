@@ -1,8 +1,8 @@
 {
     "package": {
-        "LibC_host": {
+        "LibC_build": {
             "type": "library",
-            "machine": "host",
+            "machine": "build",
             "toolchain": {
                 "options": {
                     "build": {
@@ -35,7 +35,7 @@
             "host_tools": {
                 "cxx": {
                     "flags": [
-                        "-DSERENITY_LIBC_BUILD -DBUILDING_SERENITY_TOOLCHAIN"
+                        "-DSERENITY_LIBC_BUILD"
                     ]
                 }
             },

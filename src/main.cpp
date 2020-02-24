@@ -168,6 +168,7 @@ void statistics()
     u16 type_executable = 0;
     u16 type_collection = 0;
     u16 type_deployment = 0;
+    u16 type_script = 0;
     u16 type_unknown = 0;
     PackageDB::the().for_each_package([&](auto& name, auto& package) {
         package_list.append(name);
@@ -186,6 +187,9 @@ void statistics()
             break;
         case PackageType::Deployment:
             ++type_deployment;
+            break;
+        case PackageType::Script:
+            ++type_script;
             break;
         case PackageType::Unknown:
             ++type_unknown;
@@ -219,6 +223,7 @@ void statistics()
     fprintf(stdout, "Packages with type Executable: %i\n", type_executable);
     fprintf(stdout, "Packages with type Collection: %i\n", type_collection);
     fprintf(stdout, "Packages with type Deployment: %i\n", type_deployment);
+    fprintf(stdout, "Packages with type Script: %i\n", type_script);
     fprintf(stdout, "Packages with unknown type: %i\n", type_unknown);
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
@@ -529,44 +534,15 @@ int main(int argc, char** argv)
                     cmakegen.gen_package(*package);
                 }
 
-                Vector<Package> packages_to_build;
-
-                for (auto& target : toolchain->build_machine_build_targets()) {
-                    Package* package = PackageDB::the().get(target);
-                    if (package) {
-                        packages_to_build.append(*package);
-                    } else {
-                        fprintf(stderr, "Could not find package for native build target: %s\n", target.characters());
-                    }
-                }
-
-                PackageDB::the().for_each_package([&](auto&, auto& package) { // Fixme: scan only packages that are actually in the build!
-                    for (auto& generator : package.run_generators()) {
-                        Package* package = PackageDB::the().get(generator.key);
-                        if (package) {
-                            packages_to_build.append(*package);
-                        } else {
-                            fprintf(stderr, "Could not find package for generator: %s\n", generator.key.characters());
-                        }
-                    }
-                    return IterationDecision::Continue;
-                });
-
-                cmakegen.gen_toolchain(*toolchain, packages_to_build);
+                cmakegen.gen_toolchain(*toolchain);
                 break;
             }
             default:
                 fprintf(stderr, "Invalid build configurator configured.");
             }
-        } else
+        } else {
             fprintf(stderr, "Invalid build configurator configured.");
-
-        //
-        //    Toolchain& toolchain = Toolchain::the();
-        //    if (!toolchain.check_native_apps()) {
-        //        fprintf(stderr, "Some native apps missing!\n");
-        //        return -1;
-        //    }
+        }
     }
 
     if (cmd == PrimaryCommand::Build) {

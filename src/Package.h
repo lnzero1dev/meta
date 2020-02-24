@@ -21,6 +21,7 @@ enum class PackageType : uint8_t {
     Executable,  // Exactly one executable
     Collection,  // Collection of 1..n libraries/executables
     Deployment,  // Just deployment for specific machine
+    Script,      // Script
 
     Unknown = 0xFF
 };

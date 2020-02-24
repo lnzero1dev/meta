@@ -31,7 +31,8 @@
                         "-I${root}",
                         "-I${root}/DevTools",
                         "-I${root}/Libraries",
-                        "-I${root}/Servers"
+                        "-I${root}/Servers",
+                        "-DBUILDING_SERENITY_TOOLCHAIN"
                     ]
                 },
                 "cc": {
@@ -80,6 +81,75 @@
             },
             "host_tools": {
                 "cxx": {
+                    "executable": "g++",
+                    "flags": [
+                        "-MMD -MP -std=c++2a -Wno-sized-deallocation -fno-sized-deallocation",
+                        "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
+                        "-fno-exceptions -fno-rtti -fstack-protector -Os",
+                        "-I${root}",
+                        "-I${root}/DevTools",
+                        "-I${root}/Libraries",
+                        "-I${root}/Servers",
+                        "-DSANITIZE_PTRS",
+                    ]
+                },
+                "cc": {
+                    "executable": "gcc",
+                    "flags": [
+                        "-MMD -MP -Werror -Wextra -Wall -Wno-nonnull-compare -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined -Wno-unknown-warning-option",
+                        "-fstack-protector -Os"
+                    ]
+                },
+                "as": {
+                    "executable": "as",
+                    "flags": ""
+                },
+                "link": {
+                    "executable": "ld",
+                    "flags": ""
+                },
+                "ranlib": {
+                    "executable": "ranlib",
+                    "flags": ""
+                },
+                "ar": {
+                    "executable": "ar",
+                    "flags": ""
+                },
+                "download": {
+                    "executable": "wget",
+                    "flags": "-O-"
+                },
+                "patch": {
+                    "executable": "patch",
+                    "flags": ""
+                },
+                "build": {
+                    "executable": "make",
+                    "flags": ""
+                },
+                "install": {
+                    "executable": "make",
+                    "flags": "install"
+                },
+                "build-generator": {
+                    "executable": "cmake",
+                    "flags": ""
+                },
+                "build_image": {
+                    "executable": "build-image-qemu.sh",
+                    "flags": "${root}",
+                    "run_as_su": true,
+                    "add_as_target": true
+                },
+                "run": {
+                    "executable": "run.sh",
+                    "flags": "${target_sysroot}/boot/kernel",
+                    "add_as_target": true
+                }
+            },
+            "target_tools": {
+                "cxx": {
                     "executable": "i686-pc-serenity-g++",
                     "flags": [
                         "-MMD -MP -std=c++2a -Wno-sized-deallocation -fno-sized-deallocation",
@@ -112,17 +182,6 @@
                 "ar": {
                     "executable": "i686-pc-serenity-ar",
                     "flags": ""
-                },
-                "build_image": {
-                    "executable": "build-image-qemu.sh",
-                    "flags": "${root}",
-                    "run_as_su": true,
-                    "add_as_target": true
-                },
-                "run": {
-                    "executable": "run.sh",
-                    "flags": "${target_sysroot}/boot/kernel",
-                    "add_as_target": true
                 }
             },
 

@@ -3,7 +3,7 @@
         "qemu": {
             "version": "4.1.0",
             "type": "collection",
-            "machine": "host",
+            "machine": "build",
             "provides": {
                 "executable": [
                     "qemu-img",

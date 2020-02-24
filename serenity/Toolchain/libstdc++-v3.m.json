@@ -3,7 +3,7 @@
         "libstdc++-v3": {
             "version": "9.2.0",
             "type": "collection",
-            "machine": "host",
+            "machine": "build",
             "provides": {
                 "library": [
                     "libstdc++-v3"
@@ -48,8 +48,8 @@
             "dependency": [
                 "binutils",
                 "gcc",
-                "LibC_host",
-                "LibM_host"
+                "LibC_build",
+                "LibM_build"
             ]
         }
     }

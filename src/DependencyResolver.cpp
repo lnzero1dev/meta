@@ -58,7 +58,9 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
                     for (auto& provides : package_provides.provides()) {
                         for (auto& provide_value : provides.value) {
                             if (provide_value == dependency.key) {
-                                if (package.machine() == package_provides.machine() || (package.machine() == "host" && package_provides.machine() == "target")) {
+                                if (package.machine() == package_provides.machine()
+                                    || (package.machine() == "target" && package_provides.machine() == "host")
+                                    || (package.machine() == "host" && package_provides.machine() == "build")) {
                                     found_package = true;
                                     m->children.append(get_dependency_tree(package_provides));
                                     return IterationDecision::Break;
@@ -71,7 +73,7 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
             });
         }
 
-        if (!found_package && package.machine() == "host") {
+        if (!found_package && (package.machine() == "host" || package.machine() == "build")) {
             // When it's a host package, check the host machine (i.e. build machine), if the executable / library is existing
             // This could (must!) be done in the generated code, but for now, we do it here.
             // TODO: we can only check build tools for existence, move check of host tools into the host toolchain!

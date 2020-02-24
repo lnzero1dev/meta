@@ -3,7 +3,7 @@
         "gcc": {
             "version": "9.2.0",
             "type": "collection",
-            "machine": "host",
+            "machine": "build",
             "provides": {
                 "executable": [
                     "i686-pc-serenity-g++",

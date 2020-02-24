@@ -119,9 +119,11 @@ Package::Package(String filename, String name, JsonObject json_obj)
                 m_type = PackageType::Executable;
             } else if (value.as_string().matches("collection")) {
                 m_type = PackageType::Collection;
-            } else if (value.as_string().matches("deployment"))
+            } else if (value.as_string().matches("deployment")) {
                 m_type = PackageType::Deployment;
-            else {
+            } else if (value.as_string().matches("script")) {
+                m_type = PackageType::Script;
+            } else {
                 m_consistent = false;
             }
             return;

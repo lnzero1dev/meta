@@ -3,7 +3,7 @@
         "binutils": {
             "version": "2.33.1",
             "type": "collection",
-            "machine": "host",
+            "machine": "build",
             "toolchain": {
                 "steps": [
                     "download",
