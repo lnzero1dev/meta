@@ -528,7 +528,7 @@ int main(int argc, char** argv)
                     }
                     fprintf(stdout, "Generate Image: %s!\n", image->name().characters());
                     cmakegen.gen_image(*image, host_packages_in_order);
-                    cmakegen.gen_root(*toolchain);
+                    cmakegen.gen_root(*toolchain, argc, argv);
 
                 } else if (isPackage) {
                     Package* package;
@@ -540,7 +540,7 @@ int main(int argc, char** argv)
                     cmakegen.gen_package(*package);
                 }
 
-                cmakegen.gen_toolchain(*toolchain);
+                cmakegen.gen_toolchain(*toolchain, files);
                 break;
             }
             default:

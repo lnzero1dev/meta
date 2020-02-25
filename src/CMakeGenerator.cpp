@@ -1002,7 +1002,7 @@ StringBuilder CMakeGenerator::gen_toolchain_cmakelists_txt(const HashMap<String,
     return cmakelists_txt;
 }
 
-void CMakeGenerator::gen_toolchain(const Toolchain& toolchain)
+void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<String>& json_input_files)
 {
     /**
      * This generates the toolchain file: build/toolchain.cmake
@@ -1010,6 +1010,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain)
      * This generates the toolchain file: target/toolchain.cmake
      * This generates the toolchain file: build/CMakeLists.txt
      * This generates the toolchain file: target/CMakeLists.txt
+     * This generates the tool reconfiguration input file: meta_json_files.depends
      */
 
     /**
@@ -1199,9 +1200,33 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain)
 
     if (fclose(fd) < 0)
         perror("fclose");
+
+    // meta_json_files.depends
+    StringBuilder meta_json_files_depends;
+    for (auto& file : json_input_files) {
+        meta_json_files_depends.append(file);
+        meta_json_files_depends.append("\n");
+    }
+
+    // write out
+    StringBuilder meta_json_files_depends_filename;
+    meta_json_files_depends_filename.append(gen_path);
+    meta_json_files_depends_filename.append("/toolchain/meta_json_files.depend");
+    fd = fopen(meta_json_files_depends_filename.build().characters(), "w+");
+
+    if (!fd)
+        perror("fopen");
+
+    auto meta_json_files_depends_out = meta_json_files_depends.build();
+    bytes = fwrite(meta_json_files_depends_out.characters(), 1, meta_json_files_depends_out.length(), fd);
+    if (bytes != meta_json_files_depends_out.length())
+        perror("fwrite");
+
+    if (fclose(fd) < 0)
+        perror("fclose");
 }
 
-void CMakeGenerator::gen_root(const Toolchain& toolchain)
+void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
 {
 
     auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
@@ -1216,11 +1241,40 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain)
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
 
+    cmakelists_txt.append("SET(META_BINARY ");
+    for (int i = 0; i < argc; ++i) {
+        cmakelists_txt.append(argv[i]);
+        cmakelists_txt.append(" ");
+    }
+    cmakelists_txt.append(")\n");
+
+    cmakelists_txt.append("SET(WORKING_DIRECTORY ");
+    cmakelists_txt.append(FileProvider::the().current_dir());
+    cmakelists_txt.append(")\n");
+
+    cmakelists_txt.append("file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
+    cmakelists_txt.append("add_custom_command(\n");
+    cmakelists_txt.append("    OUTPUT ${CMAKE_CURRENT_LIST_FILE}\n");
+    cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
+    cmakelists_txt.append("    DEPENDS ${META_JSON_FILES_DEPEND}\n");
+    cmakelists_txt.append("    WORKING_DIRECTORY ${WORKING_DIRECTORY}\n");
+    cmakelists_txt.append("    COMMENT \"Execute META to re-generate CMake files.\"\n");
+    cmakelists_txt.append(")\n");
+    cmakelists_txt.append("add_custom_target(auto-meta-generation ALL DEPENDS ${CMAKE_CURRENT_LIST_FILE})\n\n");
+
+    cmakelists_txt.append("add_custom_target(meta-generation\n");
+    cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
+    cmakelists_txt.append("    WORKING_DIRECTORY ${WORKING_DIRECTORY}\n");
+    cmakelists_txt.append("    COMMENT \"Execute META to re-generate CMake files.\"\n");
+    cmakelists_txt.append(")\n");
+    cmakelists_txt.append("\n\n");
+
     cmakelists_txt.append("include(ExternalProject)\n");
     cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/sysroots)\n\n");
 
     // build toolchain
     cmakelists_txt.append("ExternalProject_Add(BuildToolchain\n");
+    cmakelists_txt.append("    DEPENDS auto-meta-generation\n");
     cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/BuildToolchain\n");
     cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/toolchain/build\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
@@ -1235,7 +1289,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain)
 
     // host toolchain
     cmakelists_txt.append("ExternalProject_Add(HostToolchain\n");
-    cmakelists_txt.append("    DEPENDS BuildToolchain\n");
+    cmakelists_txt.append("    DEPENDS BuildToolchain auto-meta-generation\n");
     cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/HostToolchain\n");
     cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/toolchain/host\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
@@ -1249,7 +1303,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain)
 
     // target build
     cmakelists_txt.append("ExternalProject_Add(Target\n");
-    cmakelists_txt.append("    DEPENDS HostToolchain\n");
+    cmakelists_txt.append("    DEPENDS HostToolchain auto-meta-generation\n");
     cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/Target\n");
     cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/image/default-image\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
