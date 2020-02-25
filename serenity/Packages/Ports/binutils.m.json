@@ -1,0 +1,39 @@
+{
+    "package": {
+        "binutils_target": {
+            "version": "2.32",
+            "type": "collection",
+            "machine": "target",
+            "toolchain": {
+                "steps": [
+                    "download",
+                    "patch",
+                    "configure",
+                    "build",
+                    "install"
+                ],
+                "options": {
+                    "download": {
+                        "url": "http://ftp.gnu.org/gnu/binutils/binutils-${version}.tar.xz",
+                        "url_hash": "0d174cdaf85721c5723bf52355be41e6",
+                        "url_hash_type": "md5"
+                    },
+                    "patch": {
+                        "file": "${root}/Ports/binutils/patches/binutils.patch"
+                    },
+                    "configure": {
+                        "flags": [
+                            "--target=i686-pc-serenity",
+                            "--with-sysroot=${sysroot}",
+                            "--with-build-sysroot=${sysroot}",
+                            "--prefix=${target_sysroot}",
+                            "--disable-werror",
+                            "--disable-gdb",
+                            "--disable-nls"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

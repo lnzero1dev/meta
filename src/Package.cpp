@@ -133,12 +133,13 @@ Package::Package(String filename, String name, JsonObject json_obj)
             if (parts.size() == 1)
                 m_version.other = value.as_string();
             else {
-                bool ok1, ok2, ok3;
+                bool ok1 = true, ok2 = true, ok3 = true;
                 m_version.major = parts[0].to_int(ok1);
-                m_version.minor = parts[1].to_int(ok2);
-                if (parts.size() > 2) {
+                if (parts.size() > 1)
+                    m_version.minor = parts[1].to_int(ok2);
+                if (parts.size() > 2)
                     m_version.bugfix = parts[2].to_int(ok3);
-                }
+
                 if (!ok1 || !ok2 || !ok3) {
                     m_version.major = 0;
                     m_version.minor = 0;

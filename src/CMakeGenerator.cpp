@@ -63,6 +63,36 @@ const String CMakeGenerator::colorful_message() const
     return s_colorful_messages;
 }
 
+const String CMakeGenerator::make_command_workaround() const
+{
+    static String s_make_command_workaround;
+    if (s_make_command_workaround.is_empty()) {
+        StringBuilder builder;
+        builder.append("# Workaround: Ninja doesn't support $ signs... \n");
+        builder.append("string(FIND ${CMAKE_MAKE_PROGRAM} \"ninja\" NINJA_USED)\n");
+        builder.append("if(NOT \"${NINJA_USED}\" STREQUAL \"-1\")\n");
+        builder.append("    set(BUILD_CMD \"make\")\n");
+        builder.append("else()\n");
+        builder.append("    set(BUILD_CMD \"$(MAKE)\")\n");
+        builder.append("endif()\n\n");
+        s_make_command_workaround = builder.build();
+    }
+    return s_make_command_workaround;
+}
+
+const String CMakeGenerator::includes() const
+{
+    static String s_includes;
+    if (s_includes.is_empty()) {
+        StringBuilder builder;
+        builder.append("include(GNUInstallDirs)\n");
+        builder.append("include(ExternalProject)\n");
+        builder.append("\n\n");
+        s_includes = builder.build();
+    }
+    return s_includes;
+}
+
 bool create_dir(const String& path, const String& sub_dir = "")
 {
     String path2 = path;
@@ -131,8 +161,10 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     cmakelists_txt.append(image.name());
     cmakelists_txt.append(" C CXX ASM)\n\n");
 
-    // generate install variables
-    cmakelists_txt.append("include(GNUInstallDirs)\n");
+    cmakelists_txt.append("include(${CMAKE_CURRENT_LIST_DIR}/../../toolchain/host/tools.cmake)\n\n");
+
+    cmakelists_txt.append(make_command_workaround());
+    cmakelists_txt.append(includes());
 
     cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"");
     cmakelists_txt.append(image.install_prefix());
@@ -198,6 +230,163 @@ const String replace_dest_vars(const String& haystack)
     return res;
 }
 
+String CMakeGenerator::gen_package_collection(const Package& package)
+{
+    /**
+     * Example ExternalProject for build machine package
+     *
+     * ExternalProject_Add( binutils
+     *     DEPENDS gcc
+     *     PREFIX ${CMAKE_BINARY_DIR}/binutils
+     *     URL http://ftp.gnu.org/gnu/binutils/binutils-2.33.1.tar.xz
+     *     URL_HASH MD5=9406231b7d9dd93731c2d06cefe8aaf1
+     *     DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/download
+     *     PATCH_COMMAND ${PATCH_EXE} -p1 --forward < ${PROJECT_ROOT_DIR}/Toolchain/Patches/binutils.patch || true
+     *     CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/binutils/src/binutils/configure
+     *            --prefix=${CMAKE_BINARY_DIR}/sysroot
+     *            --target=i686-pc-serenity
+     *            --with-sysroot=${CMAKE_BINARY_DIR}/sysroot
+     *            --enable-shared
+     *            --disable-nls
+     *     BUILD_COMMAND $(MAKE) ${PARALLEL_BUILD}
+     *     INSTALL_COMMAND $(MAKE) install)
+     *
+     * set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES binutils)
+     */
+
+    auto& pkg_toolchain_steps = package.toolchain_steps();
+    auto& pkg_toolchain_options = package.toolchain_options();
+
+    StringBuilder package_collection;
+
+    package_collection.append("ExternalProject_Add(");
+    package_collection.append(package.name());
+    package_collection.append("\n");
+
+    StringBuilder depends_builder;
+    depends_builder.append("");
+
+    if (package.dependencies().size()) {
+        for (auto& dependency : package.dependencies()) {
+            if (dependency.value == LinkageType::Direct || dependency.value == LinkageType::HeaderOnly)
+                continue;
+            depends_builder.append(dependency.key);
+            depends_builder.append(" ");
+        }
+    }
+    String depends_str = depends_builder.build();
+
+    if (!depends_str.is_empty()) {
+        package_collection.append("    DEPENDS ");
+        package_collection.append(depends_str);
+        package_collection.append("\n");
+    }
+
+    package_collection.append("    PREFIX ${CMAKE_BINARY_DIR}/");
+    package_collection.append(package.name());
+    package_collection.append("\n");
+
+    for (auto& step : pkg_toolchain_steps) {
+        if (pkg_toolchain_options.contains(step)) {
+            // found options
+            auto options = pkg_toolchain_options.get(step).value();
+            if (step == "download") {
+                if (options.has("url")) {
+                    auto url = options.get("url").as_string();
+                    url = replace_variables(url, "version", package.version());
+
+                    package_collection.append("    URL ");
+                    package_collection.append(url);
+                    package_collection.append("\n");
+                    if (options.has("url_hash_type") && options.has("url_hash")) {
+                        package_collection.append("    URL_HASH ");
+                        package_collection.append(options.get("url_hash_type").as_string().to_uppercase());
+                        package_collection.append("=");
+                        package_collection.append(options.get("url_hash").as_string());
+                        package_collection.append("\n");
+                    }
+                    package_collection.append("    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/download");
+                    package_collection.append("\n");
+                }
+            } else if (step == "patch") {
+                if (options.has("file")) {
+                    Vector<String> patch_filenames;
+                    if (options.get("file").is_string()) {
+                        patch_filenames.append(options.get("file").as_string());
+                    } else if (options.get("file").is_array()) {
+                        auto values = options.get("file").as_array().values();
+                        for (auto& value : values) {
+                            patch_filenames.append(value.as_string());
+                        }
+                    }
+                    if (patch_filenames.size()) {
+                        package_collection.append("    PATCH_COMMAND ${PATCH_EXE} -p1 --forward < ");
+                    }
+                    for (auto& patch_filename : patch_filenames) {
+                        patch_filename = replace_variables(patch_filename, "root", "${PROJECT_ROOT_DIR}");
+                        package_collection.append(patch_filename);
+                        package_collection.append(" ");
+                    }
+                    if (patch_filenames.size()) {
+                        package_collection.append("|| true");
+                    }
+                    package_collection.append("\n");
+                }
+            } else if (step == "configure") {
+                package_collection.append("    CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/");
+                package_collection.append(package.name());
+                package_collection.append("/src/");
+                package_collection.append(package.name());
+                package_collection.append("/configure");
+                package_collection.append("\n");
+
+                if (options.has("flags")) {
+                    auto flags_object = options.get("flags");
+                    Vector<String> flags;
+                    if (flags_object.is_string()) {
+                        flags.append(options.get("flags").as_string());
+                    } else if (flags_object.is_array()) {
+                        auto values = options.get("flags").as_array().values();
+                        for (auto value : values) {
+                            flags.append(value.as_string());
+                        }
+                    }
+                    for (auto& flag : flags) {
+                        flag = replace_variables(flag, "target_sysroot", "${CMAKE_TARGET_SYSROOT}");
+                        flag = replace_variables(flag, "sysroot", "${CMAKE_SYSROOT}");
+                        package_collection.append("      ");
+                        package_collection.append(flag);
+                        package_collection.append("\n");
+                    }
+                }
+            } else if (step == "build") {
+                package_collection.append("    BUILD_COMMAND ${BUILD_CMD} ");
+                if (options.has("targets"))
+                    package_collection.append(options.get("targets").as_string());
+                package_collection.append("\n");
+            } else if (step == "install") {
+                package_collection.append("    INSTALL_COMMAND ${BUILD_CMD} ");
+                if (options.has("targets"))
+                    package_collection.append(options.get("targets").as_string());
+                package_collection.append("\n");
+            }
+        } else {
+            if (step == "build") {
+                // build step without options.... ok
+                package_collection.append("    BUILD_COMMAND ${BUILD_CMD}");
+                package_collection.append("\n");
+            } else if (step == "install") {
+                package_collection.append("    INSTALL_COMMAND ${BUILD_CMD} install");
+                package_collection.append("\n");
+            } else
+                fprintf(stderr, "[%s] No options for step: %s\n", package.name().characters(), step.characters());
+        }
+    }
+    package_collection.append(")\n\n");
+
+    return package_collection.build();
+}
+
 bool CMakeGenerator::gen_package(const Package& package)
 {
     /**
@@ -253,8 +442,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     cmakelists_txt.append(gen_header());
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
-
-    cmakelists_txt.append("include(GNUInstallDirs)\n");
+    cmakelists_txt.append(includes());
 
     auto targetName = package.name(); //get_target_name(package.name());
 
@@ -438,6 +626,10 @@ bool CMakeGenerator::gen_package(const Package& package)
             cmakelists_txt.append("\n");
         }
         cmakelists_txt.append(")\n\n");
+    }
+
+    if (package.type() == PackageType::Collection) {
+        cmakelists_txt.append(gen_package_collection(package));
     }
 
     // check if deployment contains "target" type that renames the output
@@ -787,157 +979,12 @@ String CMakeGenerator::gen_toolchain_package(const Package& package)
     toolchain_package.append(package.name());
     toolchain_package.append("\n");
 
-    toolchain_package.append("ExternalProject_Add(");
-    toolchain_package.append(package.name());
-    toolchain_package.append("\n");
-
-    StringBuilder depends_builder;
-    depends_builder.append("");
-
-    if (package.dependencies().size()) {
-        for (auto& dependency : package.dependencies()) {
-            if (dependency.value == LinkageType::Direct || dependency.value == LinkageType::HeaderOnly)
-                continue;
-            depends_builder.append(dependency.key);
-            depends_builder.append(" ");
-        }
-    }
-
-    String depends_str = depends_builder.build();
-
-    if (!depends_str.is_empty()) {
-        toolchain_package.append("    DEPENDS ");
-        toolchain_package.append(depends_str);
-        toolchain_package.append("\n");
-    }
-
-    toolchain_package.append("    PREFIX ${CMAKE_BINARY_DIR}/");
-    toolchain_package.append(package.name());
-    toolchain_package.append("\n");
-
     // get package toolchain!
     auto& pkg_toolchain_steps = package.toolchain_steps();
     auto& pkg_toolchain_options = package.toolchain_options();
 
     if (pkg_toolchain_steps.size()) {
-        /**
-         * Example ExternalProject for build machine package
-         *
-         * ExternalProject_Add( binutils
-         *     DEPENDS gcc
-         *     PREFIX ${CMAKE_BINARY_DIR}/binutils
-         *     URL http://ftp.gnu.org/gnu/binutils/binutils-2.33.1.tar.xz
-         *     URL_HASH MD5=9406231b7d9dd93731c2d06cefe8aaf1
-         *     DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/download
-         *     PATCH_COMMAND ${PATCH_EXE} -p1 --forward < ${PROJECT_ROOT_DIR}/Toolchain/Patches/binutils.patch || true
-         *     CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/binutils/src/binutils/configure
-         *            --prefix=${CMAKE_BINARY_DIR}/sysroot
-         *            --target=i686-pc-serenity
-         *            --with-sysroot=${CMAKE_BINARY_DIR}/sysroot
-         *            --enable-shared
-         *            --disable-nls
-         *     BUILD_COMMAND $(MAKE) ${PARALLEL_BUILD}
-         *     INSTALL_COMMAND $(MAKE) install)
-         *
-         * set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES binutils)
-         */
-
-        for (auto& step : pkg_toolchain_steps) {
-            if (pkg_toolchain_options.contains(step)) {
-                // found options
-                auto options = pkg_toolchain_options.get(step).value();
-                if (step == "download") {
-                    if (options.has("url")) {
-                        auto url = options.get("url").as_string();
-                        url = replace_variables(url, "version", package.version());
-
-                        toolchain_package.append("    URL ");
-                        toolchain_package.append(url);
-                        toolchain_package.append("\n");
-                        if (options.has("url_hash_type") && options.has("url_hash")) {
-                            toolchain_package.append("    URL_HASH ");
-                            toolchain_package.append(options.get("url_hash_type").as_string().to_uppercase());
-                            toolchain_package.append("=");
-                            toolchain_package.append(options.get("url_hash").as_string());
-                            toolchain_package.append("\n");
-                        }
-                        toolchain_package.append("    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/download");
-                        toolchain_package.append("\n");
-                    }
-                } else if (step == "patch") {
-                    if (options.has("file")) {
-                        Vector<String> patch_filenames;
-                        if (options.get("file").is_string()) {
-                            patch_filenames.append(options.get("file").as_string());
-                        } else if (options.get("file").is_array()) {
-                            auto values = options.get("file").as_array().values();
-                            for (auto& value : values) {
-                                patch_filenames.append(value.as_string());
-                            }
-                        }
-                        if (patch_filenames.size()) {
-                            toolchain_package.append("    PATCH_COMMAND ${PATCH_EXE} -p1 --forward < ");
-                        }
-                        for (auto& patch_filename : patch_filenames) {
-                            patch_filename = replace_variables(patch_filename, "root", "${PROJECT_ROOT_DIR}");
-                            toolchain_package.append(patch_filename);
-                            toolchain_package.append(" ");
-                        }
-                        if (patch_filenames.size()) {
-                            toolchain_package.append("|| true");
-                        }
-                        toolchain_package.append("\n");
-                    }
-                } else if (step == "configure") {
-                    toolchain_package.append("    CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/");
-                    toolchain_package.append(package.name());
-                    toolchain_package.append("/src/");
-                    toolchain_package.append(package.name());
-                    toolchain_package.append("/configure");
-                    toolchain_package.append("\n");
-
-                    if (options.has("flags")) {
-                        auto flags_object = options.get("flags");
-                        Vector<String> flags;
-                        if (flags_object.is_string()) {
-                            flags.append(options.get("flags").as_string());
-                        } else if (flags_object.is_array()) {
-                            auto values = options.get("flags").as_array().values();
-                            for (auto value : values) {
-                                flags.append(value.as_string());
-                            }
-                        }
-                        for (auto& flag : flags) {
-                            flag = replace_variables(flag, "sysroot", "${CMAKE_SYSROOT}");
-                            toolchain_package.append("      ");
-                            toolchain_package.append(flag);
-                            toolchain_package.append("\n");
-                        }
-                    }
-                } else if (step == "build") {
-                    toolchain_package.append("    BUILD_COMMAND ${BUILD_CMD} ");
-                    if (options.has("targets"))
-                        toolchain_package.append(options.get("targets").as_string());
-                    toolchain_package.append("\n");
-                } else if (step == "install") {
-                    toolchain_package.append("    INSTALL_COMMAND ${BUILD_CMD} ");
-                    if (options.has("targets"))
-                        toolchain_package.append(options.get("targets").as_string());
-                    toolchain_package.append("\n");
-                }
-            } else {
-                if (step == "build") {
-                    // build step without options.... ok
-                    toolchain_package.append("    BUILD_COMMAND ${BUILD_CMD}");
-                    toolchain_package.append("\n");
-                } else if (step == "install") {
-                    toolchain_package.append("    INSTALL_COMMAND ${BUILD_CMD} install");
-                    toolchain_package.append("\n");
-                } else
-                    fprintf(stderr, "[%s] No options for step: %s\n", package.name().characters(), step.characters());
-            }
-        }
-        toolchain_package.append(")\n\n");
+        toolchain_package.append(gen_package_collection(package));
     } else {
 
         /**
@@ -997,7 +1044,7 @@ String CMakeGenerator::gen_toolchain_package(const Package& package)
     return toolchain_package.build();
 }
 
-StringBuilder CMakeGenerator::gen_toolchain_cmakelists_txt(const HashMap<String, Tool>& tools)
+StringBuilder CMakeGenerator::gen_toolchain_cmakelists_txt()
 {
     StringBuilder cmakelists_txt;
 
@@ -1008,39 +1055,38 @@ StringBuilder CMakeGenerator::gen_toolchain_cmakelists_txt(const HashMap<String,
 
     cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"/usr\" CACHE INTERNAL \"\" FORCE)\n\n");
 
-    for (auto tool : tools) {
-        if (!PackageDB::the().find_package_that_provides(tool.key)) {
-            cmakelists_txt.append("find_program(");
-            cmakelists_txt.append(tool.key.to_uppercase());
-            cmakelists_txt.append("_EXE ");
-            cmakelists_txt.append(tool.value.executable);
-            cmakelists_txt.append(")");
-            cmakelists_txt.append("\n");
-
-            cmakelists_txt.append("if(");
-            cmakelists_txt.append(tool.key.to_uppercase());
-            cmakelists_txt.append("_EXE-NOTFOUND)\n");
-            cmakelists_txt.append("    warning_message(\"Did not find program ");
-            cmakelists_txt.append(tool.value.executable);
-            cmakelists_txt.append("\")");
-            cmakelists_txt.append("\n");
-            cmakelists_txt.append("endif()");
-            cmakelists_txt.append("\n\n");
-        }
-    }
-    cmakelists_txt.append("\n");
-
-    cmakelists_txt.append("# Workaround: Ninja doesn't support $ signs... \n");
-    cmakelists_txt.append("string(FIND ${CMAKE_MAKE_PROGRAM} \"ninja\" NINJA_USED)\n");
-    cmakelists_txt.append("if(NOT \"${NINJA_USED}\" STREQUAL \"-1\")\n");
-    cmakelists_txt.append("    set(BUILD_CMD \"make\")\n");
-    cmakelists_txt.append("else()\n");
-    cmakelists_txt.append("    set(BUILD_CMD \"$(MAKE)\")\n");
-    cmakelists_txt.append("endif()\n\n");
-
-    cmakelists_txt.append("include(ExternalProject)\n\n");
+    cmakelists_txt.append("include(tools.cmake)\n\n");
+    cmakelists_txt.append(make_command_workaround());
+    cmakelists_txt.append(includes());
 
     return cmakelists_txt;
+}
+
+const String CMakeGenerator::find_tools_not_in_toolchain(const HashMap<String, Tool>& tools) const
+{
+    StringBuilder find_tools_not_in_toolchain;
+    for (auto tool : tools) {
+        if (!PackageDB::the().find_package_that_provides(tool.key)) {
+            find_tools_not_in_toolchain.append("find_program(");
+            find_tools_not_in_toolchain.append(tool.key.to_uppercase());
+            find_tools_not_in_toolchain.append("_EXE ");
+            find_tools_not_in_toolchain.append(tool.value.executable);
+            find_tools_not_in_toolchain.append(")");
+            find_tools_not_in_toolchain.append("\n");
+
+            find_tools_not_in_toolchain.append("if(");
+            find_tools_not_in_toolchain.append(tool.key.to_uppercase());
+            find_tools_not_in_toolchain.append("_EXE-NOTFOUND)\n");
+            find_tools_not_in_toolchain.append("    warning_message(\"Did not find program ");
+            find_tools_not_in_toolchain.append(tool.value.executable);
+            find_tools_not_in_toolchain.append("\")");
+            find_tools_not_in_toolchain.append("\n");
+            find_tools_not_in_toolchain.append("endif()");
+            find_tools_not_in_toolchain.append("\n\n");
+        }
+    }
+    find_tools_not_in_toolchain.append("\n");
+    return find_tools_not_in_toolchain.build();
 }
 
 void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<String>& json_input_files)
@@ -1146,8 +1192,27 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
 
     auto root = SettingsProvider::the().get_string("root").value_or("");
 
+    // build/tools.cmake
+    String build_tools_cmake = find_tools_not_in_toolchain(toolchain.build_tools());
+
+    // write out
+    StringBuilder build_tools_cmake_filename;
+    build_tools_cmake_filename.append(gen_path);
+    build_tools_cmake_filename.append("/toolchain/build/tools.cmake");
+    fd = fopen(build_tools_cmake_filename.build().characters(), "w+");
+
+    if (!fd)
+        perror("fopen");
+
+    bytes = fwrite(build_tools_cmake.characters(), 1, build_tools_cmake.length(), fd);
+    if (bytes != build_tools_cmake.length())
+        perror("fwrite");
+
+    if (fclose(fd) < 0)
+        perror("fclose");
+
     // build/CMakeLists.txt
-    auto build_cmakelists_txt = gen_toolchain_cmakelists_txt(toolchain.build_tools());
+    auto build_cmakelists_txt = gen_toolchain_cmakelists_txt();
 
     Vector<Package> build_packages_to_build;
 
@@ -1189,8 +1254,27 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     if (fclose(fd) < 0)
         perror("fclose");
 
+    // build/tools.cmake
+    String host_tools_cmake = find_tools_not_in_toolchain(toolchain.host_tools());
+
+    // write out
+    StringBuilder host_tools_cmake_filename;
+    host_tools_cmake_filename.append(gen_path);
+    host_tools_cmake_filename.append("/toolchain/host/tools.cmake");
+    fd = fopen(host_tools_cmake_filename.build().characters(), "w+");
+
+    if (!fd)
+        perror("fopen");
+
+    bytes = fwrite(host_tools_cmake.characters(), 1, host_tools_cmake.length(), fd);
+    if (bytes != host_tools_cmake.length())
+        perror("fwrite");
+
+    if (fclose(fd) < 0)
+        perror("fclose");
+
     // host/CMakeLists.txt
-    auto host_cmakelists_txt = gen_toolchain_cmakelists_txt(toolchain.host_tools());
+    auto host_cmakelists_txt = gen_toolchain_cmakelists_txt();
     Vector<Package> host_packages_to_build;
 
     PackageDB::the().for_each_package([&](auto&, auto& package) {
@@ -1310,7 +1394,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append(")\n");
     cmakelists_txt.append("\n\n");
 
-    cmakelists_txt.append("include(ExternalProject)\n");
+    cmakelists_txt.append(includes());
     cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/sysroots)\n\n");
 
     // build toolchain
@@ -1350,6 +1434,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    CMAKE_ARGS\n");
     cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/toolchain/target/toolchain.cmake\n");
     cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroots/host\n");
+    cmakelists_txt.append("        -DCMAKE_TARGET_SYSROOT=${CMAKE_BINARY_DIR}/sysroots/target\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/Target\n");
     cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroots/target cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");

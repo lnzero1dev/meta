@@ -97,9 +97,9 @@ private:
 };
 
 struct PackageVersion {
-    int major;
-    int minor;
-    int bugfix;
+    int major = 0;
+    Optional<int> minor;
+    Optional<int> bugfix;
     String other;
 };
 
@@ -133,10 +133,14 @@ public:
         else {
             StringBuilder builder;
             builder.appendf("%i", m_version.major);
-            builder.append(".");
-            builder.appendf("%i", m_version.minor);
-            builder.append(".");
-            builder.appendf("%i", m_version.bugfix);
+            if (m_version.minor.has_value()) {
+                builder.append(".");
+                builder.appendf("%i", m_version.minor.value());
+            }
+            if (m_version.bugfix.has_value()) {
+                builder.append(".");
+                builder.appendf("%i", m_version.bugfix.value());
+            }
             return builder.build();
         }
     }

@@ -22,10 +22,14 @@ private:
 
     const String gen_cmake_toolchain_content(const HashMap<String, Tool>&, Optional<const HashMap<String, HashMap<String, ToolConfiguration>>>);
     String gen_toolchain_package(const Package&);
-    StringBuilder gen_toolchain_cmakelists_txt(const HashMap<String, Tool>&);
+    StringBuilder gen_toolchain_cmakelists_txt();
+    String gen_package_collection(const Package&);
 
     const String gen_header() const;
     const String cmake_minimum_version() const;
     const String project_root_dir() const;
     const String colorful_message() const;
+    const String make_command_workaround() const;
+    const String includes() const;
+    const String find_tools_not_in_toolchain(const HashMap<String, Tool>& tools) const;
 };
