@@ -27,4 +27,5 @@ private:
     const String gen_header() const;
     const String cmake_minimum_version() const;
     const String project_root_dir() const;
+    const String colorful_message() const;
 };

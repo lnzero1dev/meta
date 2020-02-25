@@ -46,6 +46,23 @@ const String CMakeGenerator::project_root_dir() const
     return s_project_root_dir;
 }
 
+const String CMakeGenerator::colorful_message() const
+{
+    static String s_colorful_messages;
+    if (s_colorful_messages.is_empty()) {
+        StringBuilder builder;
+        builder.append("string(ASCII 27 ESCAPE_CHAR)\n");
+        builder.append("macro(warning_message msg)\n");
+        builder.append("    message(STATUS \"${ESCAPE_CHAR}[1;92m${msg}${ESCAPE_CHAR}[0m\")\n");
+        builder.append("endmacro()\n\n");
+        builder.append("macro(info_message msg)\n");
+        builder.append("    message(STATUS \"${ESCAPE_CHAR}[1;32m${msg}${ESCAPE_CHAR}[0m\")\n");
+        builder.append("endmacro()\n\n");
+        s_colorful_messages = builder.build();
+    }
+    return s_colorful_messages;
+}
+
 bool create_dir(const String& path, const String& sub_dir = "")
 {
     String path2 = path;
@@ -108,6 +125,7 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
 
     cmakelists_txt.append(gen_header());
     cmakelists_txt.append(cmake_minimum_version());
+    cmakelists_txt.append(colorful_message());
 
     cmakelists_txt.append("project(");
     cmakelists_txt.append(image.name());
@@ -959,13 +977,9 @@ StringBuilder CMakeGenerator::gen_toolchain_cmakelists_txt(const HashMap<String,
     cmakelists_txt.append(gen_header());
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
+    cmakelists_txt.append(colorful_message());
 
     cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"/usr\" CACHE INTERNAL \"\" FORCE)\n\n");
-
-    cmakelists_txt.append("string(ASCII 27 ESCAPE_CHAR)\n");
-    cmakelists_txt.append("macro(warning_message msg)\n");
-    cmakelists_txt.append("    message(STATUS \"${ESCAPE_CHAR}[1;${92}m${msg}${ESCAPE_CHAR}[0m\")\n");
-    cmakelists_txt.append("endmacro()\n\n");
 
     for (auto tool : tools) {
         if (!PackageDB::the().find_package_that_provides(tool.key)) {
