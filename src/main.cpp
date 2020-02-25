@@ -311,7 +311,13 @@ int main(int argc, char** argv)
 
     Vector<String> files;
     String root = FileProvider::the().current_dir();
-    files = FileProvider::the().glob_all_meta_json_files(root);
+    FileProvider::the().for_each_parent_directory_including_current_dir([&](auto& directory) {
+        auto dir_files = FileProvider::the().glob("*.m.json", directory);
+        for (auto& file : dir_files) {
+            files.append(file);
+        }
+        return IterationDecision::Continue;
+    });
 
 #ifdef DEBUG_META
     fprintf(stderr, "Searching for meta json files in: %s\n", root.characters());

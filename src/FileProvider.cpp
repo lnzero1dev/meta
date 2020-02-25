@@ -36,12 +36,6 @@ Vector<String> FileProvider::glob_all_meta_json_files(String root_directory)
         skip_paths.append(opt_build_dir.value().as_string());
     }
 
-    skip_paths.append("/home/ema/checkout/serenity/Base");
-    skip_paths.append("/home/ema/checkout/serenity/Ports");
-    skip_paths.append("/home/ema/checkout/serenity/Root");
-    skip_paths.append("/home/ema/checkout/serenity/DevTools/meta/serenity/build");
-    skip_paths.append("/home/ema/checkout/serenity/Toolchain");
-
     return recursive_glob("**/*.m.json", root_directory, skip_paths);
 }
 
@@ -68,6 +62,21 @@ bool FileProvider::match(const GlobState& state, String path)
     } else {
         char buf[100];
         regerror(reti, &state.compiled_regex, buf, sizeof(buf));
+        fprintf(stderr, "Regex match failed: %s\n", buf);
+    }
+
+    return false;
+}
+
+bool FileProvider::match(const String& haystack, const regex_t& needle)
+{
+    int reti = regexec(&needle, haystack.characters(), 0, NULL, 0);
+    if (!reti) {
+        return true;
+    } else if (reti == REG_NOMATCH) {
+    } else {
+        char buf[100];
+        regerror(reti, &needle, buf, sizeof(buf));
         fprintf(stderr, "Regex match failed: %s\n", buf);
     }
 
@@ -158,7 +167,9 @@ Vector<String> FileProvider::recursive_glob(GlobState state, const StringView& c
 
             if (S_ISDIR(st.st_mode)) {
                 bool skip = false;
-
+#ifdef DEBUG_META
+                fprintf(stdout, "Dir: %s\n", new_path.characters());
+#endif
                 if (state.skip_paths.size()) {
                     for (auto& skip_path_it : state.skip_paths) {
                         if (new_path.starts_with(skip_path_it)) {
@@ -185,6 +196,41 @@ Vector<String> FileProvider::recursive_glob(GlobState state, const StringView& c
 
 #ifdef DEBUG_META
     fprintf(stdout, "recursive_glob found:\n");
+    for (auto& file : vec) {
+        fprintf(stdout, "file: %s\n", file.characters());
+    }
+#endif
+    return vec;
+}
+
+Vector<String> FileProvider::glob(const StringView& pattern, const String& base)
+{
+    Core::DirIterator di(base, Core::DirIterator::SkipDots);
+    regex_t compiled_regex = compile_regex(pattern);
+    Vector<String> vec;
+
+    if (di.has_error()) {
+        return vec;
+    }
+    while (di.has_next()) {
+        String entry = di.next_path();
+        struct stat st;
+        if (stat(entry.characters(), &st) == 0) {
+            if (!S_ISDIR(st.st_mode)) {
+                // Files, sockets and other iterated items that aren't directories
+                if (match(entry, compiled_regex)) {
+                    StringBuilder filepath;
+                    filepath.append(base);
+                    filepath.append("/");
+                    filepath.append(entry);
+                    vec.append(filepath.build());
+                }
+            }
+        }
+    }
+
+#ifdef DEBUG_META
+    fprintf(stdout, "glob found:\n");
     for (auto& file : vec) {
         fprintf(stdout, "file: %s\n", file.characters());
     }

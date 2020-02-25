@@ -28,12 +28,24 @@ public:
     {
         String dir = m_current_dir;
 
-        while (dir != "/") {
+        while (dir != "/" && !dir.is_empty()) {
             FileSystemPath dirname { dir };
             dir = dirname.dirname();
+            if (dir.is_empty())
+                dir = "/";
             if (callback(dir) == IterationDecision::Break)
                 break;
         }
+    }
+
+    template<typename Callback>
+    void for_each_parent_directory_including_current_dir(Callback callback)
+    {
+        String dir = m_current_dir;
+        if (callback(dir) == IterationDecision::Break)
+            return;
+
+        for_each_parent_directory(callback);
     }
 
     String current_dir() { return m_current_dir; }
@@ -42,6 +54,7 @@ public:
 
     Vector<String> recursive_glob(const StringView& pattern, const StringView& base);
     Vector<String> recursive_glob(const StringView& pattern, const StringView& base, Vector<String> skip_paths);
+    Vector<String> glob(const StringView& pattern, const String& base);
 
     bool update_if_relative(String& path, String base);
 
@@ -52,6 +65,7 @@ private:
     FileProvider(StringView current_dir);
 
     bool match(const GlobState& state, String path);
+    bool match(const String& haystack, const regex_t& needle);
 
     String m_current_dir;
 
