@@ -56,6 +56,7 @@
             ],
             "host_tools": {
                 "cxx": {
+                    "reset_toolchain_flags": true,
                     "flags": [
                         "-pie -fPIE -ffreestanding -fbuiltin -mno-80387 -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables",
                         "-nostdlib -nostdinc -nostdinc++ -DKERNEL -Os",

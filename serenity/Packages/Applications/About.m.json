@@ -1,0 +1,25 @@
+{
+    "package": {
+        "About": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/About/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/About"
+            ],
+            "dependency": [
+                "LibGUI"
+            ],
+            "host_tools": {
+                "cxx": {
+                    "execution_result_definitions": {
+                        "GIT_COMMIT": "git rev-parse --short HEAD",
+                        "GIT_BRANCH": "git rev-parse --abbrev-ref HEAD",
+                        "GIT_CHANGES": "bash -c \"git diff-index --quiet HEAD -- && echo tracked || echo untracked\""
+                    }
+                }
+            }
+        }
+    }
+}

@@ -353,11 +353,37 @@ bool CMakeGenerator::gen_package(const Package& package)
 
         if (package.host_tools().size()) {
             for (auto& tool : package.host_tools()) {
-                if (tool.value.flags.length()) {
-                    if (tool.key == "cxx") {
+                if (tool.key == "cxx") {
+                    if (tool.value.execution_result_definitions.size()) {
+                        for (auto& definition : tool.value.execution_result_definitions) {
+                            cmakelists_txt.append("execute_process(\n");
+                            cmakelists_txt.append("    COMMAND ");
+                            cmakelists_txt.append(definition.value);
+                            cmakelists_txt.append("\n");
+                            cmakelists_txt.append("    WORKING_DIRECTORY ${PROJECT_ROOT_DIR}\n");
+                            cmakelists_txt.append("    RESULT_VARIABLE GIT_RESULT\n");
+                            cmakelists_txt.append("    OUTPUT_VARIABLE GIT_OUTPUT\n");
+                            cmakelists_txt.append("    OUTPUT_STRIP_TRAILING_WHITESPACE\n");
+                            cmakelists_txt.append(")\n");
+                            cmakelists_txt.append("if(NOT \"${GIT_RESULT}\")\n");
+                            cmakelists_txt.appendf("    target_compile_definitions(%s PUBLIC -D", targetName.characters());
+                            cmakelists_txt.append(definition.key);
+                            cmakelists_txt.append("=\"${GIT_OUTPUT}\")\n");
+                            cmakelists_txt.appendf("    info_message(\"Adding complex flags definition to target \\\"%s\\\": ", targetName.characters());
+                            cmakelists_txt.append(definition.key);
+                            cmakelists_txt.append("=${GIT_OUTPUT}\")\n");
+                            cmakelists_txt.append("endif()\n");
+                        }
+                    }
+
+                    if (tool.value.reset_toolchain_flags) {
                         cmakelists_txt.append("foreach(type DEBUG RELEASE MINSIZEREL RELWITHDEBINFO)\n");
                         cmakelists_txt.append("    set(CMAKE_CXX_FLAGS_${type} \"\")\n");
                         cmakelists_txt.append("endforeach()\n\n");
+                    }
+
+                    if (tool.value.flags.length()) {
+
                         cmakelists_txt.append("foreach(file ${SOURCES})\n");
                         cmakelists_txt.append("    get_filename_component(extension ${file} EXT)\n");
                         cmakelists_txt.append("    string(SUBSTRING ${extension} 1 -1 extension)\n");
@@ -368,8 +394,9 @@ bool CMakeGenerator::gen_package(const Package& package)
                         cmakelists_txt.append("\")\n");
                         cmakelists_txt.append("    endif()\n");
                         cmakelists_txt.append("endforeach()\n\n");
-
-                    } else if (tool.key == "link") {
+                    }
+                } else if (tool.key == "link") {
+                    if (tool.value.flags.length()) {
                         cmakelists_txt.append("target_link_libraries(");
                         cmakelists_txt.append(targetName);
                         cmakelists_txt.append(" PUBLIC ");

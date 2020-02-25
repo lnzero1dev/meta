@@ -12,6 +12,8 @@ struct Tool {
     String flags;
     bool run_as_su = false;
     bool add_as_target = false;
+    bool reset_toolchain_flags = false;
+    HashMap<String, String> execution_result_definitions;
 };
 
 class Toolchain {

@@ -122,6 +122,22 @@ void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data, co
                 }
                 return;
             }
+            if (key == "reset_toolchain_flags") {
+                if (value.is_bool()) {
+                    tool.reset_toolchain_flags = value.as_bool();
+                }
+                return;
+            }
+            if (key == "execution_result_definitions") {
+                if (value.is_object()) {
+                    value.as_object().for_each_member([&](auto& key, auto& value) {
+                        if (value.is_string()) {
+                            tool.execution_result_definitions.set(key, value.as_string());
+                        }
+                    });
+                }
+                return;
+            }
         });
         map.set(tool_name, tool);
     });
