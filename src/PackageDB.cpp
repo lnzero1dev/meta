@@ -16,28 +16,32 @@ PackageDB& PackageDB::the()
     return *s_the;
 }
 
-bool PackageDB::add(String filename, String name, JsonObject json_obj)
+bool PackageDB::add(const String& filename, const String& name, const JsonObject& json_obj)
 {
-    if (m_packages.find(name) != m_packages.end())
+    Package p { filename, name, json_obj };
+    auto& packages = (p.machine() == MachineType::Build) ? m_packages_build : ((p.machine() == MachineType::Host) ? m_packages_host : m_packages_target);
+    if (packages.find(name) != packages.end())
         return false;
 
-    m_packages.set(name, { filename, name, json_obj });
+    packages.set(name, move(p));
     return true;
 }
 
-Package* PackageDB::get(StringView name)
+Package* PackageDB::get(MachineType machine, StringView name)
 {
-    auto it = m_packages.find(name);
-    if (it == m_packages.end())
-        return nullptr;
+    auto& packages = (machine == MachineType::Build) ? m_packages_build : ((machine == MachineType::Host) ? m_packages_host : m_packages_target);
 
-    return &(*it).value;
+    auto it = packages.find(name);
+    if (it != packages.end())
+        return &(*it).value;
+
+    return nullptr;
 }
 
-Package* PackageDB::find_package_that_provides(const String& executable)
+Package* PackageDB::find_host_package_that_provides(const String& executable)
 {
     Package* ret { nullptr };
-    for_each_package([&](auto& name, auto& package) {
+    for_each_host_package([&](auto& name, auto& package) {
         if (package.type() == PackageType::Executable && name == executable) {
             ret = &package;
             return IterationDecision::Break;

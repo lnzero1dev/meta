@@ -1,6 +1,6 @@
 {
     "package": {
-        "binutils_target": {
+        "binutils": {
             "version": "2.32",
             "type": "collection",
             "machine": "target",

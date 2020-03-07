@@ -109,7 +109,7 @@ Package::Package(String filename, String name, JsonObject json_obj)
     m_filename = filename;
     m_name = name;
 
-    m_machine = "target";
+    m_machine = MachineType::Target;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "type") {
@@ -151,7 +151,16 @@ Package::Package(String filename, String name, JsonObject json_obj)
             return;
         }
         if (key == "machine") {
-            m_machine = value.as_string();
+            auto machine = value.as_string();
+            if (machine == "target") {
+                // default case, already handled above
+            } else if (machine == "build") {
+                m_machine = MachineType::Build;
+            } else if (machine == "host") {
+                m_machine = MachineType::Host;
+            } else {
+                fprintf(stderr, "Unknown machine: %s\n", machine.characters());
+            }
             return;
         }
         if (key == "provides") {

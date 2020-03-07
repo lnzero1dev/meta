@@ -138,13 +138,13 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
         return;
     }
 
-    if (!create_dir(gen_path, "image"))
+    if (!create_dir(gen_path, "Image"))
         return;
 
     // write out
     StringBuilder pathBuilder;
     pathBuilder.append(gen_path);
-    pathBuilder.append("/image/");
+    pathBuilder.append("/Image/");
     pathBuilder.append(image.name());
     String path = pathBuilder.build();
 
@@ -161,7 +161,7 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     cmakelists_txt.append(image.name());
     cmakelists_txt.append(" C CXX ASM)\n\n");
 
-    cmakelists_txt.append("include(${CMAKE_CURRENT_LIST_DIR}/../../toolchain/host/tools.cmake)\n\n");
+    cmakelists_txt.append("include(${CMAKE_CURRENT_LIST_DIR}/../../Toolchain/Host/tools.cmake)\n\n");
 
     cmakelists_txt.append(make_command_workaround());
     cmakelists_txt.append(includes());
@@ -182,18 +182,17 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
 
     cmakelists_txt.append("include_directories(");
     cmakelists_txt.append(SettingsProvider::the().get_string("gendata_directory").value_or(""));
-    cmakelists_txt.append("/package)\n\n");
+    cmakelists_txt.append("/Package/Target)\n\n");
 
     for (auto& package : packages) {
         ASSERT(package);
         if (!gen_package(*package))
             fprintf(stderr, "Could not generate package: %s\n", package->name().characters());
 
-        cmakelists_txt.append("add_subdirectory(../../package/");
-        cmakelists_txt.append(package->name());
-        cmakelists_txt.append(" ");
-        cmakelists_txt.append(package->name());
-        cmakelists_txt.append(")\n");
+        cmakelists_txt.appendf("add_subdirectory(../../Package/%s/%s %s)\n",
+            package->machine_name().characters(),
+            package->name().characters(),
+            package->name().characters());
     }
 
     StringBuilder cmakelists_txt_filename;
@@ -424,16 +423,16 @@ bool CMakeGenerator::gen_package(const Package& package)
         return false;
     }
 
-    if (!create_dir(gen_path, "package"))
+    if (!create_dir(gen_path, "Package"))
+        return false;
+
+    StringBuilder gen_sub_path;
+    gen_sub_path.appendf("Package/%s", package.machine_name().characters());
+    if (!create_dir(gen_path, gen_sub_path.build()))
         return false;
 
     if (package.type() == PackageType::Script || package.type() == PackageType::Unknown) {
         fprintf(stderr, "Package %s not of type Deployment, Library or Executable.\n", package.name().characters());
-        return false;
-    }
-
-    if (package.machine() != "target" && package.machine() != "host" && package.machine() != "build") {
-        fprintf(stderr, "Package %s machine is not build, host or target. It is %s!\n", package.name().characters(), package.machine().characters());
         return false;
     }
 
@@ -469,8 +468,7 @@ bool CMakeGenerator::gen_package(const Package& package)
 
             StringBuilder gendata;
             gendata.append(SettingsProvider::the().get_string("gendata_directory").value_or(""));
-            gendata.append("/package/");
-            gendata.append(package.name());
+            gendata.appendf("/Package/%s/%s", package.machine_name().characters(), package.name().characters());
             incl = replace_variables(include, "gendata", "${CMAKE_CURRENT_LIST_DIR}"); //gendata.build()
 
             cmakelists_txt.append(replace_variables(incl, "root", "${PROJECT_ROOT_DIR}"));
@@ -842,8 +840,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     // write out
     StringBuilder pathBuilder;
     pathBuilder.append(gen_path);
-    pathBuilder.append("/package/");
-    pathBuilder.append(package.name());
+    pathBuilder.appendf("/Package/%s/%s", package.machine_name().characters(), package.name().characters());
     String path = pathBuilder.build();
 
     if (!create_dir(path))
@@ -974,7 +971,7 @@ String CMakeGenerator::gen_toolchain_package(const Package& package)
 #endif
 
     toolchain_package.append("# ");
-    toolchain_package.append(package.machine());
+    toolchain_package.append(package.machine_name());
     toolchain_package.append(" package: ");
     toolchain_package.append(package.name());
     toolchain_package.append("\n");
@@ -1002,9 +999,30 @@ String CMakeGenerator::gen_toolchain_package(const Package& package)
          *
          *     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "libc")
          */
-        toolchain_package.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../../package/");
+        toolchain_package.append("ExternalProject_Add(");
         toolchain_package.append(package.name());
         toolchain_package.append("\n");
+
+        StringBuilder depends_builder;
+        depends_builder.append("");
+
+        if (package.dependencies().size()) {
+            for (auto& dependency : package.dependencies()) {
+                if (dependency.value == LinkageType::Direct || dependency.value == LinkageType::HeaderOnly)
+                    continue;
+                depends_builder.append(dependency.key);
+                depends_builder.append(" ");
+            }
+        }
+        String depends_str = depends_builder.build();
+
+        if (!depends_str.is_empty()) {
+            toolchain_package.append("    DEPENDS ");
+            toolchain_package.append(depends_str);
+            toolchain_package.append("\n");
+        }
+
+        toolchain_package.appendf("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/../../Package/%s/%s\n", package.machine_name().characters(), package.name().characters());
         toolchain_package.append("    CMAKE_ARGS\n");
 
         bool toolchain_override = false;
@@ -1014,7 +1032,7 @@ String CMakeGenerator::gen_toolchain_package(const Package& package)
             if (options.has("use_toolchain")) {
                 if (options.get("use_toolchain").as_string() == "target") {
                     toolchain_package.append("      -DCMAKE_SYSROOT=${CMAKE_SYSROOT}\n");
-                    toolchain_package.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/../target/toolchain.cmake\n");
+                    toolchain_package.append("      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/../Target/toolchain.cmake\n");
                     toolchain_override = true;
                 }
             }
@@ -1066,7 +1084,7 @@ const String CMakeGenerator::find_tools_not_in_toolchain(const HashMap<String, T
 {
     StringBuilder find_tools_not_in_toolchain;
     for (auto tool : tools) {
-        if (!PackageDB::the().find_package_that_provides(tool.key)) {
+        if (!PackageDB::the().find_host_package_that_provides(tool.key)) {
             find_tools_not_in_toolchain.append("find_program(");
             find_tools_not_in_toolchain.append(tool.key.to_uppercase());
             find_tools_not_in_toolchain.append("_EXE ");
@@ -1092,11 +1110,11 @@ const String CMakeGenerator::find_tools_not_in_toolchain(const HashMap<String, T
 void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<String>& json_input_files)
 {
     /**
-     * This generates the toolchain file: build/toolchain.cmake
-     * This generates the toolchain file: host/toolchain.cmake
-     * This generates the toolchain file: target/toolchain.cmake
-     * This generates the toolchain file: build/CMakeLists.txt
-     * This generates the toolchain file: target/CMakeLists.txt
+     * This generates the toolchain file: Build/toolchain.cmake
+     * This generates the toolchain file: Host/toolchain.cmake
+     * This generates the toolchain file: Target/toolchain.cmake
+     * This generates the toolchain file: Build/CMakeLists.txt
+     * This generates the toolchain file: Target/CMakeLists.txt
      * This generates the tool reconfiguration input file: meta_json_files.depends
      */
 
@@ -1114,7 +1132,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
      * set(CMAKE_INSTALL_PREFIX "/usr")
      * add_definitions(-DSANITIZE_PTRS)
      * add_definitions(-DDEBUG)
-     * set(CMAKE_SYSROOT "build/toolchain/sysroot")
+     * set(CMAKE_SYSROOT "Build/Toolchain/Sysroot")
      */
 
     auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
@@ -1122,16 +1140,16 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
         return;
     }
 
-    if (!create_dir(gen_path, "toolchain"))
+    if (!create_dir(gen_path, "Toolchain"))
         return;
 
-    if (!create_dir(gen_path, "toolchain/target"))
+    if (!create_dir(gen_path, "Toolchain/Target"))
         return;
 
-    if (!create_dir(gen_path, "toolchain/host"))
+    if (!create_dir(gen_path, "Toolchain/Host"))
         return;
 
-    if (!create_dir(gen_path, "toolchain/build"))
+    if (!create_dir(gen_path, "Toolchain/Build"))
         return;
     //fprintf(stdout, "Gendata directory: %s\n", gen_path.value().characters());
 
@@ -1145,7 +1163,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     // target/toolchain.cmake
     StringBuilder target_toolchain_cmake_filename;
     target_toolchain_cmake_filename.append(gen_path);
-    target_toolchain_cmake_filename.append("/toolchain/target/toolchain.cmake");
+    target_toolchain_cmake_filename.append("/Toolchain/Target/toolchain.cmake");
     fd = fopen(target_toolchain_cmake_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1161,7 +1179,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     // host/toolchain.cmake
     StringBuilder host_toolchain_cmake_filename;
     host_toolchain_cmake_filename.append(gen_path);
-    host_toolchain_cmake_filename.append("/toolchain/host/toolchain.cmake");
+    host_toolchain_cmake_filename.append("/Toolchain/Host/toolchain.cmake");
     fd = fopen(host_toolchain_cmake_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1177,7 +1195,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     // build/toolchain.cmake
     StringBuilder build_toolchain_cmake_filename;
     build_toolchain_cmake_filename.append(gen_path);
-    build_toolchain_cmake_filename.append("/toolchain/build/toolchain.cmake");
+    build_toolchain_cmake_filename.append("/Toolchain/Build/toolchain.cmake");
     fd = fopen(build_toolchain_cmake_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1192,13 +1210,13 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
 
     auto root = SettingsProvider::the().get_string("root").value_or("");
 
-    // build/tools.cmake
+    // Build/tools.cmake
     String build_tools_cmake = find_tools_not_in_toolchain(toolchain.build_tools());
 
     // write out
     StringBuilder build_tools_cmake_filename;
     build_tools_cmake_filename.append(gen_path);
-    build_tools_cmake_filename.append("/toolchain/build/tools.cmake");
+    build_tools_cmake_filename.append("/Toolchain/Build/tools.cmake");
     fd = fopen(build_tools_cmake_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1211,13 +1229,13 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     if (fclose(fd) < 0)
         perror("fclose");
 
-    // build/CMakeLists.txt
+    // Build/CMakeLists.txt
     auto build_cmakelists_txt = gen_toolchain_cmakelists_txt();
 
     Vector<Package> build_packages_to_build;
 
-    PackageDB::the().for_each_package([&](auto&, auto& package) {
-        if (package.machine() == "build" && package.type() != PackageType::Script) {
+    PackageDB::the().for_each_build_package([&](auto&, auto& package) {
+        if (package.type() != PackageType::Script) {
             build_packages_to_build.append(package);
         }
         return IterationDecision::Continue;
@@ -1240,7 +1258,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     // write out
     StringBuilder build_cmakelists_txt_filename;
     build_cmakelists_txt_filename.append(gen_path);
-    build_cmakelists_txt_filename.append("/toolchain/build/CMakeLists.txt");
+    build_cmakelists_txt_filename.append("/Toolchain/Build/CMakeLists.txt");
     fd = fopen(build_cmakelists_txt_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1254,13 +1272,13 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     if (fclose(fd) < 0)
         perror("fclose");
 
-    // build/tools.cmake
+    // Build/tools.cmake
     String host_tools_cmake = find_tools_not_in_toolchain(toolchain.host_tools());
 
     // write out
     StringBuilder host_tools_cmake_filename;
     host_tools_cmake_filename.append(gen_path);
-    host_tools_cmake_filename.append("/toolchain/host/tools.cmake");
+    host_tools_cmake_filename.append("/Toolchain/Host/tools.cmake");
     fd = fopen(host_tools_cmake_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1277,8 +1295,8 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     auto host_cmakelists_txt = gen_toolchain_cmakelists_txt();
     Vector<Package> host_packages_to_build;
 
-    PackageDB::the().for_each_package([&](auto&, auto& package) {
-        if (package.machine() == "host" && package.type() != PackageType::Script) {
+    PackageDB::the().for_each_host_package([&](auto&, auto& package) {
+        if (package.type() != PackageType::Script) {
             host_packages_to_build.append(package);
         }
         return IterationDecision::Continue;
@@ -1291,16 +1309,15 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
             // go to leaves
             DependencyNode::start_by_leave(node, [&](auto& package) {
                 if (!host_processed_packages.contains_slow(package.name())) {
-                    if (package.machine() == "host") {
+                    if (package.machine() == MachineType::Host) {
                         //host_cmakelists_txt.append(gen_toolchain_package(package));
                         if (!gen_package(package))
                             fprintf(stderr, "Could not generate package: %s\n", package.name().characters());
 
-                        host_cmakelists_txt.append("add_subdirectory(../../package/");
-                        host_cmakelists_txt.append(package.name());
-                        host_cmakelists_txt.append(" ");
-                        host_cmakelists_txt.append(package.name());
-                        host_cmakelists_txt.append(")\n");
+                        host_cmakelists_txt.appendf("add_subdirectory(../../Package/%s/%s %s)\n",
+                            package.machine_name().characters(),
+                            package.name().characters(),
+                            package.name().characters());
 
                         host_processed_packages.append(package.name());
                     }
@@ -1312,7 +1329,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     // write out
     StringBuilder host_cmakelists_txt_filename;
     host_cmakelists_txt_filename.append(gen_path);
-    host_cmakelists_txt_filename.append("/toolchain/host/CMakeLists.txt");
+    host_cmakelists_txt_filename.append("/Toolchain/Host/CMakeLists.txt");
     fd = fopen(host_cmakelists_txt_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1336,7 +1353,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     // write out
     StringBuilder meta_json_files_depends_filename;
     meta_json_files_depends_filename.append(gen_path);
-    meta_json_files_depends_filename.append("/toolchain/meta_json_files.depend");
+    meta_json_files_depends_filename.append("/Toolchain/meta_json_files.depend");
     fd = fopen(meta_json_files_depends_filename.build().characters(), "w+");
 
     if (!fd)
@@ -1377,7 +1394,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append(FileProvider::the().current_dir());
     cmakelists_txt.append(")\n");
 
-    cmakelists_txt.append("file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
+    cmakelists_txt.append("file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
     cmakelists_txt.append("add_custom_command(\n");
     cmakelists_txt.append("    OUTPUT ${CMAKE_CURRENT_LIST_FILE}\n");
     cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
@@ -1385,7 +1402,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    WORKING_DIRECTORY ${WORKING_DIRECTORY}\n");
     cmakelists_txt.append("    COMMENT \"Execute META to re-generate CMake files.\"\n");
     cmakelists_txt.append(")\n");
-    cmakelists_txt.append("add_custom_target(auto-meta-generation ALL DEPENDS ${CMAKE_CURRENT_LIST_FILE})\n\n");
+    cmakelists_txt.append("add_custom_target(auto-meta-generation ALL DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend)\n\n");
 
     cmakelists_txt.append("add_custom_target(meta-generation\n");
     cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
@@ -1401,10 +1418,10 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("ExternalProject_Add(BuildToolchain\n");
     cmakelists_txt.append("    DEPENDS auto-meta-generation\n");
     cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/BuildToolchain\n");
-    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/toolchain/build\n");
+    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/Toolchain/Build\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
-    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/toolchain/build/toolchain.cmake\n");
-    cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroots/host\n");
+    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/Toolchain/Build/toolchain.cmake\n");
+    cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/Sysroots/Host\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/BuildToolchain\n");
     cmakelists_txt.append("    INSTALL_COMMAND \"\"\n");
     cmakelists_txt.append(")\n");
@@ -1416,11 +1433,11 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("ExternalProject_Add(HostToolchain\n");
     cmakelists_txt.append("    DEPENDS BuildToolchain auto-meta-generation\n");
     cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/HostToolchain\n");
-    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/toolchain/host\n");
+    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/Toolchain/Host\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
-    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/toolchain/host/toolchain.cmake\n");
+    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/Toolchain/Host/toolchain.cmake\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/HostToolchain\n");
-    cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroots/host cmake --build . --target install\n");
+    cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Host cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
     cmakelists_txt.append(")\n");
     cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES HostToolchain)\n");
@@ -1430,13 +1447,13 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("ExternalProject_Add(Target\n");
     cmakelists_txt.append("    DEPENDS HostToolchain auto-meta-generation\n");
     cmakelists_txt.append("    PREFIX ${CMAKE_BINARY_DIR}/Target\n");
-    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/image/default-image\n");
+    cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/Image/default-image\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
-    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/toolchain/target/toolchain.cmake\n");
-    cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/sysroots/host\n");
-    cmakelists_txt.append("        -DCMAKE_TARGET_SYSROOT=${CMAKE_BINARY_DIR}/sysroots/target\n");
+    cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/Toolchain/Target/toolchain.cmake\n");
+    cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/Sysroots/Host\n");
+    cmakelists_txt.append("        -DCMAKE_TARGET_SYSROOT=${CMAKE_BINARY_DIR}/Sysroots/Target\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/Target\n");
-    cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/sysroots/target cmake --build . --target install\n");
+    cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Target cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
     cmakelists_txt.append(")\n");
     cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES Target)\n");
@@ -1451,7 +1468,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
             if (tool.value.run_as_su)
                 cmakelists_txt.append(" sudo -E PATH=\"$PATH\"");
 
-            cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/sysroots/target/bin:$ENV{PATH}\" ");
+            cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/Sysroots/Target/bin:$ENV{PATH}\" ");
             auto filename = FileSystemPath(toolchain.filename());
             auto abs_executable = tool.value.executable;
             FileProvider::the().update_if_relative(abs_executable, filename.dirname());
@@ -1460,7 +1477,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
                 cmakelists_txt.append(" ");
                 auto flags = tool.value.flags;
                 flags = replace_variables(flags, "root", "${PROJECT_ROOT_DIR}");
-                flags = replace_variables(flags, "target_sysroot", "${CMAKE_BINARY_DIR}/sysroots/target/");
+                flags = replace_variables(flags, "target_sysroot", "${CMAKE_BINARY_DIR}/Sysroots/Target/");
                 cmakelists_txt.append(flags);
                 cmakelists_txt.append("\n");
             }

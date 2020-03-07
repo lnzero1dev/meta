@@ -1,6 +1,6 @@
 {
     "package": {
-        "LibM_build": {
+        "LibM": {
             "type": "library",
             "machine": "build",
             "toolchain": {
@@ -17,7 +17,7 @@
                 "${root}/Libraries/LibM"
             ],
             "dependency": [
-                "LibC_build",
+                "LibC",
                 "gcc"
             ],
             "deploy": [

@@ -26,6 +26,12 @@ enum class PackageType : uint8_t {
     Unknown = 0xFF
 };
 
+enum class MachineType : uint8_t {
+    Build = 0,
+    Host,
+    Target
+};
+
 namespace AK {
 template<>
 struct Traits<PackageType> : public GenericTraits<PackageType> {
@@ -146,7 +152,17 @@ public:
     }
 
     bool is_consistent() const { return m_consistent; }
-    const String& machine() const { return m_machine; }
+    MachineType machine() const { return m_machine; }
+    const String machine_name() const
+    {
+        if (m_machine == MachineType::Host)
+            return "Host";
+        if (m_machine == MachineType::Build)
+            return "Build";
+        if (m_machine == MachineType::Target)
+            return "Target";
+        return "Unknown";
+    }
 
     const HashMap<String, LinkageType>& dependencies() const { return m_dependencies; }
     const HashMap<PackageType, Vector<String>>& provides() const { return m_provides; }
@@ -197,5 +213,5 @@ private:
 
     HashMap<String, Generator> m_run_generators;
 
-    String m_machine;
+    MachineType m_machine;
 };

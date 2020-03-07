@@ -100,8 +100,8 @@ void load_meta_all(Vector<String> files)
                         if (!result) {
                             fprintf(stderr, "Could not add package to DB: Already existing\n");
                             fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
-                            auto package = PackageDB::the().get(key);
-                            fprintf(stderr, "- Existing: %s from file %s\n", key.characters(), package->filename().characters());
+                            //                            auto package = PackageDB::the().get(key);
+                            //                            fprintf(stderr, "- Existing: %s from file %s\n", key.characters(), package->filename().characters());
                         }
                     });
                 } else if (key == "settings") {
@@ -160,7 +160,6 @@ void statistics()
         return IterationDecision::Continue;
     });
 
-    auto& packages = PackageDB::the().packages();
     StringBuilder package_list;
     u32 number_of_source_files = 0;
     u32 number_of_include_directories = 0;
@@ -170,7 +169,9 @@ void statistics()
     u16 type_deployment = 0;
     u16 type_script = 0;
     u16 type_unknown = 0;
-    PackageDB::the().for_each_package([&](auto& name, auto& package) {
+    u32 packages_count = 0;
+
+    auto package_iterator = [&](auto& name, auto& package) {
         package_list.append(name);
         package_list.append(", ");
         number_of_source_files += package.sources().size();
@@ -195,9 +196,14 @@ void statistics()
             ++type_unknown;
             break;
         }
+        ++packages_count;
 
         return IterationDecision::Continue;
-    });
+    };
+
+    PackageDB::the().for_each_build_package(package_iterator);
+    PackageDB::the().for_each_host_package(package_iterator);
+    PackageDB::the().for_each_target_package(package_iterator);
 
     auto& images = ImageDB::the().images();
     StringBuilder image_list;
@@ -216,8 +222,8 @@ void statistics()
     fprintf(stdout, "Target tools: %i\n", number_of_target_tools);
     fprintf(stdout, "File extension tool mappings: %i\n", number_of_file_tool_mappings);
     fprintf(stdout, "----- ---------- -----\n");
-    fprintf(stdout, "Packages: %i\n", packages.size());
-    if (packages.size())
+    fprintf(stdout, "Packages: %i\n", packages_count);
+    if (packages_count)
         fprintf(stdout, "* %s\033[2D \n", package_list.build().characters());
     fprintf(stdout, "Packages with type Library: %i\n", type_library);
     fprintf(stdout, "Packages with type Executable: %i\n", type_executable);
@@ -402,7 +408,7 @@ int main(int argc, char** argv)
         });
 
         if (!isImage)
-            PackageDB::the().for_each_package([&](auto& name, auto&) {
+            PackageDB::the().for_each_target_package([&](auto& name, auto&) {
                 if (name == parameter) {
                     isPackage = true;
                     return IterationDecision::Break;
@@ -430,13 +436,12 @@ int main(int argc, char** argv)
 
         Vector<String> missing_dependencies;
 
-        PackageDB::the().for_each_package([&](auto&, auto& package) {
-            if (package.machine() == "target") {
-                auto node = DependencyResolver::the().get_dependency_tree(package);
-                auto& missing = DependencyResolver::the().missing_dependencies(node);
-                for (auto& dependency : missing)
-                    missing_dependencies.append(dependency);
-            }
+        PackageDB::the().for_each_target_package([&](auto&, auto& package) {
+            auto node = DependencyResolver::the().get_dependency_tree(package);
+            auto& missing = DependencyResolver::the().missing_dependencies(node);
+            for (auto& dependency : missing)
+                missing_dependencies.append(dependency);
+
             return IterationDecision::Continue;
         });
 
@@ -469,41 +474,39 @@ int main(int argc, char** argv)
                     auto image = ImageDB::the().get(parameter);
                     ASSERT(image);
                     if (image->install_all()) {
-                        PackageDB::the().for_each_package([&](auto&, auto& data) {
-                            if (data.machine() == "target") {
-                                if (cmakegen.gen_package(data)) {
-                                    auto node = DependencyResolver::the().get_dependency_tree(data);
+                        PackageDB::the().for_each_target_package([&](auto&, auto& data) {
+                            if (cmakegen.gen_package(data)) {
+                                auto node = DependencyResolver::the().get_dependency_tree(data);
 #ifdef DEBUG_META
-                                    fprintf(stderr, "Resolving dependency tree for package: %s\n", data.name().characters());
+                                fprintf(stderr, "Resolving dependency tree for package: %s\n", data.name().characters());
 #endif
-                                    // add all packages, beginning from leave
-                                    DependencyNode::start_by_leave(node, [&](auto& package) {
-                                        bool found = false;
-                                        for (auto& p : host_packages_in_order) {
-                                            if (p->name() == package.name()) {
-                                                found = true;
+                                // add all packages, beginning from leave
+                                DependencyNode::start_by_leave(node, [&](auto& package) {
+                                    bool found = false;
+                                    for (auto& p : host_packages_in_order) {
+                                        if (p->name() == package.name()) {
+                                            found = true;
 #ifdef DEBUG_META
-                                                fprintf(stderr, " -> Found dep: %s\n", package.name().characters());
+                                            fprintf(stderr, " -> Found dep: %s\n", package.name().characters());
 #endif
-                                                break;
-                                            }
+                                            break;
                                         }
+                                    }
 
-                                        if (!found) {
-                                            host_packages_in_order.append(&package);
+                                    if (!found) {
+                                        host_packages_in_order.append(&package);
 #ifdef DEBUG_META
-                                            fprintf(stderr, " --> Adding dep: %s\n", package.name().characters());
+                                        fprintf(stderr, " --> Adding dep: %s\n", package.name().characters());
 #endif
-                                        }
-                                    });
-                                }
+                                    }
+                                });
                             }
                             return IterationDecision::Continue;
                         });
                     } else {
                         for (auto& package_name : image->install()) {
                             Package* package;
-                            if (!(package = PackageDB::the().get(package_name))) {
+                            if (!(package = PackageDB::the().get(MachineType::Target, package_name))) {
                                 fprintf(stderr, "Image %s configured to install package %s. Package not found!", parameter.characters(), package_name.characters());
                                 return -1;
                             }
@@ -531,8 +534,8 @@ int main(int argc, char** argv)
                     cmakegen.gen_root(*toolchain, argc, argv);
 
                 } else if (isPackage) {
-                    Package* package;
-                    if (!(package = PackageDB::the().get(parameter))) {
+                    Package* package = nullptr;
+                    if (!(package = PackageDB::the().get(MachineType::Target, parameter))) {
                         fprintf(stderr, "Package %s not found!", parameter.characters());
                         return -1;
                     }
