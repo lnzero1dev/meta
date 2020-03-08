@@ -304,7 +304,8 @@ String CMakeGenerator::gen_package_collection(const Package& package)
                         package_collection.append(options.get("url_hash").as_string());
                         package_collection.append("\n");
                     }
-                    package_collection.append("    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/download");
+
+                    package_collection.append("    DOWNLOAD_DIR ${DOWNLOAD_DIRECTORY}");
                     package_collection.append("\n");
                 }
             } else if (step == "patch") {
@@ -442,6 +443,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
     cmakelists_txt.append(includes());
+    cmakelists_txt.append("set(DOWNLOAD_DIRECTORY ${CMAKE_BINARY_DIR}/Download CACHE INTERNAL \"\")\n");
 
     auto targetName = package.name(); //get_target_name(package.name());
 
@@ -1383,6 +1385,8 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
 
+    cmakelists_txt.append("SET(DOWNLOAD_DIRECTORY ${CMAKE_BINARY_DIR}/Download)\n");
+
     cmakelists_txt.append("SET(META_BINARY ");
     for (int i = 0; i < argc; ++i) {
         cmakelists_txt.append(argv[i]);
@@ -1422,6 +1426,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    CMAKE_ARGS\n");
     cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/Toolchain/Build/toolchain.cmake\n");
     cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/Sysroots/Host\n");
+    cmakelists_txt.append("        -DDOWNLOAD_DIRECTORY=${DOWNLOAD_DIRECTORY}\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/BuildToolchain\n");
     cmakelists_txt.append("    INSTALL_COMMAND \"\"\n");
     cmakelists_txt.append(")\n");
@@ -1436,6 +1441,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    SOURCE_DIR ${CMAKE_SOURCE_DIR}/Toolchain/Host\n");
     cmakelists_txt.append("    CMAKE_ARGS\n");
     cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/Toolchain/Host/toolchain.cmake\n");
+    cmakelists_txt.append("        -DDOWNLOAD_DIRECTORY=${DOWNLOAD_DIRECTORY}\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/HostToolchain\n");
     cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Host cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
@@ -1452,6 +1458,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_LIST_DIR}/Toolchain/Target/toolchain.cmake\n");
     cmakelists_txt.append("        -DCMAKE_SYSROOT=${CMAKE_BINARY_DIR}/Sysroots/Host\n");
     cmakelists_txt.append("        -DCMAKE_TARGET_SYSROOT=${CMAKE_BINARY_DIR}/Sysroots/Target\n");
+    cmakelists_txt.append("        -DDOWNLOAD_DIRECTORY=${DOWNLOAD_DIRECTORY}\n");
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/Target\n");
     cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Target cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
