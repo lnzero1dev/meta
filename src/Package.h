@@ -13,7 +13,7 @@ enum class LinkageType : uint8_t {
     Direct,
     HeaderOnly,
 
-    Unknown = 0xFF
+    Undefined = 0xFF
 };
 
 enum class PackageType : uint8_t {

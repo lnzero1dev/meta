@@ -168,7 +168,7 @@ void statistics()
     u16 type_collection = 0;
     u16 type_deployment = 0;
     u16 type_script = 0;
-    u16 type_unknown = 0;
+    u16 type_undefined = 0;
     u32 packages_count = 0;
 
     auto package_iterator = [&](auto& name, auto& package) {
@@ -192,8 +192,8 @@ void statistics()
         case PackageType::Script:
             ++type_script;
             break;
-        case PackageType::Unknown:
-            ++type_unknown;
+        case PackageType::Undefined:
+            ++type_undefined;
             break;
         }
         ++packages_count;
@@ -230,7 +230,7 @@ void statistics()
     fprintf(stdout, "Packages with type Collection: %i\n", type_collection);
     fprintf(stdout, "Packages with type Deployment: %i\n", type_deployment);
     fprintf(stdout, "Packages with type Script: %i\n", type_script);
-    fprintf(stdout, "Packages with unknown type: %i\n", type_unknown);
+    fprintf(stdout, "Packages with undefined type: %i\n", type_undefined);
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
     fprintf(stdout, "----- ---------- -----\n");

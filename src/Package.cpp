@@ -65,7 +65,7 @@ LinkageType string_to_linkage_type(String type)
     else if (type.matches("header_only"))
         return LinkageType::HeaderOnly;
     else
-        return LinkageType::Unknown;
+        return LinkageType::Undefined;
 }
 
 static bool is_glob(const String& s)
@@ -157,7 +157,7 @@ Package::Package(const String& filename, const String& name, MachineType machine
                         values.append(value.as_string());
                     });
 
-                    PackageType type = PackageType::Unknown;
+                    PackageType type = PackageType::Undefined;
                     if (key.matches("library"))
                         type = PackageType::Library;
                     else if (key.matches("executable"))
@@ -198,7 +198,7 @@ Package::Package(const String& filename, const String& name, MachineType machine
         }
         if (key == "dependency_linkage") {
             m_dependency_linkage = string_to_linkage_type(value.as_string());
-            if (m_dependency_linkage == LinkageType::Unknown)
+            if (m_dependency_linkage == LinkageType::Undefined)
                 m_consistent = false;
 
             return;

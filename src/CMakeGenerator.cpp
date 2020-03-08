@@ -432,7 +432,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     if (!create_dir(gen_path, gen_sub_path.build()))
         return false;
 
-    if (package.type() == PackageType::Script || package.type() == PackageType::Unknown) {
+    if (package.type() == PackageType::Script || package.type() == PackageType::Undefined) {
         fprintf(stderr, "Package %s not of type Deployment, Library or Executable.\n", package.name().characters());
         return false;
     }
