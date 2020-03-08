@@ -102,14 +102,13 @@ DeploymentPermission Package::parse_permission(const String& permission)
     return res;
 }
 
-Package::Package(String filename, String name, JsonObject json_obj)
+Package::Package(const String& filename, const String& name, MachineType machine, const JsonObject& json_obj)
 {
     FileSystemPath path { filename };
     m_directory = path.dirname();
     m_filename = filename;
     m_name = name;
-
-    m_machine = MachineType::Target;
+    m_machine = machine;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "type") {
@@ -147,19 +146,6 @@ Package::Package(String filename, String name, JsonObject json_obj)
                     m_version.other = value.as_string();
                     fprintf(stderr, "Version cannot be parsed correctly: %s\n", value.as_string().characters());
                 }
-            }
-            return;
-        }
-        if (key == "machine") {
-            auto machine = value.as_string();
-            if (machine == "target") {
-                // default case, already handled above
-            } else if (machine == "build") {
-                m_machine = MachineType::Build;
-            } else if (machine == "host") {
-                m_machine = MachineType::Host;
-            } else {
-                fprintf(stderr, "Unknown machine: %s\n", machine.characters());
             }
             return;
         }

@@ -10,8 +10,8 @@
                 "${root}/DevTools/FormCompiler"
             ],
             "dependency": {
-                "AK_host": "direct",
-                "LibCore_host": "direct"
+                "AK": "direct",
+                "LibCore": "direct"
             }
         }
     }

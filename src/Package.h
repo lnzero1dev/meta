@@ -23,13 +23,15 @@ enum class PackageType : uint8_t {
     Deployment,  // Just deployment for specific machine
     Script,      // Script
 
-    Unknown = 0xFF
+    Undefined = 0xFF
 };
 
 enum class MachineType : uint8_t {
     Build = 0,
     Host,
-    Target
+    Target,
+
+    Undefined = 0xFF
 };
 
 namespace AK {
@@ -122,7 +124,7 @@ struct Generator {
 class Package {
 
 public:
-    Package(String, String, JsonObject);
+    Package(const String&, const String&, MachineType machine, const JsonObject&);
     ~Package();
 
     const Vector<String>& toolchain_steps() const { return m_toolchain_steps; }
@@ -155,13 +157,17 @@ public:
     MachineType machine() const { return m_machine; }
     const String machine_name() const
     {
-        if (m_machine == MachineType::Host)
+        switch (m_machine) {
+        case MachineType::Host:
             return "Host";
-        if (m_machine == MachineType::Build)
+        case MachineType::Build:
             return "Build";
-        if (m_machine == MachineType::Target)
+        case MachineType::Target:
             return "Target";
-        return "Unknown";
+        case MachineType::Undefined:
+        default:
+            return "Unknown";
+        }
     }
 
     const HashMap<String, LinkageType>& dependencies() const { return m_dependencies; }

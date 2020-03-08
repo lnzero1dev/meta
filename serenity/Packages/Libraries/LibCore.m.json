@@ -2,15 +2,32 @@
     "package": {
         "LibCore": {
             "type": "library",
-            "source": [
-                "${root}/Libraries/LibCore/*.cpp",
-                "${root}/Libraries/LibCore/*.c"
-            ],
+            "machine": {
+                "host": {
+                    "source": [
+                        "${root}/Libraries/LibCore/IODevice.cpp",
+                        "${root}/Libraries/LibCore/File.cpp",
+                        "${root}/Libraries/LibCore/Object.cpp",
+                        "${root}/Libraries/LibCore/Event.cpp",
+                        "${root}/Libraries/LibCore/Socket.cpp",
+                        "${root}/Libraries/LibCore/LocalSocket.cpp",
+                        "${root}/Libraries/LibCore/Notifier.cpp",
+                        "${root}/Libraries/LibCore/LocalServer.cpp",
+                        "${root}/Libraries/LibCore/EventLoop.cpp"
+                    ]
+                },
+                "target": {
+                    "source": [
+                        "${root}/Libraries/LibCore/*.cpp",
+                        "${root}/Libraries/LibCore/*.c"
+                    ],
+                    "dependency": [
+                        "LibC"
+                    ]
+                }
+            },
             "include": [
                 "${root}/Libraries/LibCore"
-            ],
-            "dependency": [
-                "LibC"
             ],
             "deploy": [
                 {
@@ -24,24 +41,6 @@
                     "pattern": "*.h",
                     "dest": "${IncludeDir}/LibCore"
                 }
-            ]
-        },
-        "LibCore_host": {
-            "type": "library",
-            "machine": "host",
-            "source": [
-                "${root}/Libraries/LibCore/IODevice.cpp",
-                "${root}/Libraries/LibCore/File.cpp",
-                "${root}/Libraries/LibCore/Object.cpp",
-                "${root}/Libraries/LibCore/Event.cpp",
-                "${root}/Libraries/LibCore/Socket.cpp",
-                "${root}/Libraries/LibCore/LocalSocket.cpp",
-                "${root}/Libraries/LibCore/Notifier.cpp",
-                "${root}/Libraries/LibCore/LocalServer.cpp",
-                "${root}/Libraries/LibCore/EventLoop.cpp"
-            ],
-            "include": [
-                "${root}/Libraries/LibCore"
             ]
         }
     }

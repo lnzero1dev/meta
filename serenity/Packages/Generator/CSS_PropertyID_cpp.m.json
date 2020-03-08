@@ -10,8 +10,8 @@
                 "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_cpp/"
             ],
             "dependency": {
-                "AK_host": "direct",
-                "LibCore_host": "direct"
+                "AK": "direct",
+                "LibCore": "direct"
             }
         }
     }

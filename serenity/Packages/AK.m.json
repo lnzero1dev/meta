@@ -2,14 +2,33 @@
     "package": {
         "AK": {
             "type": "library",
-            "source": [
-                "${root}/AK/*.cpp"
-            ],
-            "include": [
-                "${root}/AK",
-                "${root}/Libraries/LibC",
-                "${root}"
-            ],
+            "machine": {
+                "host": {
+                    "source": [
+                        "${root}/AK/String.cpp",
+                        "${root}/AK/StringImpl.cpp",
+                        "${root}/AK/StringBuilder.cpp",
+                        "${root}/AK/StringView.cpp",
+                        "${root}/AK/JsonValue.cpp",
+                        "${root}/AK/JsonParser.cpp",
+                        "${root}/AK/LogStream.cpp"
+                    ],
+                    "include": [
+                        "${root}/AK",
+                        "${root}"
+                    ]
+                },
+                "target": {
+                    "source": [
+                        "${root}/AK/*.cpp"
+                    ],
+                    "include": [
+                        "${root}/AK",
+                        "${root}/Libraries/LibC",
+                        "${root}"
+                    ]
+                }
+            },
             "deploy": [
                 {
                     "type": "directory",
@@ -17,23 +36,6 @@
                     "dest": "${IncludeDir}",
                     "pattern": "*.h"
                 }
-            ]
-        },
-        "AK_host": {
-            "type": "library",
-            "machine": "host",
-            "source": [
-                "${root}/AK/String.cpp",
-                "${root}/AK/StringImpl.cpp",
-                "${root}/AK/StringBuilder.cpp",
-                "${root}/AK/StringView.cpp",
-                "${root}/AK/JsonValue.cpp",
-                "${root}/AK/JsonParser.cpp",
-                "${root}/AK/LogStream.cpp"
-            ],
-            "include": [
-                "${root}/AK",
-                "${root}"
             ]
         }
     }
