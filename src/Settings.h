@@ -28,7 +28,7 @@ private:
     Optional<SettingsParameter> m_build_directory;
     Optional<SettingsParameter> m_gendata_directory;
     Optional<SettingsParameter> m_build_generator;
-    Optional<SettingsParameter> m_build_generator_configuration;
+    Optional<SettingsParameter> m_build_configuration;
 
     bool update_paths(const String& filename);
 };

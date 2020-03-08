@@ -1,9 +1,11 @@
 {
     "settings": {
         "user": {
-            "build_generator_configuration": {
-                "build_configuration": "debug",
-                "parallel_build": "24"
+            "build_directory": "/build/serenity/current",
+            "gendata_directory": "/build/serenity/build-gen",
+            "build_configuration": {
+                "type": "debug",
+                "parallel_jobs": 24
             }
         }
     }

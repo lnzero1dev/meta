@@ -22,12 +22,12 @@ bool Settings::load(const String& filename, const JsonObject& settings_object)
                 return IterationDecision::Break;
             } else
                 m_toolchain = SettingsParameter { filename, value.as_string() };
-        } else if (key == "build_generator_configuration") {
-            if (m_build_generator_configuration.has_value()) {
+        } else if (key == "build_configuration") {
+            if (m_build_configuration.has_value()) {
                 failed = true;
                 return IterationDecision::Break;
             } else
-                m_build_generator_configuration = SettingsParameter { filename, value.as_object() };
+                m_build_configuration = SettingsParameter { filename, value.as_object() };
 
         } else if (key == "gendata_directory") {
             if (m_gendata_directory.has_value()) {
@@ -106,8 +106,8 @@ Optional<SettingsParameter> Settings::get(Badge<SettingsProvider>, const String 
         return m_toolchain;
     } else if (parameter == "build_generator") {
         return m_build_generator;
-    } else if (parameter == "build_generator_configuration") {
-        return m_build_generator_configuration;
+    } else if (parameter == "build_configuration") {
+        return m_build_configuration;
     } else if (parameter == "build_directory") {
         return m_build_directory;
     } else if (parameter == "gendata_directory") {

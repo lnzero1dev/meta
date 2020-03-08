@@ -45,6 +45,12 @@ public:
         return *m_value.as_buildgenerator;
     }
 
+    AK::JsonObject as_json_object() const
+    {
+        ASSERT(is_json_object());
+        return *m_value.as_object;
+    }
+
     String as_string_or(const String& alternative)
     {
         if (is_string())

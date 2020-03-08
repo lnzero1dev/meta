@@ -1479,7 +1479,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
             cmakelists_txt.append("\n");
             cmakelists_txt.append("    COMMAND");
             if (tool.value.run_as_su)
-                cmakelists_txt.append(" sudo -E PATH=\"\\$PATH\"");
+                cmakelists_txt.append(" sudo ");
 
             cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/Sysroots/Host/bin:$ENV{PATH}\" ");
             auto filename = FileSystemPath(toolchain.filename());

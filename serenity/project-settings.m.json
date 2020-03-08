@@ -6,9 +6,9 @@
             "build_directory": "build",
             "gendata_directory": "build-gen",
             "build_generator": "cmake",
-            "build_generator_configuration": {
-                "build_tool": "ninja",
-                "parallel_build": "4"
+            "build_configuration": {
+                "tool": "make",
+                "parallel_jobs": 4
             }
         }
     }

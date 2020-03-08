@@ -10,6 +10,8 @@
 #include <AK/Types.h>
 #include <LibCore/File.h>
 #include <stdio.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
 
 enum class PrimaryCommand : u8 {
     None = 0,
@@ -26,6 +28,22 @@ enum class ConfigSubCommand : u8 {
     Set,
     List
 };
+
+bool has_generated(const String&)
+{
+    // Fixme: This check is too simple. How can we check that a specific target (image or
+    //        package that is handed over via String parameter) has been generated already?
+    //        Maybe with some dotfiles?
+
+    String filename = SettingsProvider::the().get_string("gendata_directory").value_or("");
+
+    auto file = Core::File::construct();
+    file->set_filename(filename);
+    if (file->filename().is_empty() || !file->exists(filename)) {
+        return false;
+    }
+    return true;
+}
 
 Vector<String> s_loaded_settings_files;
 
@@ -240,6 +258,116 @@ void statistics()
     fprintf(stdout, "----------------------\n");
 }
 
+bool run_command(const String& cmd, bool supress_output)
+{
+    pid_t pid_status = fork();
+
+    int fd = open("/tmp/meta-status", O_RDWR | O_CREAT | O_TRUNC, 0666);
+    if (fd < 0) {
+        perror("failed to open /tmp/meta-status");
+        ASSERT_NOT_REACHED();
+    }
+    size_t size = sizeof(bool);
+    if (ftruncate(fd, size) < 0) {
+        fprintf(stderr, "ftruncate() failed!\n");
+    }
+
+    bool* ptr = (bool*)mmap(nullptr, size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
+    if (ptr == MAP_FAILED) {
+        fprintf(stderr, "mmap() failed!\n");
+    }
+
+    *ptr = false;
+
+    if (pid_status == 0) {
+        fprintf(stdout, "\033[?25l");
+        char chars[4] = { '-', '\\', '|', '/' };
+        while (!*ptr) {
+            for (int i = 0; i < 4; ++i) {
+                fprintf(stdout, "\033[3D%c ", chars[i]);
+                usleep(1000);
+            }
+        }
+        // Fixme: do this also in a signalhandler which catches abnormal termination, otherwise the cursor might be lost...
+        fprintf(stdout, "\033[?25h");
+        exit(1);
+    }
+
+    pid_t pid_command = fork();
+
+    if (pid_command == 0) {
+        if (supress_output) {
+            int fd = open("/dev/null", O_WRONLY);
+            dup2(fd, 1);
+            dup2(fd, 2);
+        }
+        int rc = execl("/bin/sh", "sh", "-c", cmd.characters(), nullptr);
+        if (rc < 0)
+            perror("execl");
+        exit(1);
+    }
+
+    int status;
+    waitpid(pid_command, &status, 0);
+    *ptr = true;
+
+    int rc = munmap(ptr, size);
+    ASSERT(rc == 0);
+    UNUSED_PARAM(rc);
+
+    return WEXITSTATUS(status);
+}
+
+bool run_build_command(Vector<String> extra_targets, bool supress_output = false)
+{
+    auto build_generator = SettingsProvider::the().get_string("build_generator").value_or("cmake");
+    auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
+    auto build_path = SettingsProvider::the().get_string("build_directory").value_or("");
+    auto build_configuration = SettingsProvider::the().get("build_configuration");
+    String build_type = "debug";
+    String build_tool = "make";
+    u32 parallel_jobs = 0;
+
+    if (build_configuration.has_value()) {
+        if (build_configuration.value().is_json_object()) {
+            auto obj = build_configuration.value().as_json_object();
+            if (obj.get("type").is_string()) {
+                build_type = obj.get("type").as_string();
+            }
+            if (obj.get("tool").is_string()) {
+                build_tool = obj.get("tool").as_string();
+            }
+            if (obj.get("parallel_jobs").is_u32()) {
+                parallel_jobs = obj.get("parallel_jobs").as_u32();
+            }
+        }
+    }
+
+    StringBuilder builder;
+    builder.appendf("cd %s", build_path.characters());
+
+    if (build_generator == "cmake") {
+        builder.append(" && ");
+        builder.appendf("cmake %s -DCMAKE_BUILD_TYPE=%s", gen_path.characters(), build_type.characters());
+    }
+    builder.appendf(" && %s", build_tool.characters());
+    if (parallel_jobs)
+        builder.appendf(" -j%i ", parallel_jobs);
+
+    for (auto& target : extra_targets) {
+        builder.appendf("%s ", target.characters());
+    }
+
+    auto cmd = builder.build();
+
+#ifdef DEBUG_META
+    fprintf(stdout, "Executing: %s\n", cmd.characters());
+    fflush(stdout);
+#endif
+
+    return run_command(cmd, supress_output);
+}
+
 int main(int argc, char** argv)
 {
     int minarg = 2;
@@ -421,19 +549,6 @@ int main(int argc, char** argv)
             return -1;
         }
 
-        // TODO: Do what the framework must do, before the generator is invoked:
-        // * calculate dependencies
-        // * -> check for missing executables / dependencies and exit if something cannot be found
-        // * calculate needed native tools
-        // optional for build [
-        // * create package build queue (in order... native tools, packages)
-        // * work on queue that contains all leaves, if all dependencies of a package are satisfied, enqueue package
-        //   _ run generator(s) depending on package sources (file extension tool mappings --> generators must be natively built before!)
-        //   _ build
-        //   _ on_finish() callback's
-        // ]
-        // * if image is being built, execute image tools (build)
-
         Vector<String> missing_dependencies;
 
         PackageDB::the().for_each_target_package([&](auto&, auto& package) {
@@ -556,10 +671,22 @@ int main(int argc, char** argv)
 
     if (cmd == PrimaryCommand::Build) {
         fprintf(stdout, "Build!\n");
+        String parameter { argv[2], strlen(argv[2]) };
+
+        if (has_generated(parameter))
+            run_build_command({}, true);
+        else
+            fprintf(stderr, "Build system not yet generated. Please generate first by invoking \"meta gen %s\" command.", parameter.characters());
     }
 
     if (cmd == PrimaryCommand::Run) {
         fprintf(stdout, "Run!\n");
+        String parameter { argv[2], strlen(argv[2]) };
+
+        if (has_generated(parameter))
+            run_build_command({ "build_image", "run" });
+        else
+            fprintf(stderr, "Build system not yet generated. Please generate first by invoking \"meta gen %s\" command.", parameter.characters());
     }
 
     if (cmd == PrimaryCommand::Statistics) {

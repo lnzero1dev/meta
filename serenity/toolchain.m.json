@@ -4,10 +4,10 @@
             "configuration": {
                 "Debug": {
                     "cxx": {
-                        "flags": "-Og -DDEBUG -DSANITIZE_PTRS"
+                        "flags": "-Os -DDEBUG -DSANITIZE_PTRS"
                     },
                     "cc": {
-                        "flags": "-Og -DDEBUG -DSANITIZE_PTRS"
+                        "flags": "-Os -DDEBUG -DSANITIZE_PTRS"
                     }
                 },
                 "Release": {
