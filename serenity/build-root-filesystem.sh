@@ -10,7 +10,7 @@ audio_gid=4
 script_path=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
 DISK_PATH=Target/disk
-SYSROOT=Target/sysroot/
+SYSROOT=Sysroots/Target
 SERENITY_ROOT=$1
 
 die() {

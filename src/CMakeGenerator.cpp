@@ -166,6 +166,8 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     cmakelists_txt.append(make_command_workaround());
     cmakelists_txt.append(includes());
 
+    cmakelists_txt.append("set(DOWNLOAD_DIRECTORY ${CMAKE_BINARY_DIR}/Download CACHE INTERNAL \"\")\n");
+
     cmakelists_txt.append("set(CMAKE_INSTALL_PREFIX \"");
     cmakelists_txt.append(image.install_prefix());
     cmakelists_txt.append("\" CACHE INTERNAL \"\" FORCE)");
@@ -443,7 +445,6 @@ bool CMakeGenerator::gen_package(const Package& package)
     cmakelists_txt.append(cmake_minimum_version());
     cmakelists_txt.append(project_root_dir());
     cmakelists_txt.append(includes());
-    cmakelists_txt.append("set(DOWNLOAD_DIRECTORY ${CMAKE_BINARY_DIR}/Download CACHE INTERNAL \"\")\n");
 
     auto targetName = package.name(); //get_target_name(package.name());
 
@@ -1473,9 +1474,9 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
             cmakelists_txt.append("\n");
             cmakelists_txt.append("    COMMAND");
             if (tool.value.run_as_su)
-                cmakelists_txt.append(" sudo -E PATH=\"$PATH\"");
+                cmakelists_txt.append(" sudo -E PATH=\"\\$PATH\"");
 
-            cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/Sysroots/Target/bin:$ENV{PATH}\" ");
+            cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/Sysroots/Host/bin:$ENV{PATH}\" ");
             auto filename = FileSystemPath(toolchain.filename());
             auto abs_executable = tool.value.executable;
             FileProvider::the().update_if_relative(abs_executable, filename.dirname());
@@ -1484,7 +1485,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
                 cmakelists_txt.append(" ");
                 auto flags = tool.value.flags;
                 flags = replace_variables(flags, "root", "${PROJECT_ROOT_DIR}");
-                flags = replace_variables(flags, "target_sysroot", "${CMAKE_BINARY_DIR}/Sysroots/Target/");
+                flags = replace_variables(flags, "target_sysroot", "${CMAKE_BINARY_DIR}/Sysroots/Target");
                 cmakelists_txt.append(flags);
                 cmakelists_txt.append("\n");
             }
