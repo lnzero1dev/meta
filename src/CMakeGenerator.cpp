@@ -757,7 +757,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append(generator.key);
         cmakelists_txt.append(" PATHS \"");
         cmakelists_txt.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-        cmakelists_txt.append("/Toolchain/sysroot");
+        cmakelists_txt.append("/Toolchain/Sysroots");
         cmakelists_txt.append("\")\n");
         cmakelists_txt.append("if(NOT ");
         cmakelists_txt.append(generator.key);
@@ -1416,7 +1416,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("\n\n");
 
     cmakelists_txt.append(includes());
-    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/sysroots)\n\n");
+    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/Sysroots)\n\n");
 
     // build toolchain
     cmakelists_txt.append("ExternalProject_Add(BuildToolchain\n");
