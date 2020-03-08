@@ -17,7 +17,7 @@ if [ "$(uname -s)" = "Darwin" ]; then
     export PATH="/usr/local/opt/e2fsprogs/sbin:$PATH"
 fi
 echo "setting up disk image..."
-qemu-img create _disk_image "${DISK_SIZE:-1000}"m || die "couldn't create disk image"
+qemu-img create _disk_image "${DISK_SIZE:-2000}"m || die "couldn't create disk image"
 chown "$SUDO_UID":"$SUDO_GID" _disk_image || die "couldn't adjust permissions on disk image"
 echo "done"
 

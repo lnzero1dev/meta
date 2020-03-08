@@ -7,6 +7,33 @@
 #include <string>
 #include <sys/stat.h>
 
+bool create_dir(const String& path, const String& sub_dir = "")
+{
+    String path2 = path;
+    if (!sub_dir.is_empty()) {
+        StringBuilder builder;
+        builder.append(path);
+        builder.append("/");
+        builder.append(sub_dir);
+        path2 = builder.build();
+    }
+
+    struct stat st;
+
+    if (stat(path2.characters(), &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            return true;
+        }
+    }
+
+    int rc = mkdir(path2.characters(), 0755);
+    if (rc < 0) {
+        fprintf(stderr, "Could not create directory %s\n", path2.characters());
+        return false;
+    }
+    return true;
+}
+
 CMakeGenerator::CMakeGenerator()
 {
 }
@@ -18,8 +45,13 @@ CMakeGenerator::~CMakeGenerator()
 CMakeGenerator& CMakeGenerator::the()
 {
     static CMakeGenerator* s_the;
-    if (!s_the)
+    if (!s_the) {
         s_the = &CMakeGenerator::construct().leak_ref();
+
+        auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
+        if (!gen_path.is_empty())
+            create_dir(gen_path);
+    }
     return *s_the;
 }
 
@@ -91,33 +123,6 @@ const String CMakeGenerator::includes() const
         s_includes = builder.build();
     }
     return s_includes;
-}
-
-bool create_dir(const String& path, const String& sub_dir = "")
-{
-    String path2 = path;
-    if (!sub_dir.is_empty()) {
-        StringBuilder builder;
-        builder.append(path);
-        builder.append("/");
-        builder.append(sub_dir);
-        path2 = builder.build();
-    }
-
-    struct stat st;
-
-    if (stat(path2.characters(), &st) == 0) {
-        if (S_ISDIR(st.st_mode)) {
-            return true;
-        }
-    }
-
-    int rc = mkdir(path2.characters(), 0755);
-    if (rc < 0) {
-        fprintf(stderr, "Could not create directory %s\n", path2.characters());
-        return false;
-    }
-    return true;
 }
 
 String get_target_name(const String& name)
