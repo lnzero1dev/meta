@@ -1092,7 +1092,7 @@ const String CMakeGenerator::find_tools_not_in_toolchain(const HashMap<String, T
 {
     StringBuilder find_tools_not_in_toolchain;
     for (auto tool : tools) {
-        if (!PackageDB::the().find_host_package_that_provides(tool.key)) {
+        if (!HostPackageDB::the().find_package_that_provides(tool.key)) {
             find_tools_not_in_toolchain.append("find_program(");
             find_tools_not_in_toolchain.append(tool.key.to_uppercase());
             find_tools_not_in_toolchain.append("_EXE ");
@@ -1242,7 +1242,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
 
     Vector<Package> build_packages_to_build;
 
-    PackageDB::the().for_each_build_package([&](auto&, auto& package) {
+    BuildPackageDB::the().for_each_entry([&](auto&, auto& package) {
         if (package.type() != PackageType::Script) {
             build_packages_to_build.append(package);
         }
@@ -1303,7 +1303,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     auto host_cmakelists_txt = gen_toolchain_cmakelists_txt();
     Vector<Package> host_packages_to_build;
 
-    PackageDB::the().for_each_host_package([&](auto&, auto& package) {
+    HostPackageDB::the().for_each_entry([&](auto&, auto& package) {
         if (package.type() != PackageType::Script) {
             host_packages_to_build.append(package);
         }

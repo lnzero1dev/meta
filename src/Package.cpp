@@ -102,13 +102,13 @@ DeploymentPermission Package::parse_permission(const String& permission)
     return res;
 }
 
-Package::Package(const String& filename, const String& name, MachineType machine, const JsonObject& json_obj)
+Package::Package(const String& name, const String& filename, MachineType machine, const JsonObject& json_obj)
+    : m_name(name)
+    , m_filename(filename)
+    , m_machine(machine)
 {
     FileSystemPath path { filename };
     m_directory = path.dirname();
-    m_filename = filename;
-    m_name = name;
-    m_machine = machine;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "type") {

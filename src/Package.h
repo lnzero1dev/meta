@@ -188,14 +188,16 @@ public:
     }
 
 private:
+    String m_name;
+    String m_filename;
+    MachineType m_machine;
+
     DeploymentPermission parse_permission(const String&);
 
     bool m_consistent = true;
 
-    String m_filename;
     String m_directory;
 
-    String m_name;
     PackageType m_type;
     PackageVersion m_version;
 
@@ -218,6 +220,4 @@ private:
     HashMap<String, Tool> m_host_tools;
 
     HashMap<String, Generator> m_run_generators;
-
-    MachineType m_machine;
 };

@@ -3,9 +3,11 @@
 #include "StringUtils.h"
 #include <AK/FileSystemPath.h>
 
-Toolchain::Toolchain(const String& filename, JsonObject json_obj)
+Toolchain::Toolchain(const String& name, const String& filename, JsonObject json_obj)
+    : m_name(name)
+    , m_filename(filename)
 {
-    m_filename = filename;
+
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "file_tool_mapping") {
             value.as_object().for_each_member([&](auto& key, auto& value) {

@@ -1,32 +1,15 @@
 #pragma once
 
+#include "DataBase.h"
 #include "Toolchain.h"
-#include <AK/JsonObject.h>
-#include <LibCore/Object.h>
 
-class ToolchainDB : public Core::Object {
-    C_OBJECT(ToolchainDB)
-
+class ToolchainDB : public DataBase<Toolchain> {
 public:
-    static ToolchainDB& the();
-    ~ToolchainDB();
-
-    bool add(String, String, JsonObject);
-    Toolchain* get(StringView);
-
-    template<typename Callback>
-    void for_each_toolchain(Callback callback)
+    static ToolchainDB& the()
     {
-        for (auto& toolchain : m_toolchains) {
-            if (callback(toolchain.key, toolchain.value) == IterationDecision::Break)
-                break;
-        }
-    };
-
-    const HashMap<String, Toolchain>& toolchains() { return m_toolchains; }
-
-private:
-    ToolchainDB();
-
-    HashMap<String, Toolchain> m_toolchains;
+        static ToolchainDB* s_the;
+        if (!s_the)
+            s_the = static_cast<ToolchainDB*>(&ToolchainDB::construct().leak_ref());
+        return *s_the;
+    }
 };

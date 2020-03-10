@@ -19,7 +19,7 @@ struct Tool {
 class Toolchain {
 
 public:
-    Toolchain(const String& filename, JsonObject json_obj);
+    Toolchain(const String&, const String&, JsonObject);
     ~Toolchain();
     bool add_file_tool_mapping(String file_extension, String tool);
     const String filename() const { return m_filename; }
@@ -34,6 +34,7 @@ public:
     static void insert_tool(HashMap<String, Tool>&, JsonObject, const String&);
 
 private:
+    String m_name;
     String m_filename;
     HashMap<String, String> m_file_tool_mapping;
     HashMap<String, HashMap<String, ToolConfiguration>> m_configuration;

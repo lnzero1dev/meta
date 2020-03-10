@@ -39,7 +39,7 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
     for (auto& dependency : dependencies) {
         bool found_package = false;
 
-        Package* dependent_package = PackageDB::the().get(package.machine(), dependency.key);
+        const Package* dependent_package = package_db_for_machine(package.machine()).get(dependency.key);
 
 #ifdef DEBUG_META
         fprintf(stderr, "Package %s has dependency: %s\n", package.name().characters(), dependency.key.characters());
@@ -52,7 +52,7 @@ NonnullOwnPtr<DependencyNode> DependencyResolver::get_dependency_tree(const Pack
 #endif
         } else {
             // search for package that provides this dependency in 'provides' attribute
-            PackageDB::the().for_each_package(package.machine(), [&](auto&, auto& package_provides) {
+            package_db_for_machine(package.machine()).for_each_entry([&](auto&, auto& package_provides) {
                 if (package_provides.provides().size()) {
                     for (auto& provides : package_provides.provides()) {
                         for (auto& provide_value : provides.value) {

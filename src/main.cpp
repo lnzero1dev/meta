@@ -107,14 +107,14 @@ void load_meta_all(Vector<String> files)
 #ifdef DEBUG_META
                         fprintf(stderr, "Found toolchain %s, adding to DB.\n", key.characters());
 #endif
-                        ToolchainDB::the().add(filename, key, value.as_object());
+                        ToolchainDB::the().add(key, filename, value.as_object());
                     });
                 } else if (key == "package") {
                     value.as_object().for_each_member([&](auto& key, auto& value) {
 #ifdef DEBUG_META
                         fprintf(stderr, "Found package %s, adding to DB.\n", key.characters());
 #endif
-                        bool result = PackageDB::the().add(filename, key, value.as_object());
+                        bool result = add_package(key, filename, value.as_object());
                         if (!result) {
                             fprintf(stderr, "Could not add package to DB: Already existing\n");
                             fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
@@ -141,7 +141,7 @@ void load_meta_all(Vector<String> files)
 #ifdef DEBUG_META
                         fprintf(stderr, "Found image %s, adding to DB.\n", key.characters());
 #endif
-                        bool result = ImageDB::the().add(filename, key, value.as_object());
+                        bool result = ImageDB::the().add(key, filename, value.as_object());
                         if (!result) {
                             fprintf(stderr, "Could not add image to DB: Already existing\n");
                             fprintf(stderr, "- Current Try: %s from file %s\n", key.characters(), filename.characters());
@@ -162,13 +162,13 @@ void load_meta_all(Vector<String> files)
 
 void statistics()
 {
-    auto& toolchains = ToolchainDB::the().toolchains();
+    auto& toolchains = ToolchainDB::the().entries();
     StringBuilder toolchain_list;
     u32 number_of_target_tools = 0;
     u32 number_of_host_tools = 0;
     u32 number_of_build_tools = 0;
     u32 number_of_file_tool_mappings = 0;
-    ToolchainDB::the().for_each_toolchain([&](auto& name, auto& toolchain) {
+    ToolchainDB::the().for_each_entry([&](auto& name, auto& toolchain) {
         toolchain_list.append(name);
         toolchain_list.append(", ");
         number_of_target_tools += toolchain.target_tools().size();
@@ -219,13 +219,13 @@ void statistics()
         return IterationDecision::Continue;
     };
 
-    PackageDB::the().for_each_build_package(package_iterator);
-    PackageDB::the().for_each_host_package(package_iterator);
-    PackageDB::the().for_each_target_package(package_iterator);
+    BuildPackageDB::the().for_each_entry(package_iterator);
+    HostPackageDB::the().for_each_entry(package_iterator);
+    TargetPackageDB::the().for_each_entry(package_iterator);
 
-    auto& images = ImageDB::the().images();
+    auto& images = ImageDB::the().entries();
     StringBuilder image_list;
-    ImageDB::the().for_each_image([&](auto& name, auto&) {
+    ImageDB::the().for_each_entry([&](auto& name, auto&) {
         image_list.append(name);
         image_list.append(", ");
         return IterationDecision::Continue;
@@ -507,7 +507,7 @@ int main(int argc, char** argv)
             if (configured_toolchain.has_value()) {
                 fprintf(stderr, "Wrong toolchain configured: %s!\n", configured_toolchain.value().characters());
                 StringBuilder toolchain_list;
-                ToolchainDB::the().for_each_toolchain([&](auto& name, auto&) {
+                ToolchainDB::the().for_each_entry([&](auto& name, auto&) {
                     toolchain_list.append(name);
                     toolchain_list.append(", ");
                     return IterationDecision::Continue;
@@ -527,7 +527,7 @@ int main(int argc, char** argv)
         String parameter { argv[2], strlen(argv[2]) };
 
         // check if given argument is an image or an package
-        ImageDB::the().for_each_image([&](auto& name, auto&) {
+        ImageDB::the().for_each_entry([&](auto& name, auto&) {
             if (name == parameter) {
                 isImage = true;
                 return IterationDecision::Break;
@@ -536,7 +536,7 @@ int main(int argc, char** argv)
         });
 
         if (!isImage)
-            PackageDB::the().for_each_target_package([&](auto& name, auto&) {
+            TargetPackageDB::the().for_each_entry([&](auto& name, auto&) {
                 if (name == parameter) {
                     isPackage = true;
                     return IterationDecision::Break;
@@ -551,7 +551,7 @@ int main(int argc, char** argv)
 
         Vector<String> missing_dependencies;
 
-        PackageDB::the().for_each_target_package([&](auto&, auto& package) {
+        TargetPackageDB::the().for_each_entry([&](auto&, auto& package) {
             auto node = DependencyResolver::the().get_dependency_tree(package);
             auto& missing = DependencyResolver::the().missing_dependencies(node);
             for (auto& dependency : missing)
@@ -589,7 +589,7 @@ int main(int argc, char** argv)
                     auto image = ImageDB::the().get(parameter);
                     ASSERT(image);
                     if (image->install_all()) {
-                        PackageDB::the().for_each_target_package([&](auto&, auto& data) {
+                        TargetPackageDB::the().for_each_entry([&](auto&, auto& data) {
                             if (cmakegen.gen_package(data)) {
                                 auto node = DependencyResolver::the().get_dependency_tree(data);
 #ifdef DEBUG_META
@@ -620,8 +620,8 @@ int main(int argc, char** argv)
                         });
                     } else {
                         for (auto& package_name : image->install()) {
-                            Package* package;
-                            if (!(package = PackageDB::the().get(MachineType::Target, package_name))) {
+                            const Package* package;
+                            if (!(package = TargetPackageDB::the().get(package_name))) {
                                 fprintf(stderr, "Image %s configured to install package %s. Package not found!", parameter.characters(), package_name.characters());
                                 return -1;
                             }
@@ -649,8 +649,8 @@ int main(int argc, char** argv)
                     cmakegen.gen_root(*toolchain, argc, argv);
 
                 } else if (isPackage) {
-                    Package* package = nullptr;
-                    if (!(package = PackageDB::the().get(MachineType::Target, parameter))) {
+                    const Package* package = nullptr;
+                    if (!(package = TargetPackageDB::the().get(parameter))) {
                         fprintf(stderr, "Package %s not found!", parameter.characters());
                         return -1;
                     }

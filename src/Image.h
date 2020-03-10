@@ -49,8 +49,8 @@ public:
     static InstallDir string_to_install_dir(String type);
 
 private:
-    String m_filename;
     String m_name;
+    String m_filename;
     Vector<String> m_install;
     bool m_install_all = false;
 

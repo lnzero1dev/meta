@@ -65,11 +65,11 @@ const String Image::install_dir_to_string(InstallDir installDir)
     return "Undefined";
 }
 
-Image::Image(const String& filename, const String& name, JsonObject json_obj)
+Image::Image(const String& name, const String& filename, JsonObject json_obj)
+    : m_name(name)
+    , m_filename(filename)
 {
     set_default_install_dirs();
-    m_filename = filename;
-    m_name = name;
 
     json_obj.for_each_member([&](auto& key, auto& value) {
         if (key == "install") {
