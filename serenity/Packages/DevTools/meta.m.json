@@ -1,0 +1,18 @@
+{
+    "package": {
+        "meta": {
+            "type": "executable",
+            "machine": "host",
+            "source": [
+                "${root}/DevTools/meta/src/*.cpp"
+            ],
+            "include": [
+                "${root}/DevTools/meta/src"
+            ],
+            "dependency": {
+                "AK": "direct",
+                "LibCore": "direct"
+            }
+        }
+    }
+}
