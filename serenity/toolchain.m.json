@@ -183,12 +183,7 @@
                     "executable": "i686-pc-serenity-ar",
                     "flags": ""
                 }
-            },
-
-            "build_machine_build_targets": [
-                "libstdc++-v3",
-                "qemu"
-            ]
+            }
         }
     }
 }
