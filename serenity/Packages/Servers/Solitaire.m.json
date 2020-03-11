@@ -1,0 +1,22 @@
+{
+    "package": {
+        "WebServer": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/WebServer/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/WebServer"
+            ],
+            "dependency": [
+                "LibCore"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "ws"
+                }
+            ]
+        }
+    }
+}

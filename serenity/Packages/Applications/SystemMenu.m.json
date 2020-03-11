@@ -1,0 +1,16 @@
+{
+    "package": {
+        "SystemMenu": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/SystemMenu/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/SystemMenu"
+            ],
+            "dependency": [
+                "LibGUI"
+            ]
+        }
+    }
+}

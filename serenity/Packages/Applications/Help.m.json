@@ -10,7 +10,7 @@
             ],
             "dependency": [
                 "LibGUI",
-                "LibHTML",
+                "LibWeb",
                 "LibMarkdown",
                 "LibProtocol"
             ]

@@ -16,11 +16,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/AudioServer/AudioClient.ipc",
-                        "output": "${gendata}/AudioClientEndpoint.h"
+                        "output": "${gendata}/AudioServer/AudioClientEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/AudioServer/AudioServer.ipc",
-                        "output": "${gendata}/AudioServerEndpoint.h"
+                        "output": "${gendata}/AudioServer/AudioServerEndpoint.h"
                     }
                 ]
             },

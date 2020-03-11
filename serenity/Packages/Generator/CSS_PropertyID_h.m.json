@@ -4,10 +4,10 @@
             "type": "executable",
             "machine": "host",
             "source": [
-                "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/*.cpp"
+                "${root}/Libraries/LibWeb/CodeGenerators/Generate_CSS_PropertyID_h/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibHTML/CodeGenerators/Generate_CSS_PropertyID_h/"
+                "${root}/Libraries/LibWeb/CodeGenerators/Generate_CSS_PropertyID_h/"
             ],
             "dependency": {
                 "AK": "direct",

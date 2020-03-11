@@ -1,0 +1,15 @@
+{
+    "package": {
+        "LibBareMetal": {
+            "type": "deployment",
+            "deploy": [
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibBareMetal/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibBareMetal"
+                }
+            ]
+        }
+    }
+}

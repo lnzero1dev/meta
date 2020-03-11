@@ -13,7 +13,8 @@
                         "${root}/Libraries/LibCore/LocalSocket.cpp",
                         "${root}/Libraries/LibCore/Notifier.cpp",
                         "${root}/Libraries/LibCore/LocalServer.cpp",
-                        "${root}/Libraries/LibCore/EventLoop.cpp"
+                        "${root}/Libraries/LibCore/EventLoop.cpp",
+                        "${root}/Libraries/LibCore/DirIterator.cpp"
                     ]
                 },
                 "target": {

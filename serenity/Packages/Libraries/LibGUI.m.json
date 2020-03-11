@@ -13,7 +13,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/WindowServer/WindowServer.ipc",
-                        "output": "${gendata}/WindowServerEndpoint.h"
+                        "output": "${gendata}/WindowServer/WindowServerEndpoint.h"
+                    },
+                    {
+                        "input": "${root}/Servers/NotificationServer/NotificationClient.ipc",
+                        "output": "${gendata}/NotificationServer/NotificationClientEndpoint.h"
                     }
                 ]
             },

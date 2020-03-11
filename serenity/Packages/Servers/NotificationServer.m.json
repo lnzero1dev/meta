@@ -21,7 +21,7 @@
                     },
                     {
                         "input": "${root}/Servers/NotificationServer/NotificationServer.ipc",
-                        "output": "${gendata}/NotificationServerEndpoint.h"
+                        "output": "${gendata}/NotificationServer/NotificationServerEndpoint.h"
                     }
                 ]
             },

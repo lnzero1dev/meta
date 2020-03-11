@@ -18,11 +18,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/WindowServer/WindowServer.ipc",
-                        "output": "${gendata}/WindowServerEndpoint.h"
+                        "output": "${gendata}/WindowServer/WindowServerEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/WindowServer/WindowClient.ipc",
-                        "output": "${gendata}/WindowClientEndpoint.h"
+                        "output": "${gendata}/WindowServer/WindowClientEndpoint.h"
                     }
                 ]
             },

@@ -23,6 +23,7 @@ OBJS = \
     ../../AK/String.o \
     ../../AK/StringImpl.o \
     ../../AK/StringBuilder.o \
+    ../../AK/StringUtils.o \
     ../../AK/StringView.o \
     ../../AK/JsonValue.o \
     ../../AK/JsonParser.o \

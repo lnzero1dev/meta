@@ -21,7 +21,7 @@
                     },
                     {
                         "input": "${root}/Servers/AudioServer/AudioServer.ipc",
-                        "output": "${gendata}/AudioServerEndpoint.h"
+                        "output": "${gendata}/AudioServer/AudioServerEndpoint.h"
                     }
                 ]
             },

@@ -1,12 +1,12 @@
 {
     "package": {
-        "GenerateStyleSheetSource": {
+        "GenerateStyleSheetSource.sh": {
             "type": "deployment",
             "machine": "host",
             "deploy": [
                 {
                     "type": "file",
-                    "source": "${root}/Libraries/LibHTML/Scripts/GenerateStyleSheetSource",
+                    "source": "${root}/Libraries/LibWeb/Scripts/GenerateStyleSheetSource.sh",
                     "dest": "${BinDir}",
                     "permission": "775"
                 }

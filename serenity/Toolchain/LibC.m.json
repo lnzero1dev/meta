@@ -15,6 +15,7 @@
                 "${root}/Libraries/LibC/**/*.S",
                 "${root}/Libraries/LibELF/*.cpp",
                 "${root}/AK/StringImpl.cpp",
+                "${root}/AK/StringUtils.cpp",
                 "${root}/AK/String.cpp",
                 "${root}/AK/StringView.cpp",
                 "${root}/AK/StringBuilder.cpp",

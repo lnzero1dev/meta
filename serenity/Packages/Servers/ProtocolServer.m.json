@@ -17,11 +17,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolServer.ipc",
-                        "output": "${gendata}/ProtocolServerEndpoint.h"
+                        "output": "${gendata}/ProtocolServer/ProtocolServerEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
-                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                        "output": "${gendata}/ProtocolServer/ProtocolClientEndpoint.h"
                     }
                 ]
             }

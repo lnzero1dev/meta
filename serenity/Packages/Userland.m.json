@@ -134,7 +134,7 @@
             ],
             "dependency": [
                 "AK",
-                "LibC"
+                "LibCore"
             ]
         },
         "cut": {
@@ -182,6 +182,16 @@
                 "${root}/Userland/dmesg.cpp"
             ],
             "dependency": [
+                "LibCore"
+            ]
+        },
+        "du": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/du.cpp"
+            ],
+            "dependency": [
+                "AK",
                 "LibCore"
             ]
         },
@@ -275,7 +285,7 @@
             ],
             "dependency": [
                 "LibGUI",
-                "LibHTML"
+                "LibWeb"
             ]
         },
         "id": {
@@ -304,6 +314,17 @@
             "dependency": [
                 "AK",
                 "LibCore"
+            ]
+        },
+        "js": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/js.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore",
+                "LibJS"
             ]
         },
         "keymap": {
@@ -349,6 +370,16 @@
             "type": "executable",
             "source": [
                 "${root}/Userland/ls.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore"
+            ]
+        },
+        "lsirq": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/lsirq.cpp"
             ],
             "dependency": [
                 "AK",

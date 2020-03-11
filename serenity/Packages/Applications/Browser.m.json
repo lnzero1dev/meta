@@ -11,21 +11,21 @@
             ],
             "dependency": [
                 "LibGUI",
-                "LibHTML",
+                "LibWeb",
                 "LibGfx",
                 "LibProtocol"
             ],
             "run_generators": {
                 "CSS_PropertyID_h": [
                     {
-                        "input": "${root}/Libraries/LibHTML/CSS/Properties.json",
+                        "input": "${root}/Libraries/LibWeb/CSS/Properties.json",
                         "output": "${gendata}/PropertyID.h"
                     }
                 ],
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
-                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                        "output": "${gendata}/ProtocolServer/ProtocolClientEndpoint.h"
                     }
                 ]
             }

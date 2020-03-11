@@ -11,7 +11,7 @@
             "dependency": [
                 "LibGUI",
                 "LibC",
-                "LibHTML",
+                "LibWeb",
                 "LibVT",
                 "LibProtocol",
                 "LibMarkdown",

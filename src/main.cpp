@@ -232,7 +232,7 @@ void statistics()
     });
 
     fprintf(stdout, "----- STATISTICS -----\n");
-    fprintf(stdout, "Toolchains: %i\n", toolchains.size());
+    fprintf(stdout, "Toolchains: %lu\n", toolchains.size());
     if (toolchains.size())
         fprintf(stdout, "* %s\033[2D \n", toolchain_list.build().characters());
     fprintf(stdout, "Build tools: %i\n", number_of_build_tools);
@@ -252,7 +252,7 @@ void statistics()
     fprintf(stdout, "Number of source files: %i\n", number_of_source_files);
     fprintf(stdout, "Number of include directories: %i\n", number_of_include_directories);
     fprintf(stdout, "----- ---------- -----\n");
-    fprintf(stdout, "Images: %i\n", images.size());
+    fprintf(stdout, "Images: %lu\n", images.size());
     if (images.size())
         fprintf(stdout, "* %s\033[2D \n", image_list.build().characters());
     fprintf(stdout, "----------------------\n");

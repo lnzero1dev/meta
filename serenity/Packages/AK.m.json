@@ -8,10 +8,12 @@
                         "${root}/AK/String.cpp",
                         "${root}/AK/StringImpl.cpp",
                         "${root}/AK/StringBuilder.cpp",
+                        "${root}/AK/StringUtils.cpp",
                         "${root}/AK/StringView.cpp",
                         "${root}/AK/JsonValue.cpp",
                         "${root}/AK/JsonParser.cpp",
-                        "${root}/AK/LogStream.cpp"
+                        "${root}/AK/LogStream.cpp",
+                        "${root}/AK/FileSystemPath.cpp"
                     ],
                     "include": [
                         "${root}/AK",

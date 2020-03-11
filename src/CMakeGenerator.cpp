@@ -747,6 +747,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append(generator.key);
         cmakelists_txt.append("\n");
 
+        StringBuilder dirs;
         cmakelists_txt.append("set(OUTPUT_FILES\n");
         for (auto& tuple : generator.value.input_output_tuples) {
             cmakelists_txt.append("    \"");
@@ -754,8 +755,14 @@ bool CMakeGenerator::gen_package(const Package& package)
             file_replaced = replace_variables(file_replaced, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
             cmakelists_txt.append(file_replaced);
             cmakelists_txt.append("\"\n");
+
+            AK::FileSystemPath path(tuple.output);
+            dirs.append(path.dirname());
+            dirs.append(" ");
         }
         cmakelists_txt.append(")\n");
+
+        cmakelists_txt.appendf("file(MAKE_DIRECTORY %s)\n", dirs.build().characters());
 
         cmakelists_txt.append("find_program(");
         cmakelists_txt.append(generator.key);
@@ -1406,7 +1413,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
 
     cmakelists_txt.append("file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
     cmakelists_txt.append("add_custom_command(\n");
-    cmakelists_txt.append("    OUTPUT ${CMAKE_CURRENT_LIST_FILE}\n");
+    cmakelists_txt.append("    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\n");
     cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
     cmakelists_txt.append("    DEPENDS ${META_JSON_FILES_DEPEND}\n");
     cmakelists_txt.append("    WORKING_DIRECTORY ${WORKING_DIRECTORY}\n");

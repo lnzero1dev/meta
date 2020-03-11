@@ -1,18 +1,18 @@
 {
     "package": {
-        "LibHTML": {
+        "LibWeb": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibHTML/CSS/*.cpp",
-                "${root}/Libraries/LibHTML/DOM/*.cpp",
-                "${root}/Libraries/LibHTML/Layout/*.cpp",
-                "${root}/Libraries/LibHTML/Parser/*.cpp",
-                "${root}/Libraries/LibHTML/*.cpp",
                 "${gendata}/DefaultStyleSheetSource.cpp",
-                "${gendata}/PropertyID.cpp"
+                "${root}/Libraries/LibWeb/CSS/*.cpp",
+                "${root}/Libraries/LibWeb/DOM/*.cpp",
+                "${root}/Libraries/LibWeb/Layout/*.cpp",
+                "${root}/Libraries/LibWeb/Parser/*.cpp",
+                "${root}/Libraries/LibWeb/*.cpp",
+                "${gendata}/CSS/PropertyID.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibHTML",
+                "${root}/Libraries/LibWeb",
                 "${gendata}"
             ],
             "dependency": [
@@ -24,41 +24,41 @@
             "run_generators": {
                 "CSS_PropertyID_h": [
                     {
-                        "input": "${root}/Libraries/LibHTML/CSS/Properties.json",
-                        "output": "${gendata}/PropertyID.h"
+                        "input": "${root}/Libraries/LibWeb/CSS/Properties.json",
+                        "output": "${gendata}/CSS/PropertyID.h"
                     }
                 ],
                 "CSS_PropertyID_cpp": [
                     {
-                        "input": "${root}/Libraries/LibHTML/CSS/Properties.json",
-                        "output": "${gendata}/PropertyID.cpp"
+                        "input": "${root}/Libraries/LibWeb/CSS/Properties.json",
+                        "output": "${gendata}/CSS/PropertyID.cpp"
                     }
                 ],
-                "GenerateStyleSheetSource": [
+                "GenerateStyleSheetSource.sh": [
                     {
                         "flags": "default_stylesheet_source",
-                        "input": "${root}/Libraries/LibHTML/CSS/Default.css",
+                        "input": "${root}/Libraries/LibWeb/CSS/Default.css",
                         "output": "${gendata}/DefaultStyleSheetSource.cpp"
                     }
                 ],
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
-                        "output": "${gendata}/ProtocolClientEndpoint.h"
+                        "output": "${gendata}/ProtocolServer/ProtocolClientEndpoint.h"
                     }
                 ]
             },
             "deploy": [
                 {
                     "type": "target",
-                    "name": "html",
+                    "name": "web",
                     "dest": "${LibDir}"
                 },
                 {
                     "type": "directory",
-                    "source": "${root}/Libraries/LibHTML/",
+                    "source": "${root}/Libraries/LibWeb/",
                     "pattern": "*.h",
-                    "dest": "${IncludeDir}/LibHTML"
+                    "dest": "${IncludeDir}/LibWeb"
                 }
             ]
         }

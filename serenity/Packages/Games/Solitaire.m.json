@@ -1,12 +1,12 @@
 {
     "package": {
-        "SystemDialog": {
+        "Solitaire": {
             "type": "executable",
             "source": [
-                "${root}/Applications/SystemDialog/*.cpp"
+                "${root}/Games/Solitaire/*.cpp"
             ],
             "include": [
-                "${root}/Applications/SystemDialog"
+                "${root}/Games/Solitaire"
             ],
             "dependency": [
                 "LibGUI"

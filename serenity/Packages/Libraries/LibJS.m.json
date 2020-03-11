@@ -1,14 +1,12 @@
 {
     "package": {
-        "LibBareMetal": {
+        "LibJS": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibBareMetal/Output/Console.cpp",
-                "${root}/Libraries/LibBareMetal/Output/kprintf.cpp",
-                "${root}/Libraries/LibBareMetal/StdLib.cpp"
+                "${root}/Libraries/LibJS/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibBareMetal"
+                "${root}/Libraries/LibJS"
             ],
             "dependency": [
                 "LibC"
@@ -16,14 +14,14 @@
             "deploy": [
                 {
                     "type": "target",
-                    "name": "baremetal",
+                    "name": "js",
                     "dest": "${LibDir}"
                 },
                 {
                     "type": "directory",
-                    "source": "${root}/Libraries/LibBareMetal/",
+                    "source": "${root}/Libraries/LibJS/",
                     "pattern": "*.h",
-                    "dest": "${IncludeDir}/LibBareMetal"
+                    "dest": "${IncludeDir}/LibJS"
                 }
             ]
         }

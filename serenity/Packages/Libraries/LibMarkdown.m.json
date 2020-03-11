@@ -8,6 +8,9 @@
             "include": [
                 "${root}/Libraries/LibMarkdown"
             ],
+            "dependency": [
+                "AK"
+            ],
             "deploy": [
                 {
                     "type": "target",

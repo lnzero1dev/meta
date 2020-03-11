@@ -6,6 +6,8 @@ wheel_gid=1
 tty_gid=2
 phys_gid=3
 audio_gid=4
+window_uid=13
+window_gid=13
 
 script_path=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
@@ -63,9 +65,9 @@ chmod 666 ${DISK_PATH}/dev/debuglog
 mknod ${DISK_PATH}/dev/keyboard c 85 1
 chmod 440 ${DISK_PATH}/dev/keyboard
 chown 0:$phys_gid ${DISK_PATH}/dev/keyboard
-mknod ${DISK_PATH}/dev/psaux c 10 1
-chmod 440 ${DISK_PATH}/dev/psaux
-chown 0:$phys_gid ${DISK_PATH}/dev/psaux
+mknod ${DISK_PATH}/dev/mouse c 10 1
+chmod 440 ${DISK_PATH}/dev/mouse
+chown 0:$phys_gid ${DISK_PATH}/dev/mouse
 mknod ${DISK_PATH}/dev/audio c 42 42
 chmod 220 ${DISK_PATH}/dev/audio
 chown 0:$audio_gid ${DISK_PATH}/dev/audio
@@ -96,11 +98,16 @@ cat $tmp >> ${DISK_PATH}/res/kernel.map
 rm -f $tmp
 
 chmod 400 ${DISK_PATH}/res/kernel.map
+
+chmod 660 ${DISK_PATH}/etc/WindowServer/WindowServer.ini
+chown $window_uid:$window_gid ${DISK_PATH}/etc/WindowServer/WindowServer.ini
+
 echo "done"
 
 printf "installing users... "
 mkdir -p ${DISK_PATH}/home/anon
 mkdir -p ${DISK_PATH}/home/nona
+
 chmod 700 ${DISK_PATH}/home/anon
 chmod 700 ${DISK_PATH}/home/nona
 chown -R 100:100 ${DISK_PATH}/home/anon
@@ -116,10 +123,13 @@ printf "installing userland... "
 # else
 #     find ../Userland/ -type f -executable -exec cp {} ${SYSROOT}/bin/ \;
 # fi
-
 chown 0:$wheel_gid ${DISK_PATH}/bin/su
+chown 0:$phys_gid ${DISK_PATH}/bin/shutdown
+chown 0:$phys_gid ${DISK_PATH}/bin/reboot
 chmod 4750 ${DISK_PATH}/bin/su
 chmod 4755 ${DISK_PATH}/bin/ping
+chmod 4750 ${DISK_PATH}/bin/reboot
+chmod 4750 ${DISK_PATH}/bin/shutdown
 echo "done"
 
 # Run local sync script, if it exists
