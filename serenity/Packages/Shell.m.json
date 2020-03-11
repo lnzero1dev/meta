@@ -12,6 +12,12 @@
                 "LibCore",
                 "LibC",
                 "LibM"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "sh"
+                }
             ]
         }
     }

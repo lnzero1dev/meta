@@ -11,6 +11,12 @@
             "dependency": [
                 "LibGUI",
                 "LibAudio"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "pi"
+                }
             ]
         }
     }

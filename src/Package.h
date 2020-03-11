@@ -85,6 +85,7 @@ public:
     void set_dest(const String&);
     void set_pattern(const String&);
     void set_source(const String&);
+    void set_symlink(const String&);
     void set_permission(const DeploymentPermission& permission);
 
     const String& name() const { return m_name; }
@@ -92,6 +93,7 @@ public:
     const String& rename() const { return m_rename; }
     const String& pattern() const { return m_pattern; }
     const String& dest() const { return m_dest; }
+    const String& symlink() const { return m_symlink; }
     const Optional<DeploymentPermission>& permission() const { return m_permission; }
 
 private:
@@ -101,6 +103,7 @@ private:
     String m_rename;
     String m_pattern;
     String m_dest;
+    String m_symlink;
     Optional<DeploymentPermission> m_permission;
 };
 

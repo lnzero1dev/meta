@@ -12,6 +12,12 @@
                 "LibGUI",
                 "LibWeb",
                 "LibProtocol"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "irc"
+                }
             ]
         }
     }

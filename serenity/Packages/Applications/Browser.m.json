@@ -28,7 +28,13 @@
                         "output": "${gendata}/ProtocolServer/ProtocolClientEndpoint.h"
                     }
                 ]
-            }
+            },
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "br"
+                }
+            ]
         }
     }
 }

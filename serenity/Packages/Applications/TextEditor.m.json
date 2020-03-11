@@ -11,6 +11,12 @@
             "dependency": [
                 "LibGUI",
                 "LibVT"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "te"
+                }
             ]
         }
     }

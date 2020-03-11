@@ -12,6 +12,12 @@
                 "LibGUI",
                 "LibProtocol",
                 "LibPCIDB"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "sm"
+                }
             ]
         }
     }

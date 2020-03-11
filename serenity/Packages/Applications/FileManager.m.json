@@ -10,6 +10,12 @@
             ],
             "dependency": [
                 "LibGUI"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "fm"
+                }
             ]
         }
     }

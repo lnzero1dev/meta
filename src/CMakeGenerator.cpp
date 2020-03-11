@@ -602,9 +602,11 @@ bool CMakeGenerator::gen_package(const Package& package)
         }
 
         String target_dest;
+        String target_symlink;
         for (auto& deployment : package.deploy()) {
             if (deployment.ptr()->type() == DeploymentType::Target) {
                 target_dest = deployment.ptr()->dest();
+                target_symlink = deployment.ptr()->symlink();
                 break;
             }
         }
@@ -613,12 +615,24 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append(targetName);
         cmakelists_txt.append("\n");
 
+        StringBuilder symlink_builder;
+
         if (package.type() == PackageType::Executable) {
             cmakelists_txt.append("   RUNTIME DESTINATION ");
             if (target_dest.is_empty())
                 target_dest = "${BinDir}";
             cmakelists_txt.append(replace_dest_vars(target_dest));
             cmakelists_txt.append("\n");
+
+            if (!target_symlink.is_empty()) {
+                symlink_builder.appendf("add_custom_command(OUTPUT %s", target_symlink.characters());
+                symlink_builder.appendf("    COMMAND sh -c \"ln -sf %s/%s ${CMAKE_CURRENT_BINARY_DIR}/%s\" VERBATIM)\n",
+                    replace_dest_vars(target_dest).characters(), targetName.characters(), target_symlink.characters());
+                symlink_builder.appendf("add_custom_target(%s_%s ALL DEPENDS %s)\n",
+                    targetName.characters(), "target_symlink", target_symlink.characters());
+                symlink_builder.appendf("install(FILES ${CMAKE_CURRENT_BINARY_DIR}/%s DESTINATION %s)\n\n",
+                    target_symlink.characters(), replace_dest_vars(target_dest).characters());
+            }
         }
         if (package.type() == PackageType::Library) {
             cmakelists_txt.append("   LIBRARY DESTINATION ");
@@ -632,6 +646,11 @@ bool CMakeGenerator::gen_package(const Package& package)
             cmakelists_txt.append("\n");
         }
         cmakelists_txt.append(")\n\n");
+
+        auto symlink = symlink_builder.build();
+        if (!symlink.is_empty()) {
+            cmakelists_txt.append(symlink);
+        }
     }
 
     if (package.type() == PackageType::Collection) {

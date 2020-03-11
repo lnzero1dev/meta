@@ -20,6 +20,12 @@
                 "LibThread",
                 "LibPthread",
                 "LibCore"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "symlink": "hs"
+                }
             ]
         }
     }

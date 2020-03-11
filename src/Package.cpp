@@ -49,6 +49,11 @@ void Deployment::set_source(const String& source)
     m_source = source;
 }
 
+void Deployment::set_symlink(const String& symlink)
+{
+    m_symlink = symlink;
+}
+
 void Deployment::set_permission(const DeploymentPermission& permission)
 {
     m_permission = permission;
@@ -304,6 +309,9 @@ Package::Package(const String& name, const String& filename, MachineType machine
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("permission"))
                             depl->set_permission(parse_permission(obj.get("permission").as_string()));
+                        if (obj.has("symlink")) {
+                            depl->set_symlink(obj.get("symlink").as_string());
+                        }
 
                         m_deploy.append(depl);
                     } else if (type == "file" || type == "program") {
