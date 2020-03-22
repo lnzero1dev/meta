@@ -1,0 +1,103 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "package_schema_simplified.json",
+    "type": "object",
+    "properties": {
+        "package": {
+            "$id": "#/properties/package",
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "$id": "#/properties/package/pattern_properties/package_match",
+                    "type": "object",
+                    "required": [
+                        "type"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "$id": "#/properties/package/pattern_properties/package_match/properties/type",
+                            "type": "string"
+                        },
+                        "source": {
+                            "$id": "#/properties/package/pattern_properties/package_match/properties/source",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "$id": "#/properties/package/pattern_properties/package_match/properties/source/items",
+                                "type": "string"
+                            }
+                        },
+                        "include": {
+                            "$id": "#/properties/package/pattern_properties/package_match/properties/include",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "$id": "#/properties/package/pattern_properties/package_match/properties/include/items",
+                                "type": "string"
+                            }
+                        },
+                        "dependency": {
+                            "$id": "#/properties/package/pattern_properties/package_match/properties/dependency",
+                            "type": "array",
+                            "items": {
+                                "$id": "#/properties/package/pattern_properties/package_match/properties/dependency/items",
+                                "type": "string"
+                            }
+                        },
+                        "run_generators": {
+                            "$id": "#/properties/package/pattern_properties/package_match/properties/run_generators",
+                            "type": "object",
+                            "patternProperties": {
+                                "^.*$": {
+                                    "$id": "#/properties/package/pattern_properties/package_match/properties/run_generators/pattern_properties/generator_match",
+                                    "type": "array",
+                                    "items": {
+                                        "$id": "#/properties/package/pattern_properties/package_match/properties/run_generators/pattern_properties/generator_match/items",
+                                        "type": "object",
+                                        "required": [
+                                            "input",
+                                            "output"
+                                        ],
+                                        "properties": {
+                                            "input": {
+                                                "$id": "#/properties/package/pattern_properties/package_match/properties/run_generators/pattern_properties/generator_match/items/properties/input",
+                                                "type": "string"
+                                            },
+                                            "output": {
+                                                "$id": "#/properties/package/pattern_properties/package_match/properties/run_generators/pattern_properties/generator_match/items/properties/output",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+                        },
+                        "deploy": {
+                            "$id": "#/properties/package/pattern_properties/package_match/properties/deploy",
+                            "type": "array",
+                            "items": {
+                                "$id": "#/properties/package/pattern_properties/package_match/properties/deploy/items",
+                                "type": "object",
+                                "required": [
+                                    "type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "$id": "#/properties/package/pattern_properties/package_match/properties/deploy/items/properties/type",
+                                        "type": "string"
+                                    },
+                                    "symlink": {
+                                        "$id": "#/properties/package/pattern_properties/package_match/properties/deploy/items/properties/symlink",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
