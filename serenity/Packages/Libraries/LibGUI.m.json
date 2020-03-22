@@ -16,6 +16,14 @@
                         "output": "${gendata}/WindowServer/WindowServerEndpoint.h"
                     },
                     {
+                        "input": "${root}/Servers/WindowServer/WindowClient.ipc",
+                        "output": "${gendata}/WindowServer/WindowClientEndpoint.h"
+                    },
+                    {
+                        "input": "${root}/Servers/NotificationServer/NotificationServer.ipc",
+                        "output": "${gendata}/NotificationServer/NotificationServerEndpoint.h"
+                    },
+                    {
                         "input": "${root}/Servers/NotificationServer/NotificationClient.ipc",
                         "output": "${gendata}/NotificationServer/NotificationClientEndpoint.h"
                     }

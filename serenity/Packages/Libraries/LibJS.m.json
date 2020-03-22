@@ -3,7 +3,7 @@
         "LibJS": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibJS/*.cpp"
+                "${root}/Libraries/LibJS/**/*.cpp"
             ],
             "include": [
                 "${root}/Libraries/LibJS"

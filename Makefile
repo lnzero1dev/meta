@@ -25,6 +25,7 @@ OBJS = \
     ../../AK/StringBuilder.o \
     ../../AK/StringUtils.o \
     ../../AK/StringView.o \
+    ../../AK/FlyString.o \
     ../../AK/JsonValue.o \
     ../../AK/JsonParser.o \
     ../../AK/LogStream.o \

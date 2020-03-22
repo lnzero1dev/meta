@@ -22,7 +22,7 @@
                     },
                     {
                         "input": "${root}/Servers/WindowServer/WindowClient.ipc",
-                        "output": "${gendata}/WindowServer/WindowClientEndpoint.h"
+                        "output": "${gendata}/WindowClientEndpoint.h"
                     }
                 ]
             },

@@ -5,6 +5,7 @@
             "machine": {
                 "host": {
                     "source": [
+                        "${root}/AK/FlyString.cpp",
                         "${root}/AK/String.cpp",
                         "${root}/AK/StringImpl.cpp",
                         "${root}/AK/StringBuilder.cpp",
