@@ -1,0 +1,26 @@
+{
+    "package": {
+        "LibJsonValidatorTests": {
+            "type": "executable",
+            "machine": [
+                "host"
+            ],
+            "host_tools": {
+                "cxx": {
+                    "flags": "-std=c++17 -Wall -Wextra -ggdb3 -O2 -fexceptions"
+                }
+            },
+            "source": [
+                "${root}/Libraries/LibJsonValidator/*.cpp",
+                "${root}/Libraries/LibJsonValidator/Tests/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibJsonValidator"
+            ],
+            "dependency": [
+                "LibCore",
+                "AK"
+            ]
+        }
+    }
+}

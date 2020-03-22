@@ -13,7 +13,8 @@
                 "LibGUI",
                 "LibWeb",
                 "LibGfx",
-                "LibProtocol"
+                "LibProtocol",
+                "LibJsonValidator"
             ],
             "run_generators": {
                 "CSS_PropertyID_h": [

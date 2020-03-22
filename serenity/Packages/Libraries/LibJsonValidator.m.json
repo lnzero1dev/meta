@@ -1,0 +1,34 @@
+{
+    "package": {
+        "LibJsonValidator": {
+            "type": "library",
+            "machine": [
+                "host",
+                "target"
+            ],
+            "source": [
+                "${root}/Libraries/LibJsonValidator/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibJsonValidator"
+            ],
+            "dependency": [
+                "LibCore",
+                "AK"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "jsonvalidator",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibJsonValidator/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibJsonValidator"
+                }
+            ]
+        }
+    }
+}

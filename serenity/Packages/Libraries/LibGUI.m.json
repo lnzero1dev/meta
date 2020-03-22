@@ -26,7 +26,8 @@
                 "LibCore",
                 "LibGfx",
                 "LibIPC",
-                "LibThread"
+                "LibThread",
+                "LibJS"
             ],
             "deploy": [
                 {

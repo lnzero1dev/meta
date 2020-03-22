@@ -8,6 +8,7 @@
                 "${root}/Libraries/LibWeb/DOM/*.cpp",
                 "${root}/Libraries/LibWeb/Layout/*.cpp",
                 "${root}/Libraries/LibWeb/Parser/*.cpp",
+                "${root}/Libraries/LibWeb/Bindings/*.cpp",
                 "${root}/Libraries/LibWeb/*.cpp",
                 "${gendata}/CSS/PropertyID.cpp"
             ],
@@ -19,7 +20,9 @@
                 "AK",
                 "LibGfx",
                 "LibM",
-                "LibProtocol"
+                "LibProtocol",
+                "LibJS",
+                "LibGUI"
             ],
             "run_generators": {
                 "CSS_PropertyID_h": [
