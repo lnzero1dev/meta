@@ -4,6 +4,7 @@
 #include "PackageDB.h"
 #include "SettingsProvider.h"
 #include "StringUtils.h"
+#include <AK/FileSystemPath.h>
 #include <string>
 #include <sys/stat.h>
 
@@ -455,6 +456,8 @@ bool CMakeGenerator::gen_package(const Package& package)
 
     if (package.type() == PackageType::Library || package.type() == PackageType::Executable) {
 
+        HashTable<String> directories_to_watch;
+
         // sources
         cmakelists_txt.append("set(SOURCES\n");
         for (auto& source : package.sources()) {
@@ -464,6 +467,9 @@ bool CMakeGenerator::gen_package(const Package& package)
             cmakelists_txt.append(source_replaced);
             cmakelists_txt.append("\"");
             cmakelists_txt.append("\n");
+
+            FileSystemPath path { source_replaced };
+            directories_to_watch.set(path.dirname());
         }
         cmakelists_txt.append(")\n");
 
@@ -472,19 +478,26 @@ bool CMakeGenerator::gen_package(const Package& package)
         for (auto& include : package.includes()) {
             cmakelists_txt.append("    \"");
             String incl = include;
-            incl = replace_variables(include, "host_sysroot", "${CMAKE_SYSROOT}");
 
-            StringBuilder gendata;
-            gendata.append(SettingsProvider::the().get_string("gendata_directory").value_or(""));
-            gendata.appendf("/Package/%s/%s", package.machine_name().characters(), package.name().characters());
-            incl = replace_variables(include, "gendata", "${CMAKE_CURRENT_LIST_DIR}"); //gendata.build()
+            incl = replace_variables(incl, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
+            incl = replace_variables(incl, "host_sysroot", "${CMAKE_SYSROOT}");
+            incl = replace_variables(incl, "root", "${PROJECT_ROOT_DIR}");
 
-            cmakelists_txt.append(replace_variables(incl, "root", "${PROJECT_ROOT_DIR}"));
+            cmakelists_txt.append(incl);
 
             cmakelists_txt.append("\"");
             cmakelists_txt.append("\n");
+
+            FileSystemPath path { incl };
+            directories_to_watch.set(path.dirname());
         }
         cmakelists_txt.append(")\n");
+
+        cmakelists_txt.append("set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS\n");
+        for (auto& dir : directories_to_watch) {
+            cmakelists_txt.appendf("    %s\n", dir.characters());
+        }
+        cmakelists_txt.append(")\n\n");
 
         // dependencies
         cmakelists_txt.append("set(STATIC_LINK_LIBRARIES\n");
@@ -1149,7 +1162,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
      * This generates the toolchain file: Target/toolchain.cmake
      * This generates the toolchain file: Build/CMakeLists.txt
      * This generates the toolchain file: Target/CMakeLists.txt
-     * This generates the tool reconfiguration input file: meta_json_files.depends
+     * This generates the tool reconfiguration input file: meta_json_files.depend
      */
 
     /**
@@ -1377,7 +1390,7 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     if (fclose(fd) < 0)
         perror("fclose");
 
-    // meta_json_files.depends
+    // meta_json_files.depend
     StringBuilder meta_json_files_depends;
     for (auto& file : json_input_files) {
         meta_json_files_depends.append(file);
@@ -1430,7 +1443,9 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append(FileProvider::the().current_dir());
     cmakelists_txt.append(")\n");
 
-    cmakelists_txt.append("file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
+    cmakelists_txt.append("if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend)\n");
+    cmakelists_txt.append("    file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
+    cmakelists_txt.append("endif()\n");
     cmakelists_txt.append("add_custom_command(\n");
     cmakelists_txt.append("    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\n");
     cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
@@ -1516,6 +1531,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
                 cmakelists_txt.append(" ");
                 auto flags = tool.value.flags;
                 flags = replace_variables(flags, "root", "${PROJECT_ROOT_DIR}");
+                flags = replace_variables(flags, "host_sysroot", "${CMAKE_BINARY_DIR}/Sysroots/Host");
                 flags = replace_variables(flags, "target_sysroot", "${CMAKE_BINARY_DIR}/Sysroots/Target");
                 cmakelists_txt.append(flags);
                 cmakelists_txt.append("\n");
