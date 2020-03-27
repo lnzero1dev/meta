@@ -589,19 +589,26 @@ bool CMakeGenerator::gen_package(const Package& package)
                         cmakelists_txt.append("endforeach()\n\n");
                     }
 
-                    if (tool.value.flags.length()) {
+                    cmakelists_txt.append("set(CMAKE_ASM_SOURCE_FILE_EXTENSIONS s;S;asm)\n");
+                    cmakelists_txt.append("foreach(file ${SOURCES})\n");
+                    cmakelists_txt.append("    get_filename_component(extension ${file} EXT)\n");
+                    cmakelists_txt.append("    string(SUBSTRING ${extension} 1 -1 extension)\n");
+                    cmakelists_txt.append("    list(FIND CMAKE_ASM_SOURCE_FILE_EXTENSIONS ${extension} index)\n");
+                    cmakelists_txt.append("    if(NOT \"${index}\" STREQUAL \"-1\")\n");
+                    cmakelists_txt.append("        enable_language(ASM)\n");
+                    cmakelists_txt.append("        set_property(SOURCE ${file} PROPERTY CMAKE_ASM_FLAGS \"-x assembler-with-cpp\")\n");
+                    cmakelists_txt.append("    endif()\n");
 
-                        cmakelists_txt.append("foreach(file ${SOURCES})\n");
-                        cmakelists_txt.append("    get_filename_component(extension ${file} EXT)\n");
-                        cmakelists_txt.append("    string(SUBSTRING ${extension} 1 -1 extension)\n");
+                    if (tool.value.flags.length()) {
                         cmakelists_txt.append("    list(FIND CMAKE_CXX_SOURCE_FILE_EXTENSIONS ${extension} index)\n");
                         cmakelists_txt.append("    if(NOT \"${index}\" STREQUAL \"-1\")\n");
                         cmakelists_txt.append("        set_property(SOURCE ${file} PROPERTY COMPILE_FLAGS \"");
                         cmakelists_txt.append(tool.value.flags);
                         cmakelists_txt.append("\")\n");
                         cmakelists_txt.append("    endif()\n");
-                        cmakelists_txt.append("endforeach()\n\n");
                     }
+
+                    cmakelists_txt.append("endforeach()\n\n");
                 } else if (tool.key == "link") {
                     if (tool.value.flags.length()) {
                         cmakelists_txt.append("target_link_libraries(");
