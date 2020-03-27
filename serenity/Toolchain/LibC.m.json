@@ -17,6 +17,7 @@
                 "${root}/AK/StringImpl.cpp",
                 "${root}/AK/StringUtils.cpp",
                 "${root}/AK/String.cpp",
+                "${root}/AK/FlyString.cpp",
                 "${root}/AK/StringView.cpp",
                 "${root}/AK/StringBuilder.cpp",
                 "${root}/AK/FileSystemPath.cpp",
