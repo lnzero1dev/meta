@@ -316,21 +316,6 @@
                 "LibCore"
             ]
         },
-        "jsonvalidator": {
-            "type": "executable",
-            "machine": [
-                "host",
-                "target"
-            ],
-            "source": [
-                "${root}/Userland/jsonvalidator.cpp"
-            ],
-            "dependency": [
-                "AK",
-                "LibCore",
-                "LibJsonValidator"
-            ]
-        },
         "js": {
             "type": "executable",
             "source": [
