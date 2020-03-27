@@ -23,7 +23,7 @@
                     },
                     "configure": {
                         "flags": [
-                            "--target=i686-pc-serenity",
+                            "--host=i686-pc-serenity",
                             "--with-sysroot=${sysroot}",
                             "--with-build-sysroot=${sysroot}",
                             "--prefix=${target_sysroot}",

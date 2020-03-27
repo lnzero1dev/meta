@@ -328,12 +328,18 @@ String CMakeGenerator::gen_package_collection(const Package& package)
                         }
                     }
                     if (patch_filenames.size()) {
-                        package_collection.append("    PATCH_COMMAND ${PATCH_EXE} -p1 --forward < ");
+                        package_collection.append("    PATCH_COMMAND \n");
                     }
-                    for (auto& patch_filename : patch_filenames) {
+                    for (size_t i = 0; i < patch_filenames.size(); ++i) {
+                        auto& patch_filename = patch_filenames[i];
                         patch_filename = replace_variables(patch_filename, "root", "${PROJECT_ROOT_DIR}");
+
+                        package_collection.append("        ${PATCH_EXE} -p1 --forward < ");
                         package_collection.append(patch_filename);
-                        package_collection.append(" ");
+                        if (i < patch_filenames.size() - 1) {
+                            package_collection.append(" && ");
+                        }
+                        package_collection.append("\n");
                     }
                     if (patch_filenames.size()) {
                         package_collection.append("|| true");
@@ -341,10 +347,19 @@ String CMakeGenerator::gen_package_collection(const Package& package)
                     package_collection.append("\n");
                 }
             } else if (step == "configure") {
-                package_collection.append("    CONFIGURE_COMMAND ${CMAKE_BINARY_DIR}/");
+                package_collection.append("    CONFIGURE_COMMAND\n");
+                // FIXME: do not hardcode gcc, g++ name
+                if (package.machine() == MachineType::Target)
+                    package_collection.append("      ${CMAKE_COMMAND} -E env \"CC=i686-pc-serenity-gcc;CXX=i686-pc-serenity-g++;PATH=${CMAKE_BINARY_DIR}/../Sysroots/Host/bin:$ENV{PATH}\"\n");
+                package_collection.append("        ${CMAKE_BINARY_DIR}/");
                 package_collection.append(package.name());
                 package_collection.append("/src/");
                 package_collection.append(package.name());
+
+                if (options.has("path") && options.get("path").is_string()) {
+                    package_collection.appendf("/%s", options.get("path").as_string().characters());
+                }
+
                 package_collection.append("/configure");
                 package_collection.append("\n");
 
@@ -368,12 +383,21 @@ String CMakeGenerator::gen_package_collection(const Package& package)
                     }
                 }
             } else if (step == "build") {
-                package_collection.append("    BUILD_COMMAND ${BUILD_CMD} ");
+                package_collection.append("    BUILD_COMMAND\n");
+                // FIXME: do not hardcode gcc, g++ name
+                if (package.machine() == MachineType::Target)
+                    package_collection.append("      ${CMAKE_COMMAND} -E env \"CC=i686-pc-serenity-gcc;CXX=i686-pc-serenity-g++;PATH=${CMAKE_BINARY_DIR}/../Sysroots/Host/bin:$ENV{PATH}\"\n");
+
+                package_collection.append(" ${BUILD_CMD} ");
                 if (options.has("targets"))
                     package_collection.append(options.get("targets").as_string());
                 package_collection.append("\n");
             } else if (step == "install") {
-                package_collection.append("    INSTALL_COMMAND ${BUILD_CMD} ");
+                package_collection.append("    INSTALL_COMMAND\n");
+                // FIXME: do not hardcode gcc, g++ name
+                if (package.machine() == MachineType::Target)
+                    package_collection.append("      ${CMAKE_COMMAND} -E env \"CC=i686-pc-serenity-gcc;CXX=i686-pc-serenity-g++;PATH=${CMAKE_BINARY_DIR}/../Sysroots/Host/bin:$ENV{PATH}\"\n");
+                package_collection.append(" ${BUILD_CMD} ");
                 if (options.has("targets"))
                     package_collection.append(options.get("targets").as_string());
                 package_collection.append("\n");
@@ -381,10 +405,15 @@ String CMakeGenerator::gen_package_collection(const Package& package)
         } else {
             if (step == "build") {
                 // build step without options.... ok
-                package_collection.append("    BUILD_COMMAND ${BUILD_CMD}");
-                package_collection.append("\n");
+                package_collection.append("    BUILD_COMMAND\n");
+                if (package.machine() == MachineType::Target)
+                    package_collection.append("      ${CMAKE_COMMAND} -E env \"CC=i686-pc-serenity-gcc;CXX=i686-pc-serenity-g++;PATH=${CMAKE_BINARY_DIR}/../Sysroots/Host/bin:$ENV{PATH}\"\n");
+                package_collection.append("        ${BUILD_CMD}\n");
             } else if (step == "install") {
-                package_collection.append("    INSTALL_COMMAND ${BUILD_CMD} install");
+                package_collection.append("    INSTALL_COMMAND\n");
+                if (package.machine() == MachineType::Target)
+                    package_collection.append("      ${CMAKE_COMMAND} -E env \"CC=i686-pc-serenity-gcc;CXX=i686-pc-serenity-g++;PATH=${CMAKE_BINARY_DIR}/../Sysroots/Host/bin:$ENV{PATH}\"\n");
+                package_collection.append("        ${BUILD_CMD} install\n");
                 package_collection.append("\n");
             } else
                 fprintf(stderr, "[%s] No options for step: %s\n", package.name().characters(), step.characters());
@@ -493,11 +522,11 @@ bool CMakeGenerator::gen_package(const Package& package)
         }
         cmakelists_txt.append(")\n");
 
-        cmakelists_txt.append("set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS\n");
-        for (auto& dir : directories_to_watch) {
-            cmakelists_txt.appendf("    %s\n", dir.characters());
-        }
-        cmakelists_txt.append(")\n\n");
+        //        cmakelists_txt.append("set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS\n");
+        //        for (auto& dir : directories_to_watch) {
+        //            cmakelists_txt.appendf("    %s\n", dir.characters());
+        //        }
+        //        cmakelists_txt.append(")\n\n");
 
         // dependencies
         cmakelists_txt.append("set(STATIC_LINK_LIBRARIES\n");
