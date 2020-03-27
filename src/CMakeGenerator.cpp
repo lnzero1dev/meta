@@ -1560,8 +1560,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
 
             cmakelists_txt.append(" ${CMAKE_COMMAND} -E env \"PATH=${CMAKE_BINARY_DIR}/Sysroots/Host/bin:$ENV{PATH}\" ");
             auto filename = FileSystemPath(toolchain.filename());
-            auto abs_executable = tool.value.executable;
-            FileProvider::the().update_if_relative(abs_executable, filename.dirname());
+            auto abs_executable = FileProvider::the().make_absolute_path(tool.value.executable, filename.dirname());
             cmakelists_txt.append(abs_executable);
             if (!tool.value.flags.is_empty()) {
                 cmakelists_txt.append(" ");

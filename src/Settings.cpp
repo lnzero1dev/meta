@@ -74,27 +74,23 @@ bool Settings::update_paths(const String& filename)
     // if relative path, append path of settings file
     FileSystemPath path { filename };
     String settings_file_dir = path.dirname();
-    bool ret = true;
 
     if (m_root.has_value()) {
         auto root = String { m_root.value().as_string() };
-        ret &= FileProvider::the().update_if_relative(root, settings_file_dir);
-        if (ret)
-            m_root.value() = { filename, root };
+        root = FileProvider::the().make_absolute_path(root, settings_file_dir);
+        m_root.value() = { filename, root };
     }
     if (m_build_directory.has_value()) {
         auto build_directory = String { m_build_directory.value().as_string() };
-        ret &= FileProvider::the().update_if_relative(build_directory, settings_file_dir);
-        if (ret)
-            m_build_directory.value() = { filename, build_directory };
+        build_directory = FileProvider::the().make_absolute_path(build_directory, settings_file_dir);
+        m_build_directory.value() = { filename, build_directory };
     }
     if (m_gendata_directory.has_value()) {
         auto gendata_directory = String { m_gendata_directory.value().as_string() };
-        ret &= FileProvider::the().update_if_relative(gendata_directory, settings_file_dir);
-        if (ret)
-            m_gendata_directory.value() = { filename, gendata_directory };
+        gendata_directory = FileProvider::the().make_absolute_path(gendata_directory, settings_file_dir);
+        m_gendata_directory.value() = { filename, gendata_directory };
     }
-    return ret;
+    return true;
 }
 
 Optional<SettingsParameter> Settings::get(Badge<SettingsProvider>, const String parameter)

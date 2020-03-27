@@ -1,6 +1,9 @@
 #pragma once
 
+#include "SettingsProvider.h"
+#include "StringUtils.h"
 #include <AK/FileSystemPath.h>
+#include <AK/Function.h>
 #include <AK/Optional.h>
 #include <LibCore/File.h>
 #include <LibCore/Object.h>
@@ -56,10 +59,14 @@ public:
     Vector<String> recursive_glob(const StringView& pattern, const StringView& base, Vector<String> skip_paths);
     Vector<String> glob(const StringView& pattern, const String& base);
 
-    bool update_if_relative(String& path, String base);
 
     bool check_host_library_available(const String&);
     bool check_host_command_available(const String&);
+
+    String replace_path_variables(
+        const String& path, Function<Optional<String>(const String&)>* callback = nullptr) const;
+    String make_absolute_path(const String& path, const String& base);
+    String full_path_update(const String& path, const String& base);
 
 private:
     FileProvider(StringView current_dir);

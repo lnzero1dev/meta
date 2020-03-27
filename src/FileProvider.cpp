@@ -117,6 +117,7 @@ static regex_t compile_regex(const StringView& pattern)
     regex_t regex;
     if (regcomp(&regex, regexp, REG_EXTENDED)) {
         perror("regcomp");
+        fprintf(stderr, "Regexp: %s\n", regexp);
     }
 
     return regex;
@@ -238,39 +239,68 @@ Vector<String> FileProvider::glob(const StringView& pattern, const String& base)
     return vec;
 }
 
-bool FileProvider::update_if_relative(String& path, String base)
+String FileProvider::make_absolute_path(const String& path, const String& base)
 {
-    if (!path.starts_with("/")) {
+    // make path absolute
+    if (path.starts_with("/"))
+        return path;
+    else {
         StringBuilder builder;
         builder.append(base);
         builder.append("/");
         builder.append(path);
-
-        String path2 = builder.build().characters();
+        auto abspath = builder.build();
 
         char buf[PATH_MAX];
-        char* res = realpath(path2.characters(), buf);
-        if (res) {
-            path = buf;
-            return true;
-        } else {
-            // path its not existing, create it!
-            // FIXME: This likely needs mkdir_p!
-            int rc = mkdir(path2.characters(), 0755);
-            if (rc < 0) {
-                perror("mkdir");
-                return false;
-            }
-            // after creating the path, we have to call realpath again to fully resolve the path
-            char* res = realpath(path2.characters(), buf);
-            if (res) {
-                path = buf;
-                return true;
-            }
-            return false;
-        }
+        char* res = realpath(abspath.characters(), buf);
+        if (res)
+            return buf;
+
+        return abspath;
     }
-    return true;
+}
+
+const HashMap<String, String>& default_path_variables()
+{
+    static HashMap<String, String> s_default_path_variables;
+    if (s_default_path_variables.is_empty()) {
+        s_default_path_variables.set("root", SettingsProvider::the().get_string("root").value_or(""));
+        s_default_path_variables.set("gendata", SettingsProvider::the().get_string("gendata_directory").value_or(""));
+    }
+    return s_default_path_variables;
+}
+
+String FileProvider::replace_path_variables(const String& path, Function<Optional<String>(const String&)>* callback) const
+{
+    if (potentially_contains_variable(path)) {
+        String result = path;
+
+        for (auto& it : default_path_variables()) {
+            if (callback) {
+                auto callback_value = (*callback)(it.key);
+                if (callback_value.has_value())
+                    result = replace_variables(result, it.key, callback_value.value());
+                else
+                    result = replace_variables(result, it.key, it.value);
+            } else {
+                auto a = result;
+                result = replace_variables(result, it.key, it.value);
+#ifdef DEBUG_META
+                fprintf(stderr, "Replacing: %s with %s in %s = %s\n", it.key.characters(), it.value.characters(), a.characters(), result.characters());
+#endif
+            }
+        }
+
+        return result;
+    } else
+        return path;
+}
+
+String FileProvider::full_path_update(const String& path, const String& base)
+{
+    String result = replace_path_variables(path);
+    result = make_absolute_path(result, base);
+    return result;
 }
 
 bool FileProvider::check_host_library_available(const String& library)
