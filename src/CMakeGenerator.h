@@ -26,6 +26,7 @@ private:
     String gen_package_collection(const Package&);
 
     String make_path_with_cmake_variables(const String& path);
+    bool gen_test_executable(const Package& package, const TestExecutable& test_executable);
 
     const String gen_header() const;
     const String cmake_minimum_version() const;

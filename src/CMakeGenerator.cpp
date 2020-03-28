@@ -410,6 +410,159 @@ String CMakeGenerator::make_path_with_cmake_variables(const String& path)
     return path_replaced;
 }
 
+bool CMakeGenerator::gen_test_executable(const Package& package, const TestExecutable& test_executable)
+{
+    auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
+
+    if (gen_path.is_empty()) {
+        fprintf(stderr, "Empty gen path, check configuration!\n");
+        return false;
+    }
+
+    if (!create_dir(gen_path, "Package"))
+        return false;
+
+    StringBuilder gen_sub_path;
+    gen_sub_path.appendf("Package/%s", package.machine_name().characters());
+    if (!create_dir(gen_path, gen_sub_path.build()))
+        return false;
+
+    StringBuilder test_path_builder;
+    test_path_builder.appendf("%s/Package/%s/%s/Tests", gen_path.characters(), package.machine_name().characters(), package.name().characters());
+    auto test_path = test_path_builder.build();
+
+    if (!create_dir(test_path))
+        return false;
+
+    if (!create_dir(test_path, test_executable.name()))
+        return false;
+
+    StringBuilder cmakelists_txt;
+
+    cmakelists_txt.append(gen_header());
+    cmakelists_txt.append(cmake_minimum_version());
+    cmakelists_txt.append(project_root_dir());
+    cmakelists_txt.append(includes());
+
+    HashTable<String> directories_to_watch;
+
+    // sources
+    cmakelists_txt.append("set(SOURCES\n");
+    for (auto& source : test_executable.source()) {
+        cmakelists_txt.append("    \"");
+        cmakelists_txt.append(make_path_with_cmake_variables(source));
+        cmakelists_txt.append("\"");
+        cmakelists_txt.append("\n");
+
+        FileSystemPath path { source };
+        directories_to_watch.set(make_path_with_cmake_variables(path.dirname()));
+    }
+    cmakelists_txt.append(")\n");
+
+    // includes
+    cmakelists_txt.append("set(INCLUDE_DIRS\n");
+    for (auto& include : test_executable.include()) {
+        cmakelists_txt.append("    \"");
+        cmakelists_txt.append(make_path_with_cmake_variables(include));
+
+        cmakelists_txt.append("\"");
+        cmakelists_txt.append("\n");
+
+        FileSystemPath path { include };
+        directories_to_watch.set(make_path_with_cmake_variables(path.dirname()));
+    }
+    cmakelists_txt.append(")\n");
+
+    cmakelists_txt.append("set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS\n    ");
+    cmakelists_txt.join("\n    ", directories_to_watch);
+    cmakelists_txt.append(")\n\n");
+
+    // dependencies
+    cmakelists_txt.append("set(STATIC_LINK_LIBRARIES\n");
+    for (auto& dependency : test_executable.dependency()) {
+        if (package.get_dependency_linkage(dependency.value) == LinkageType::Static) {
+            cmakelists_txt.append("    \"");
+            cmakelists_txt.append(dependency.key);
+            cmakelists_txt.append("\"");
+            cmakelists_txt.append("\n");
+        }
+    }
+    cmakelists_txt.append(")\n");
+
+    for (auto& dependency : test_executable.dependency()) {
+        if (package.get_dependency_linkage(dependency.value) == LinkageType::Direct) {
+            cmakelists_txt.append("include(../../../");
+            cmakelists_txt.append(dependency.key);
+            cmakelists_txt.append("/direct_linkage.include)\n");
+        }
+    }
+    cmakelists_txt.append("\n");
+
+    if (test_executable.exclude_from_package_source().size()) {
+        cmakelists_txt.append("foreach(s ${SOURCES})\n");
+        for (auto& exclude_file : test_executable.exclude_from_package_source()) {
+            cmakelists_txt.appendf("    if(\"${s}\" STREQUAL \"%s\")\n", make_path_with_cmake_variables(exclude_file).characters());
+            cmakelists_txt.append("        list(REMOVE_ITEM SOURCES \"${s}\")\n");
+            cmakelists_txt.append("    endif()\n");
+        }
+        cmakelists_txt.append("endforeach()\n");
+    }
+
+    cmakelists_txt.appendf("set(CMAKE_CXX_FLAGS ${CMAKE_CXX_TEST_FLAGS})\n");
+    cmakelists_txt.appendf("set(CMAKE_C_FLAGS ${CMAKE_C_TEST_FLAGS})\n");
+
+    // target
+    StringBuilder target_builder;
+    target_builder.appendf("%s_%s", package.name().characters(), test_executable.name().characters());
+    auto target = target_builder.build();
+    cmakelists_txt.appendf("add_executable(%s ${SOURCES})\n", target.characters());
+    cmakelists_txt.appendf("target_include_directories(%s PUBLIC ${INCLUDE_DIRS})\n", target.characters());
+    cmakelists_txt.appendf("target_link_libraries(%s PUBLIC ${STATIC_LINK_LIBRARIES})\n", target.characters());
+    cmakelists_txt.append("\n");
+
+    cmakelists_txt.appendf("add_test(NAME %s COMMAND %s)\n", target.characters(), target.characters());
+    cmakelists_txt.append("\n");
+
+    // symlink res folder into build folder, if existent
+    for (auto& dir : directories_to_watch) {
+        cmakelists_txt.appendf("if(EXISTS %s/resource)\n", dir.characters());
+        cmakelists_txt.appendf("    execute_process(COMMAND ln -sf %s/resource ${CMAKE_CURRENT_BINARY_DIR})\n", dir.characters());
+        cmakelists_txt.append("endif()\n\n");
+    }
+
+    // write out
+    StringBuilder pathBuilder;
+    pathBuilder.appendf("%s/%s", test_path.characters(), test_executable.name().characters());
+    String path = pathBuilder.build();
+
+    StringBuilder cmakelists_txt_filename;
+    cmakelists_txt_filename.append(path);
+    cmakelists_txt_filename.append("/CMakeLists.txt");
+
+    //printf("%s\n", cmakelists_txt_filename.build().characters());
+    FILE* fd = fopen(cmakelists_txt_filename.build().characters(), "w+");
+    size_t bytes;
+
+    if (!fd) {
+        perror("fopen");
+        return false;
+    }
+
+    auto cmakelists_txt_out = cmakelists_txt.build();
+    bytes = fwrite(cmakelists_txt_out.characters(), 1, cmakelists_txt_out.length(), fd);
+    if (bytes != cmakelists_txt_out.length()) {
+        perror("fwrite");
+        return false;
+    }
+
+    if (fclose(fd) < 0) {
+        perror("fclose");
+        return false;
+    }
+
+    return true;
+}
+
 bool CMakeGenerator::gen_package(const Package& package)
 {
     /**
@@ -858,6 +1011,16 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append("_");
         cmakelists_txt.append(generator.key);
         cmakelists_txt.append(")\n\n\n\n");
+    }
+    cmakelists_txt.append("\n");
+
+    if (!package.test().is_null()) {
+        cmakelists_txt.append("if(ENABLE_TESTS)\n");
+        for (auto& test_executable : package.test()->executables()) {
+            gen_test_executable(package, test_executable);
+            cmakelists_txt.appendf("    add_subdirectory(Tests/%s)\n", test_executable.name().characters());
+        }
+        cmakelists_txt.append("endif()\n");
     }
     cmakelists_txt.append("\n");
 
@@ -1407,6 +1570,13 @@ bool CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
 
     // Host/CMakeLists.txt
     auto host_cmakelists_txt = gen_toolchain_cmakelists_txt();
+
+    //FIXME: Make it configureable, if tests should be run (maybe depend this on configruation 'when tests shall be run')
+    host_cmakelists_txt.append("set(ENABLE_TESTS ON)\n\n");
+    host_cmakelists_txt.append("if(ENABLE_TESTS)\n");
+    host_cmakelists_txt.append("    enable_testing()\n");
+    host_cmakelists_txt.append("endif()\n\n");
+
     Vector<Package> host_packages_to_build;
 
     HostPackageDB::the().for_each_entry([&](auto&, auto& package) {
@@ -1576,8 +1746,14 @@ bool CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    BINARY_DIR ${CMAKE_BINARY_DIR}/HostToolchain\n");
     cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Host cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
+    cmakelists_txt.append("    TEST_COMMAND ${CMAKE_CTEST_COMMAND} --verbose\n");
+    //FIXME: Make it configureable, when tests should be run
+    //cmakelists_txt.append("    TEST_BEFORE_INSTALL true\n");
+    cmakelists_txt.append("    TEST_EXCLUDE_FROM_MAIN true\n");
     cmakelists_txt.append(")\n");
     cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/HostToolchain)\n");
+    cmakelists_txt.append("ExternalProject_Add_StepTargets(HostToolchain test)\n");
+    cmakelists_txt.append("add_custom_target(run-tests DEPENDS HostToolchain-test)\n");
     cmakelists_txt.append("\n");
 
     // target build
