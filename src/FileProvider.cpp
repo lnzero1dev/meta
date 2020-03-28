@@ -5,6 +5,33 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+bool create_dir(const String& path, const String& sub_dir)
+{
+    String path2 = path;
+    if (!sub_dir.is_empty()) {
+        StringBuilder builder;
+        builder.append(path);
+        builder.append("/");
+        builder.append(sub_dir);
+        path2 = builder.build();
+    }
+
+    struct stat st;
+
+    if (stat(path2.characters(), &st) == 0) {
+        //if (S_ISDIR(st.st_mode)) {
+        return true;
+        //}
+    }
+
+    int rc = mkdir(path2.characters(), 0755);
+    if (rc < 0) {
+        fprintf(stderr, "Could not create directory %s\n", path2.characters());
+        return false;
+    }
+    return true;
+}
+
 FileProvider::FileProvider(StringView current_dir)
     : m_current_dir { current_dir }
 {

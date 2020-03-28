@@ -25,6 +25,8 @@ private:
     StringBuilder gen_toolchain_cmakelists_txt();
     String gen_package_collection(const Package&);
 
+    String make_path_with_cmake_variables(const String& path);
+
     const String gen_header() const;
     const String cmake_minimum_version() const;
     const String project_root_dir() const;

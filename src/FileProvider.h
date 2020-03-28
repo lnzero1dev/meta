@@ -9,6 +9,8 @@
 #include <LibCore/Object.h>
 #include <regex.h>
 
+bool create_dir(const String& path, const String& sub_dir = "");
+
 struct GlobState {
 public:
     regex_t compiled_regex;

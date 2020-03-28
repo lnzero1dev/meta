@@ -8,33 +8,6 @@
 #include <string>
 #include <sys/stat.h>
 
-bool create_dir(const String& path, const String& sub_dir = "")
-{
-    String path2 = path;
-    if (!sub_dir.is_empty()) {
-        StringBuilder builder;
-        builder.append(path);
-        builder.append("/");
-        builder.append(sub_dir);
-        path2 = builder.build();
-    }
-
-    struct stat st;
-
-    if (stat(path2.characters(), &st) == 0) {
-        if (S_ISDIR(st.st_mode)) {
-            return true;
-        }
-    }
-
-    int rc = mkdir(path2.characters(), 0755);
-    if (rc < 0) {
-        fprintf(stderr, "Could not create directory %s\n", path2.characters());
-        return false;
-    }
-    return true;
-}
-
 CMakeGenerator::CMakeGenerator()
 {
 }
@@ -318,31 +291,22 @@ String CMakeGenerator::gen_package_collection(const Package& package)
                 }
             } else if (step == "patch") {
                 if (options.has("file")) {
-                    Vector<String> patch_filenames;
+                    JsonArray patch_filenames;
                     if (options.get("file").is_string()) {
                         patch_filenames.append(options.get("file").as_string());
                     } else if (options.get("file").is_array()) {
-                        auto values = options.get("file").as_array().values();
-                        for (auto& value : values) {
-                            patch_filenames.append(value.as_string());
-                        }
+                        patch_filenames = options.get("file").as_array();
                     }
                     if (patch_filenames.size()) {
-                        package_collection.append("    PATCH_COMMAND \n");
-                    }
-                    for (size_t i = 0; i < patch_filenames.size(); ++i) {
-                        auto& patch_filename = patch_filenames[i];
-                        patch_filename = replace_variables(patch_filename, "root", "${PROJECT_ROOT_DIR}");
-
-                        package_collection.append("        ${PATCH_EXE} -p1 --forward < ");
-                        package_collection.append(patch_filename);
-                        if (i < patch_filenames.size() - 1) {
-                            package_collection.append(" && ");
+                        package_collection.append("    PATCH_COMMAND \n      ");
+                        Vector<String> values;
+                        for (auto& patch_filename : patch_filenames.values()) {
+                            StringBuilder b;
+                            b.appendf("${PATCH_EXE} -p1 --forward < %s", make_path_with_cmake_variables(patch_filename.as_string()).characters());
+                            values.append(b.build());
                         }
-                        package_collection.append("\n");
-                    }
-                    if (patch_filenames.size()) {
-                        package_collection.append("|| true");
+                        package_collection.join("      \n", values);
+                        package_collection.append(" || true");
                     }
                     package_collection.append("\n");
                 }
@@ -424,6 +388,20 @@ String CMakeGenerator::gen_package_collection(const Package& package)
     return package_collection.build();
 }
 
+String CMakeGenerator::make_path_with_cmake_variables(const String& path)
+{
+    String path_replaced = path;
+
+    path_replaced = replace(path_replaced, SettingsProvider::the().get_string("gendata_directory").value_or("${package_gendata}"), "${CMAKE_CURRENT_LIST_DIR}");
+    path_replaced = replace(path_replaced, SettingsProvider::the().get_string("root").value_or("${root}"), "${PROJECT_ROOT_DIR}");
+    path_replaced = replace_variables(path_replaced, "root", "${PROJECT_ROOT_DIR}");
+    path_replaced = replace_variables(path_replaced, "package_gendata", "${CMAKE_CURRENT_LIST_DIR}/${META_BUILD_IMAGE}");
+    path_replaced = replace_variables(path_replaced, "host_sysroot", "${CMAKE_SYSROOT}");
+    path_replaced = replace_variables(path_replaced, "image", "${META_BUILD_IMAGE}");
+
+    return path_replaced;
+}
+
 bool CMakeGenerator::gen_package(const Package& package)
 {
     /**
@@ -491,14 +469,12 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append("set(SOURCES\n");
         for (auto& source : package.sources()) {
             cmakelists_txt.append("    \"");
-            String source_replaced = replace_variables(source, "root", "${PROJECT_ROOT_DIR}");
-            source_replaced = replace_variables(source_replaced, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
-            cmakelists_txt.append(source_replaced);
+            cmakelists_txt.append(make_path_with_cmake_variables(source));
             cmakelists_txt.append("\"");
             cmakelists_txt.append("\n");
 
-            FileSystemPath path { source_replaced };
-            directories_to_watch.set(path.dirname());
+            FileSystemPath path { source };
+            directories_to_watch.set(make_path_with_cmake_variables(path.dirname()));
         }
         cmakelists_txt.append(")\n");
 
@@ -506,27 +482,19 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append("set(INCLUDE_DIRS\n");
         for (auto& include : package.includes()) {
             cmakelists_txt.append("    \"");
-            String incl = include;
-
-            incl = replace_variables(incl, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
-            incl = replace_variables(incl, "host_sysroot", "${CMAKE_SYSROOT}");
-            incl = replace_variables(incl, "root", "${PROJECT_ROOT_DIR}");
-
-            cmakelists_txt.append(incl);
+            cmakelists_txt.append(make_path_with_cmake_variables(include));
 
             cmakelists_txt.append("\"");
             cmakelists_txt.append("\n");
 
-            FileSystemPath path { incl };
-            directories_to_watch.set(path.dirname());
+            FileSystemPath path { include };
+            directories_to_watch.set(make_path_with_cmake_variables(path.dirname()));
         }
         cmakelists_txt.append(")\n");
 
-        //        cmakelists_txt.append("set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS\n");
-        //        for (auto& dir : directories_to_watch) {
-        //            cmakelists_txt.appendf("    %s\n", dir.characters());
-        //        }
-        //        cmakelists_txt.append(")\n\n");
+        cmakelists_txt.append("set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS\n");
+        cmakelists_txt.join("\n    ", directories_to_watch);
+        cmakelists_txt.append(")\n\n");
 
         // dependencies
         cmakelists_txt.append("set(STATIC_LINK_LIBRARIES\n");
@@ -719,7 +687,7 @@ bool CMakeGenerator::gen_package(const Package& package)
                 }
             } else if (deployment.ptr()->type() == DeploymentType::Directory) {
                 cmakelists_txt.append("install(DIRECTORY ");
-                cmakelists_txt.append(replace_variables(deployment.ptr()->source(), "root", "${PROJECT_ROOT_DIR}"));
+                cmakelists_txt.append(make_path_with_cmake_variables(deployment.ptr()->source()));
                 cmakelists_txt.append(" DESTINATION ");
                 cmakelists_txt.append(replace_dest_vars(deployment.ptr()->dest()));
                 if (deployment.ptr()->pattern() != "") {
@@ -734,7 +702,7 @@ bool CMakeGenerator::gen_package(const Package& package)
 #endif
                 cmakelists_txt.append("install(");
                 cmakelists_txt.append(deployment.ptr()->type() == DeploymentType::File ? "FILES " : "PROGRAM ");
-                cmakelists_txt.append(replace_variables(deployment.ptr()->source(), "root", "${PROJECT_ROOT_DIR}"));
+                cmakelists_txt.append(make_path_with_cmake_variables(deployment.ptr()->source()));
                 cmakelists_txt.append(" DESTINATION ");
                 cmakelists_txt.append(replace_dest_vars(deployment.ptr()->dest()));
                 if (!deployment.ptr()->rename().is_empty()) {
@@ -785,7 +753,7 @@ bool CMakeGenerator::gen_package(const Package& package)
                 cmakelists_txt.append(replace(deployment.ptr()->name(), "\\.", ""));
                 cmakelists_txt.append("\")\n");
                 cmakelists_txt.append("add_library(${LIBNAME} STATIC ");
-                cmakelists_txt.append(replace_variables(deployment.ptr()->source(), "root", "${PROJECT_ROOT_DIR}"));
+                cmakelists_txt.append(make_path_with_cmake_variables(deployment.ptr()->source()));
                 cmakelists_txt.append(")\n");
                 cmakelists_txt.append("target_include_directories(${LIBNAME} PUBLIC ${INCLUDE_DIRS})\n");
                 cmakelists_txt.append("target_link_libraries(${LIBNAME} PUBLIC ${STATIC_LINK_LIBRARIES})\n");
@@ -815,22 +783,24 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append(generator.key);
         cmakelists_txt.append("\n");
 
-        StringBuilder dirs;
+        Vector<String> output_dirs;
         cmakelists_txt.append("set(OUTPUT_FILES\n");
         for (auto& tuple : generator.value.input_output_tuples) {
             cmakelists_txt.append("    \"");
-            String file_replaced = tuple.output;
-            file_replaced = replace_variables(file_replaced, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
-            cmakelists_txt.append(file_replaced);
+            cmakelists_txt.append(make_path_with_cmake_variables(tuple.output));
             cmakelists_txt.append("\"\n");
 
             AK::FileSystemPath path(tuple.output);
-            dirs.append(path.dirname());
-            dirs.append(" ");
+            output_dirs.append(make_path_with_cmake_variables(path.dirname()));
         }
         cmakelists_txt.append(")\n");
 
-        cmakelists_txt.appendf("file(MAKE_DIRECTORY %s)\n", dirs.build().characters());
+        StringBuilder dirs_str;
+        dirs_str.join("\n    ", output_dirs);
+        auto dirs_joined = dirs_str.build().characters();
+        cmakelists_txt.appendf("set(OUTPUT_DIRS %s)\n", dirs_joined);
+        cmakelists_txt.append("file(MAKE_DIRECTORY ${OUTPUT_DIRS})\n");
+        cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES \"${OUTPUT_DIRS}\")\n");
 
         cmakelists_txt.append("find_program(");
         cmakelists_txt.append(generator.key);
@@ -852,16 +822,10 @@ bool CMakeGenerator::gen_package(const Package& package)
             cmakelists_txt.append("} ");
             cmakelists_txt.append(tuple.flags);
             cmakelists_txt.append(" ");
-            String file_replaced = tuple.input;
-            file_replaced = replace_variables(file_replaced, "root", "${PROJECT_ROOT_DIR}");
-            file_replaced = replace_variables(file_replaced, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
-            cmakelists_txt.append(file_replaced);
+            cmakelists_txt.append(make_path_with_cmake_variables(tuple.input));
             // Fixme: for now, we only accept generators that put the output to stdout. Has to be configurable...
             cmakelists_txt.append(" > ");
-
-            file_replaced = tuple.output;
-            file_replaced = replace_variables(file_replaced, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
-            cmakelists_txt.append(file_replaced);
+            cmakelists_txt.append(make_path_with_cmake_variables(tuple.output));
             cmakelists_txt.append("\n");
         }
         cmakelists_txt.append("    COMMENT \"Executing ");
@@ -894,9 +858,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     direct_linkage_include.append("list(APPEND SOURCES\n");
     for (auto& source : package.sources()) {
         direct_linkage_include.append("    \"");
-        String source_replaced = replace_variables(source, "root", "${PROJECT_ROOT_DIR}");
-        source_replaced = replace_variables(source_replaced, "gendata", "${CMAKE_CURRENT_LIST_DIR}");
-        direct_linkage_include.append(source_replaced);
+        direct_linkage_include.append(make_path_with_cmake_variables(source));
         direct_linkage_include.append("\"");
         direct_linkage_include.append("\n");
     }
@@ -909,11 +871,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     //    cmakelists_txt.append("list(APPEND INCLUDE_DIRS\n");
     //    for (auto& include : package.includes()) {
     //        direct_linkage_include.append("    \"");
-    //        String incl = include;
-    //        incl = replace_variables(include, "host_sysroot", "${CMAKE_SYSROOT}");
-
-    //        direct_linkage_include.append(replace_variables(incl, "root", "${PROJECT_ROOT_DIR}"));
-
+    //        direct_linkage_include.append(make_path_with_cmake_variables(incl)));
     //        direct_linkage_include.append("\"");
     //        direct_linkage_include.append("\n");
     //    }
