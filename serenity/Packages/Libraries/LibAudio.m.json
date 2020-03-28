@@ -7,7 +7,7 @@
             ],
             "include": [
                 "${root}/Libraries/LibAudio",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "dependency": [
                 "LibIPC"
@@ -16,11 +16,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/AudioServer/AudioClient.ipc",
-                        "output": "${gendata}/AudioServer/AudioClientEndpoint.h"
+                        "output": "${package_gendata}/AudioServer/AudioClientEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/AudioServer/AudioServer.ipc",
-                        "output": "${gendata}/AudioServer/AudioServerEndpoint.h"
+                        "output": "${package_gendata}/AudioServer/AudioServerEndpoint.h"
                     }
                 ]
             },

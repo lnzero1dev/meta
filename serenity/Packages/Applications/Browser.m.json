@@ -7,7 +7,7 @@
             ],
             "include": [
                 "${root}/Applications/Browser",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "dependency": [
                 "LibGUI",
@@ -19,13 +19,13 @@
                 "CSS_PropertyID_h": [
                     {
                         "input": "${root}/Libraries/LibWeb/CSS/Properties.json",
-                        "output": "${gendata}/PropertyID.h"
+                        "output": "${package_gendata}/PropertyID.h"
                     }
                 ],
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
-                        "output": "${gendata}/ProtocolServer/ProtocolClientEndpoint.h"
+                        "output": "${package_gendata}/ProtocolServer/ProtocolClientEndpoint.h"
                     }
                 ]
             },

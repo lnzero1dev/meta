@@ -7,7 +7,7 @@
             ],
             "include": [
                 "${root}/Servers/ProtocolServer",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "dependency": [
                 "LibCore",
@@ -17,11 +17,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolServer.ipc",
-                        "output": "${gendata}/ProtocolServer/ProtocolServerEndpoint.h"
+                        "output": "${package_gendata}/ProtocolServer/ProtocolServerEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/ProtocolServer/ProtocolClient.ipc",
-                        "output": "${gendata}/ProtocolServer/ProtocolClientEndpoint.h"
+                        "output": "${package_gendata}/ProtocolServer/ProtocolClientEndpoint.h"
                     }
                 ]
             }

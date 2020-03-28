@@ -7,7 +7,7 @@
             ],
             "include": [
                 "${root}/Applications/FontEditor",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "dependency": [
                 "LibGUI"
@@ -16,7 +16,7 @@
                 "FormCompiler": [
                     {
                         "input": "${root}/Applications/FontEditor/FontEditorBottom.frm",
-                        "output": "${gendata}/UI_FontEditorBottom.h"
+                        "output": "${package_gendata}/UI_FontEditorBottom.h"
                     }
                 ]
             }

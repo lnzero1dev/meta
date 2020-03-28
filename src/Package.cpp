@@ -230,10 +230,23 @@ Package::Package(const String& name, const String& filename, MachineType machine
             }
             return;
         }
+
+        StringBuilder b;
+        b.append(SettingsProvider::the().get_string("gendata_directory").value_or(""));
+        b.append("/${image}");
+        auto package_gendata_dir = b.build();
+
+        Function<Optional<String>(const String&)> replace_package_gendata = [&](auto& variable) -> Optional<String> {
+            if (variable == "package_gendata") {
+                return package_gendata_dir;
+            }
+            return {};
+        };
+
         if (key == "source") {
             auto values = value.as_array().values();
             for (auto& value : values) {
-                String source = FileProvider::the().full_path_update(value.as_string(), m_directory);
+                String source = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
                 String search_dir = m_directory;
 
                 if (is_glob(source)) {
@@ -259,7 +272,7 @@ Package::Package(const String& name, const String& filename, MachineType machine
         if (key == "include") {
             auto values = value.as_array().values();
             for (auto& value : values) {
-                String include = FileProvider::the().full_path_update(value.as_string(), m_directory);
+                String include = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
                 String search_dir = m_directory;
 
                 if (is_glob(include)) {
@@ -268,7 +281,10 @@ Package::Package(const String& name, const String& filename, MachineType machine
                     if (search_dir.is_empty()) {
                         search_dir = SettingsProvider::the().get_string("root").value_or("");
                     }
-                    // Fixme: Globbing is broken/incomplete here, do it like above with sources, check performance... ^^
+                    auto files = FileProvider::the().recursive_glob(include, search_dir);
+                    for (auto& file : files) {
+                        m_sources.append(file);
+                    }
                 } else
                     m_includes.append(include);
             }
@@ -313,7 +329,7 @@ Package::Package(const String& name, const String& filename, MachineType machine
 #endif
                         auto depl = adopt(*new Deployment(type == "file" ? DeploymentType::File : DeploymentType::Program));
                         if (obj.has("source"))
-                            depl->set_source(FileProvider::the().full_path_update(obj.get("source").as_string(), m_directory));
+                            depl->set_source(FileProvider::the().full_path_update(obj.get("source").as_string(), m_directory, &replace_package_gendata));
                         if (obj.has("dest"))
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("rename"))
@@ -324,7 +340,7 @@ Package::Package(const String& name, const String& filename, MachineType machine
                     } else if (type == "directory") {
                         auto depl = adopt(*new Deployment(DeploymentType::Directory));
                         if (obj.has("source"))
-                            depl->set_source(FileProvider::the().full_path_update(obj.get("source").as_string(), m_directory));
+                            depl->set_source(FileProvider::the().full_path_update(obj.get("source").as_string(), m_directory, &replace_package_gendata));
                         if (obj.has("dest"))
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("pattern"))
@@ -335,7 +351,7 @@ Package::Package(const String& name, const String& filename, MachineType machine
                     } else if (type == "object") {
                         auto depl = adopt(*new Deployment(DeploymentType::Object));
                         if (obj.has("source"))
-                            depl->set_source(FileProvider::the().full_path_update(obj.get("source").as_string(), m_directory));
+                            depl->set_source(FileProvider::the().full_path_update(obj.get("source").as_string(), m_directory, &replace_package_gendata));
                         if (obj.has("dest"))
                             depl->set_dest(obj.get("dest").as_string());
                         if (obj.has("name"))
@@ -374,7 +390,7 @@ Package::Package(const String& name, const String& filename, MachineType machine
                         value.as_object().for_each_member([&](auto& key, auto& value) {
                             if (key == "input") {
                                 if (value.is_string()) {
-                                    tuple.input = FileProvider::the().full_path_update(value.as_string(), m_directory);
+                                    tuple.input = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
                                 } else {
                                     // error
                                 }
@@ -382,7 +398,7 @@ Package::Package(const String& name, const String& filename, MachineType machine
                             }
                             if (key == "output") {
                                 if (value.is_string()) {
-                                    tuple.output = FileProvider::the().full_path_update(value.as_string(), m_directory);
+                                    tuple.output = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
                                 } else {
                                     // error
                                 }

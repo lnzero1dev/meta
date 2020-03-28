@@ -7,25 +7,25 @@
             ],
             "include": [
                 "${root}/Libraries/LibGUI",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "run_generators": {
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/WindowServer/WindowServer.ipc",
-                        "output": "${gendata}/WindowServer/WindowServerEndpoint.h"
+                        "output": "${package_gendata}/WindowServer/WindowServerEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/WindowServer/WindowClient.ipc",
-                        "output": "${gendata}/WindowServer/WindowClientEndpoint.h"
+                        "output": "${package_gendata}/WindowServer/WindowClientEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/NotificationServer/NotificationServer.ipc",
-                        "output": "${gendata}/NotificationServer/NotificationServerEndpoint.h"
+                        "output": "${package_gendata}/NotificationServer/NotificationServerEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/NotificationServer/NotificationClient.ipc",
-                        "output": "${gendata}/NotificationServer/NotificationClientEndpoint.h"
+                        "output": "${package_gendata}/NotificationServer/NotificationClientEndpoint.h"
                     }
                 ]
             },

@@ -166,7 +166,7 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     cmakelists_txt.append("project(");
     cmakelists_txt.append(image.name());
     cmakelists_txt.append(" C CXX ASM)\n\n");
-
+    cmakelists_txt.appendf("set(META_BUILD_IMAGE %s)\n\n", image.name().characters());
     cmakelists_txt.append("include(${CMAKE_CURRENT_LIST_DIR}/../../Toolchain/Host/tools.cmake)\n\n");
 
     cmakelists_txt.append(make_command_workaround());

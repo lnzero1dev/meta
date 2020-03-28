@@ -7,7 +7,7 @@
             ],
             "include": [
                 "${root}/Servers/NotificationServer",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "dependency": [
                 "LibGUI",
@@ -17,11 +17,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/NotificationServer/NotificationClient.ipc",
-                        "output": "${gendata}/NotificationClientEndpoint.h"
+                        "output": "${package_gendata}/NotificationClientEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/NotificationServer/NotificationServer.ipc",
-                        "output": "${gendata}/NotificationServer/NotificationServerEndpoint.h"
+                        "output": "${package_gendata}/NotificationServer/NotificationServerEndpoint.h"
                     }
                 ]
             },

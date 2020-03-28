@@ -7,7 +7,7 @@
             ],
             "include": [
                 "${root}/Servers/WindowServer",
-                "${gendata}"
+                "${package_gendata}"
             ],
             "dependency": [
                 "LibGfx",
@@ -18,11 +18,11 @@
                 "IPCCompiler": [
                     {
                         "input": "${root}/Servers/WindowServer/WindowServer.ipc",
-                        "output": "${gendata}/WindowServer/WindowServerEndpoint.h"
+                        "output": "${package_gendata}/WindowServer/WindowServerEndpoint.h"
                     },
                     {
                         "input": "${root}/Servers/WindowServer/WindowClient.ipc",
-                        "output": "${gendata}/WindowClientEndpoint.h"
+                        "output": "${package_gendata}/WindowServer/WindowClientEndpoint.h"
                     }
                 ]
             },

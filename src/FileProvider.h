@@ -66,7 +66,7 @@ public:
     String replace_path_variables(
         const String& path, Function<Optional<String>(const String&)>* callback = nullptr) const;
     String make_absolute_path(const String& path, const String& base);
-    String full_path_update(const String& path, const String& base);
+    String full_path_update(const String& path, const String& base, Function<Optional<String>(const String&)>* callback = nullptr);
 
 private:
     FileProvider(StringView current_dir);

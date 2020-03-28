@@ -266,6 +266,7 @@ const HashMap<String, String>& default_path_variables()
     if (s_default_path_variables.is_empty()) {
         s_default_path_variables.set("root", SettingsProvider::the().get_string("root").value_or(""));
         s_default_path_variables.set("gendata", SettingsProvider::the().get_string("gendata_directory").value_or(""));
+        s_default_path_variables.set("package_gendata", "");
     }
     return s_default_path_variables;
 }
@@ -296,9 +297,9 @@ String FileProvider::replace_path_variables(const String& path, Function<Optiona
         return path;
 }
 
-String FileProvider::full_path_update(const String& path, const String& base)
+String FileProvider::full_path_update(const String& path, const String& base, Function<Optional<String>(const String&)>* callback)
 {
-    String result = replace_path_variables(path);
+    String result = replace_path_variables(path, callback);
     result = make_absolute_path(result, base);
     return result;
 }
