@@ -808,7 +808,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         cmakelists_txt.append(generator.key);
         cmakelists_txt.append(" PATHS \"");
         cmakelists_txt.append(SettingsProvider::the().get_string("build_directory").value_or(""));
-        cmakelists_txt.append("/Toolchain/Sysroots");
+        cmakelists_txt.append("/Sysroots");
         cmakelists_txt.append("\")\n");
         cmakelists_txt.append("if(NOT ");
         cmakelists_txt.append(generator.key);
@@ -1109,6 +1109,7 @@ StringBuilder CMakeGenerator::gen_toolchain_cmakelists_txt()
 
     cmakelists_txt.append(gen_header());
     cmakelists_txt.append(cmake_minimum_version());
+    cmakelists_txt.append("project(toolchain)\n");
     cmakelists_txt.append(project_root_dir());
     cmakelists_txt.append(colorful_message());
 
@@ -1422,6 +1423,9 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
 
     cmakelists_txt.append(gen_header());
     cmakelists_txt.append(cmake_minimum_version());
+
+    cmakelists_txt.append("project(root)\n");
+
     cmakelists_txt.append(project_root_dir());
 
     cmakelists_txt.append("SET(DOWNLOAD_DIRECTORY ${CMAKE_BINARY_DIR}/Download)\n");
