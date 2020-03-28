@@ -109,16 +109,16 @@ String get_target_name(const String& name)
     return ret;
 }
 
-void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> packages)
+bool CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> packages)
 {
     auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
 
     if (gen_path.is_empty()) {
-        return;
+        return false;
     }
 
     if (!create_dir(gen_path, "Image"))
-        return;
+        return false;
 
     // write out
     StringBuilder pathBuilder;
@@ -128,7 +128,7 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     String path = pathBuilder.build();
 
     if (!create_dir(path))
-        return;
+        return false;
 
     StringBuilder cmakelists_txt;
 
@@ -182,16 +182,24 @@ void CMakeGenerator::gen_image(const Image& image, const Vector<const Package*> 
     FILE* fd = fopen(cmakelists_txt_filename.build().characters(), "w+");
     size_t bytes;
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto cmakelists_txt_out = cmakelists_txt.build();
     bytes = fwrite(cmakelists_txt_out.characters(), 1, cmakelists_txt_out.length(), fd);
-    if (bytes != cmakelists_txt_out.length())
+    if (bytes != cmakelists_txt_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
+
+    return true;
 }
 
 const String replace_dest_vars(const String& haystack)
@@ -459,7 +467,7 @@ bool CMakeGenerator::gen_package(const Package& package)
     cmakelists_txt.append(project_root_dir());
     cmakelists_txt.append(includes());
 
-    auto targetName = package.name(); //get_target_name(package.name());
+    auto targetName = package.name();
 
     if (package.type() == PackageType::Library || package.type() == PackageType::Executable) {
 
@@ -501,7 +509,7 @@ bool CMakeGenerator::gen_package(const Package& package)
         for (auto& dependency : package.dependencies()) {
             if (package.get_dependency_linkage(dependency.value) == LinkageType::Static) {
                 cmakelists_txt.append("    \"");
-                cmakelists_txt.append(dependency.key); //get_target_name(dependency.key));
+                cmakelists_txt.append(dependency.key);
                 cmakelists_txt.append("\"");
                 cmakelists_txt.append("\n");
             }
@@ -863,7 +871,15 @@ bool CMakeGenerator::gen_package(const Package& package)
         direct_linkage_include.append("\n");
     }
     direct_linkage_include.append(")\n");
-    direct_linkage_include.append("\n");
+
+    direct_linkage_include.append("list(APPEND INCLUDE_DIRS\n");
+    for (auto& include : package.includes()) {
+        direct_linkage_include.append("    \"");
+        direct_linkage_include.append(make_path_with_cmake_variables(include));
+        direct_linkage_include.append("\"");
+        direct_linkage_include.append("\n");
+    }
+    direct_linkage_include.append(")\n");
 
     //Fixme: check if it is possible to also include the direct linkage include file of the dependencies of this package into this generated file
 
@@ -893,32 +909,44 @@ bool CMakeGenerator::gen_package(const Package& package)
     FILE* fd = fopen(cmakelists_txt_filename.build().characters(), "w+");
     size_t bytes;
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto cmakelists_txt_out = cmakelists_txt.build();
     bytes = fwrite(cmakelists_txt_out.characters(), 1, cmakelists_txt_out.length(), fd);
-    if (bytes != cmakelists_txt_out.length())
+    if (bytes != cmakelists_txt_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     StringBuilder direct_linkage_include_filename;
     direct_linkage_include_filename.append(path);
     direct_linkage_include_filename.append("/direct_linkage.include");
     fd = fopen(direct_linkage_include_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto sources_include_out = direct_linkage_include.build();
     bytes = fwrite(sources_include_out.characters(), 1, sources_include_out.length(), fd);
-    if (bytes != sources_include_out.length())
+    if (bytes != sources_include_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     return true;
 }
@@ -1104,7 +1132,7 @@ String CMakeGenerator::gen_toolchain_package(const Package& package)
             fprintf(stderr, "Could not generate package: %s\n", package.name().characters());
     }
 
-    toolchain_package.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ");
+    toolchain_package.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/");
     toolchain_package.append(package.name());
     toolchain_package.append(")\n\n");
 
@@ -1157,7 +1185,7 @@ const String CMakeGenerator::find_tools_not_in_toolchain(const HashMap<String, T
     return find_tools_not_in_toolchain.build();
 }
 
-void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<String>& json_input_files)
+bool CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<String>& json_input_files)
 {
     /**
      * This generates the toolchain file: Build/toolchain.cmake
@@ -1187,20 +1215,20 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
 
     auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
     if (gen_path.is_empty()) {
-        return;
+        return false;
     }
 
     if (!create_dir(gen_path, "Toolchain"))
-        return;
+        return false;
 
     if (!create_dir(gen_path, "Toolchain/Target"))
-        return;
+        return false;
 
     if (!create_dir(gen_path, "Toolchain/Host"))
-        return;
+        return false;
 
     if (!create_dir(gen_path, "Toolchain/Build"))
-        return;
+        return false;
     //fprintf(stdout, "Gendata directory: %s\n", gen_path.value().characters());
 
     String target_toolchain_cmake = gen_cmake_toolchain_content(toolchain.target_tools(), toolchain.configuration());
@@ -1216,15 +1244,21 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     target_toolchain_cmake_filename.append("/Toolchain/Target/toolchain.cmake");
     fd = fopen(target_toolchain_cmake_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto bytes = fwrite(target_toolchain_cmake.characters(), 1, target_toolchain_cmake.length(), fd);
-    if (bytes != target_toolchain_cmake.length())
+    if (bytes != target_toolchain_cmake.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     // host/toolchain.cmake
     StringBuilder host_toolchain_cmake_filename;
@@ -1232,15 +1266,21 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     host_toolchain_cmake_filename.append("/Toolchain/Host/toolchain.cmake");
     fd = fopen(host_toolchain_cmake_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     bytes = fwrite(host_toolchain_cmake.characters(), 1, host_toolchain_cmake.length(), fd);
-    if (bytes != host_toolchain_cmake.length())
+    if (bytes != host_toolchain_cmake.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     // build/toolchain.cmake
     StringBuilder build_toolchain_cmake_filename;
@@ -1248,15 +1288,21 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     build_toolchain_cmake_filename.append("/Toolchain/Build/toolchain.cmake");
     fd = fopen(build_toolchain_cmake_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     bytes = fwrite(build_toolchain_cmake.characters(), 1, build_toolchain_cmake.length(), fd);
-    if (bytes != build_toolchain_cmake.length())
+    if (bytes != build_toolchain_cmake.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     auto root = SettingsProvider::the().get_string("root").value_or("");
 
@@ -1269,15 +1315,21 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     build_tools_cmake_filename.append("/Toolchain/Build/tools.cmake");
     fd = fopen(build_tools_cmake_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     bytes = fwrite(build_tools_cmake.characters(), 1, build_tools_cmake.length(), fd);
-    if (bytes != build_tools_cmake.length())
+    if (bytes != build_tools_cmake.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     // Build/CMakeLists.txt
     auto build_cmakelists_txt = gen_toolchain_cmakelists_txt();
@@ -1311,18 +1363,24 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     build_cmakelists_txt_filename.append("/Toolchain/Build/CMakeLists.txt");
     fd = fopen(build_cmakelists_txt_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto build_cmakelists_txt_out = build_cmakelists_txt.build();
     bytes = fwrite(build_cmakelists_txt_out.characters(), 1, build_cmakelists_txt_out.length(), fd);
-    if (bytes != build_cmakelists_txt_out.length())
+    if (bytes != build_cmakelists_txt_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
-    // Build/tools.cmake
+    // Host/tools.cmake
     String host_tools_cmake = find_tools_not_in_toolchain(toolchain.host_tools());
 
     // write out
@@ -1331,17 +1389,23 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     host_tools_cmake_filename.append("/Toolchain/Host/tools.cmake");
     fd = fopen(host_tools_cmake_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     bytes = fwrite(host_tools_cmake.characters(), 1, host_tools_cmake.length(), fd);
-    if (bytes != host_tools_cmake.length())
+    if (bytes != host_tools_cmake.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
-    // host/CMakeLists.txt
+    // Host/CMakeLists.txt
     auto host_cmakelists_txt = gen_toolchain_cmakelists_txt();
     Vector<Package> host_packages_to_build;
 
@@ -1382,16 +1446,22 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     host_cmakelists_txt_filename.append("/Toolchain/Host/CMakeLists.txt");
     fd = fopen(host_cmakelists_txt_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto host_cmakelists_txt_out = host_cmakelists_txt.build();
     bytes = fwrite(host_cmakelists_txt_out.characters(), 1, host_cmakelists_txt_out.length(), fd);
-    if (bytes != host_cmakelists_txt_out.length())
+    if (bytes != host_cmakelists_txt_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
 
     // meta_json_files.depend
     StringBuilder meta_json_files_depends;
@@ -1406,25 +1476,33 @@ void CMakeGenerator::gen_toolchain(const Toolchain& toolchain, const Vector<Stri
     meta_json_files_depends_filename.append("/Toolchain/meta_json_files.depend");
     fd = fopen(meta_json_files_depends_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto meta_json_files_depends_out = meta_json_files_depends.build();
     bytes = fwrite(meta_json_files_depends_out.characters(), 1, meta_json_files_depends_out.length(), fd);
-    if (bytes != meta_json_files_depends_out.length())
+    if (bytes != meta_json_files_depends_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
+
+    return true;
 }
 
-void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
+bool CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
 {
 
     auto gen_path = SettingsProvider::the().get_string("gendata_directory").value_or("");
 
     if (gen_path.is_empty()) {
-        return;
+        return false;
     }
 
     StringBuilder cmakelists_txt;
@@ -1499,7 +1577,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Host cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
     cmakelists_txt.append(")\n");
-    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES HostToolchain)\n");
+    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/HostToolchain)\n");
     cmakelists_txt.append("\n");
 
     // target build
@@ -1516,7 +1594,7 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("    INSTALL_COMMAND DESTDIR=${CMAKE_BINARY_DIR}/Sysroots/Target cmake --build . --target install\n");
     cmakelists_txt.append("    BUILD_ALWAYS true\n");
     cmakelists_txt.append(")\n");
-    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES Target)\n");
+    cmakelists_txt.append("set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/Target)\n");
     cmakelists_txt.append("\n\n");
 
     for (auto& tool : toolchain.host_tools()) {
@@ -1552,14 +1630,22 @@ void CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt_filename.append("/CMakeLists.txt");
     FILE* fd = fopen(cmakelists_txt_filename.build().characters(), "w+");
 
-    if (!fd)
+    if (!fd) {
         perror("fopen");
+        return false;
+    }
 
     auto cmakelists_txt_out = cmakelists_txt.build();
     auto bytes = fwrite(cmakelists_txt_out.characters(), 1, cmakelists_txt_out.length(), fd);
-    if (bytes != cmakelists_txt_out.length())
+    if (bytes != cmakelists_txt_out.length()) {
         perror("fwrite");
+        return false;
+    }
 
-    if (fclose(fd) < 0)
+    if (fclose(fd) < 0) {
         perror("fclose");
+        return false;
+    }
+
+    return true;
 }

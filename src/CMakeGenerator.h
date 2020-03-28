@@ -12,10 +12,10 @@ public:
     static CMakeGenerator& the();
     ~CMakeGenerator();
 
-    void gen_image(const Image&, const Vector<const Package*>);
+    bool gen_image(const Image&, const Vector<const Package*>);
     bool gen_package(const Package&);
-    void gen_toolchain(const Toolchain&, const Vector<String>& json_input_files);
-    void gen_root(const Toolchain&, int argc, char** argv);
+    bool gen_toolchain(const Toolchain&, const Vector<String>& json_input_files);
+    bool gen_root(const Toolchain&, int argc, char** argv);
 
 private:
     CMakeGenerator();
