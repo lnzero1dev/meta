@@ -107,6 +107,51 @@ private:
     Optional<DeploymentPermission> m_permission;
 };
 
+class TestExecutable {
+
+public:
+    TestExecutable(const String& name) { m_name = name; };
+    ~TestExecutable() {};
+
+    void add_source(const String& source) { m_source.append(source); }
+    void add_include(const String& include) { m_include.append(include); }
+    void add_dependency(const String& dependency, LinkageType type = LinkageType::Inherit)
+    {
+        m_dependency.set(dependency, type);
+    }
+    void add_exclude_from_package_source(const String& exclude_from_package_source)
+    {
+        m_exclude_from_package_source.append(exclude_from_package_source);
+    }
+
+    const String& name() const { return m_name; }
+    const Vector<String>& source() const { return m_source; }
+    const Vector<String>& include() const { return m_include; }
+    const HashMap<String, LinkageType>& dependency() const { return m_dependency; }
+    const Vector<String>& exclude_from_package_source() const { return m_exclude_from_package_source; }
+
+private:
+    String m_name;
+    Vector<String> m_source;
+    Vector<String> m_include;
+    HashMap<String, LinkageType> m_dependency;
+    Vector<String> m_exclude_from_package_source;
+};
+
+class Test : public Core::Object {
+    C_OBJECT(Test)
+public:
+    explicit Test() {};
+    ~Test() {};
+
+    void add_executable(const TestExecutable& test) { m_executables.append(test); };
+    const Vector<TestExecutable>& executables() const { return m_executables; }
+    Vector<TestExecutable>& executables() { return m_executables; }
+
+private:
+    Vector<TestExecutable> m_executables;
+};
+
 struct PackageVersion {
     int major = 0;
     Optional<int> minor;
@@ -177,6 +222,8 @@ public:
     const HashMap<PackageType, Vector<String>>& provides() const { return m_provides; }
     const Vector<NonnullRefPtr<Deployment>>& deploy() const { return m_deploy; }
 
+    const RefPtr<Test>& test() const { return m_test; }
+
     LinkageType get_dependency_linkage(LinkageType) const;
 
     const HashMap<String, Tool>& target_tools() const { return m_target_tools; }
@@ -217,6 +264,7 @@ private:
     LinkageType m_dependency_linkage = LinkageType::Static;
 
     Vector<NonnullRefPtr<Deployment>> m_deploy;
+    RefPtr<Test> m_test;
 
     HashMap<String, Tool> m_target_tools;
     HashMap<String, Tool> m_build_tools;

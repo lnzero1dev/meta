@@ -368,6 +368,146 @@ Package::Package(const String& name, const String& filename, MachineType machine
             }
             return;
         }
+
+        if (key == "test") {
+            if (value.is_object()) {
+                auto& obj = value.as_object();
+                if (obj.has("executable") && obj.get("executable").is_object()) {
+                    auto test = adopt(*new Test());
+                    JsonObject executables_obj = obj.get("executable").as_object();
+                    executables_obj.for_each_member([&](auto& key, auto& value) {
+                        TestExecutable test_executable(key);
+
+                        if (value.is_object()) {
+                            value.as_object().for_each_member([&](auto& key, auto& value) {
+                                if (key == "source") {
+                                    JsonArray values;
+                                    if (value.is_string()) {
+                                        values.append(value.as_string());
+                                    } else if (value.is_array()) {
+                                        values = value.as_array();
+                                    } else {
+                                        fprintf(stderr, "Unknown type for test source values in %s.\n", m_filename.characters());
+                                        return;
+                                    }
+                                    for (auto& value : values.values()) {
+                                        String source = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
+                                        String search_dir = m_directory;
+
+                                        if (is_glob(source)) {
+                                            // get the last path element, before the glob sign occurs
+                                            search_dir = get_max_path_without_glob(source);
+                                            if (search_dir.is_empty()) {
+                                                search_dir = SettingsProvider::the().get_string("root").value_or("");
+                                            }
+                                            auto files = FileProvider::the().recursive_glob(source, search_dir);
+                                            for (auto& file : files) {
+                                                test_executable.add_source(file);
+                                            }
+                                        } else
+                                            test_executable.add_source(source);
+                                    }
+#ifdef DEBUG_META
+                                    for (auto& source : m_sources) {
+                                        fprintf(stdout, "source: %s\n", source.characters());
+                                    }
+#endif
+                                    return;
+                                }
+                                if (key == "include") {
+                                    JsonArray values;
+                                    if (value.is_string()) {
+                                        values.append(value.as_string());
+                                    } else if (value.is_array()) {
+                                        values = value.as_array();
+                                    } else {
+                                        fprintf(stderr, "Unknown type for test include values in %s.\n", m_filename.characters());
+                                        return;
+                                    }
+                                    for (auto& value : values.values()) {
+                                        String include = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
+                                        String search_dir = m_directory;
+
+                                        if (is_glob(include)) {
+                                            // get the last path element, before the glob sign occurs
+                                            search_dir = get_max_path_without_glob(include);
+                                            if (search_dir.is_empty()) {
+                                                search_dir = SettingsProvider::the().get_string("root").value_or("");
+                                            }
+                                            auto files = FileProvider::the().recursive_glob(include, search_dir);
+                                            for (auto& file : files) {
+                                                test_executable.add_include(file);
+                                            }
+                                        } else
+                                            test_executable.add_include(include);
+                                    }
+#ifdef DEBUG_META
+                                    for (auto& include : m_includes) {
+                                        fprintf(stdout, "include: %s\n", include.characters());
+                                    }
+#endif
+
+                                    return;
+                                }
+                                if (key == "additional_dependency") {
+                                    if (value.is_array()) {
+                                        auto values = value.as_array().values();
+                                        for (auto& value : values) {
+                                            test_executable.add_dependency(value.as_string(), LinkageType::Inherit);
+                                        }
+                                    } else if (value.is_object()) {
+                                        value.as_object().for_each_member([&](auto& key, auto& value) {
+                                            test_executable.add_dependency(key, string_to_linkage_type(value.as_string()));
+                                        });
+                                    }
+                                    return;
+                                }
+                                if (key == "exclude_from_package_source") {
+                                    JsonArray values;
+                                    if (value.is_string()) {
+                                        values.append(value.as_string());
+                                    } else if (value.is_array()) {
+                                        values = value.as_array();
+                                    } else {
+                                        fprintf(stderr, "Unknown type for test exclude from package source values in %s.\n", m_filename.characters());
+                                        return;
+                                    }
+                                    for (auto& value : values.values()) {
+                                        String exclude = FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata);
+                                        String search_dir = m_directory;
+
+                                        if (is_glob(exclude)) {
+                                            // get the last path element, before the glob sign occurs
+                                            search_dir = get_max_path_without_glob(exclude);
+                                            if (search_dir.is_empty()) {
+                                                search_dir = SettingsProvider::the().get_string("root").value_or("");
+                                            }
+                                            auto files = FileProvider::the().recursive_glob(exclude, search_dir);
+                                            for (auto& file : files) {
+                                                test_executable.add_exclude_from_package_source(file);
+                                            }
+                                        } else
+                                            test_executable.add_exclude_from_package_source(exclude);
+                                    }
+                                    return;
+                                }
+                            });
+                            test->add_executable(test_executable);
+
+                        } else {
+                            fprintf(stderr, "Test data of test '%s' is not object in %s.\n", key.characters(), m_filename.characters());
+                        }
+                        m_test = move(test);
+                    });
+                } else {
+                    fprintf(stderr, "No test executables provided in test data in %s.\n", m_filename.characters());
+                }
+            } else {
+                fprintf(stderr, "Unknown test data in %s.\n", m_filename.characters());
+            }
+            return;
+        }
+
         if (key == "target_tools") {
             Toolchain::insert_tool(m_target_tools, value.as_object(), filename);
             return;
@@ -425,6 +565,16 @@ Package::Package(const String& name, const String& filename, MachineType machine
             return;
         }
     });
+
+    // fill test data after data of package is completed
+    if (!m_test.is_null()) {
+        for (auto& test_executable : m_test->executables()) {
+            for (auto& dependency : m_dependencies) {
+                test_executable.add_dependency(dependency.key, dependency.value);
+            }
+            test_executable.add_dependency(m_name, LinkageType::Direct);
+        }
+    }
 }
 
 Package::~Package()
