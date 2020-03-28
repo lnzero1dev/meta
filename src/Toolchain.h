@@ -10,6 +10,7 @@ struct ToolConfiguration {
 struct Tool {
     String executable;
     String flags;
+    String test_flags;
     bool run_as_su = false;
     bool add_as_target = false;
     bool reset_toolchain_flags = false;

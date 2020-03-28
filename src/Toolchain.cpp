@@ -79,28 +79,34 @@ void Toolchain::insert_tool(HashMap<String, Tool>& map, JsonObject tool_data, co
                 tool.executable = value.as_string();
                 return;
             }
-            if (key == "flags") {
+            if (key == "flags" || key == "test_flags") {
                 auto filepath = FileSystemPath(filename);
+                JsonArray values;
 
                 if (value.is_string()) {
+                    values.append(value);
+                } else if (value.is_array()) {
+                    values = value.as_array();
+                }
+
+                StringBuilder builder;
+                builder.append((key == "flags") ? tool.flags : tool.test_flags);
+                for (auto& value : values.values()) {
+                    builder.append(" ");
+
                     auto str = replace_variables(value.as_string(), "root", SettingsProvider::the().get_string("root").value_or(""));
                     str = replace_variables(str, "current_dir", filepath.dirname());
-                    tool.flags = replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}");
-                } else if (value.is_array()) {
-                    auto values = value.as_array().values();
-                    StringBuilder builder;
-                    builder.append(tool.flags);
-                    for (auto& value : values) {
-                        builder.append(" ");
-
-                        auto str = replace_variables(value.as_string(), "root", SettingsProvider::the().get_string("root").value_or(""));
-                        str = replace_variables(str, "current_dir", filepath.dirname());
-                        builder.append(replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}"));
-                    }
-                    tool.flags = builder.build();
+                    builder.append(replace_variables(str, "host_sysroot", "${CMAKE_SYSROOT}")); // FIXME: no cmake variables here... !
                 }
+                if (key == "flags") {
+                    tool.flags = builder.build();
+                } else {
+                    tool.test_flags = builder.build();
+                }
+
                 return;
             }
+
             if (key == "run_as_su") {
                 if (value.is_bool()) {
                     tool.run_as_su = value.as_bool();

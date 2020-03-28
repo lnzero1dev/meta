@@ -90,7 +90,14 @@
                         "-I${root}/DevTools",
                         "-I${root}/Libraries",
                         "-I${root}/Servers",
-                        "-DSANITIZE_PTRS",
+                        "-DSANITIZE_PTRS"
+                    ],
+                    "test_flags": [
+                        "-std=c++17 -Wall -Wextra -ggdb3 -O2 -fexceptions",
+                        "-I${root}",
+                        "-I${root}/DevTools",
+                        "-I${root}/Libraries",
+                        "-I${root}/Servers"
                     ]
                 },
                 "cc": {
@@ -155,6 +162,13 @@
                         "-MMD -MP -std=c++2a -Wno-sized-deallocation -fno-sized-deallocation",
                         "-Werror -Wextra -Wall -Wno-nonnull-compare -Wno-deprecated-copy -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-expansion-to-defined",
                         "-fno-exceptions -fno-rtti",
+                        "-I${root}",
+                        "-I${root}/DevTools",
+                        "-I${root}/Libraries",
+                        "-I${root}/Servers"
+                    ],
+                    "test_flags": [
+                        "-std=c++17 -Wall -Wextra -ggdb3 -O2 -fexceptions",
                         "-I${root}",
                         "-I${root}/DevTools",
                         "-I${root}/Libraries",

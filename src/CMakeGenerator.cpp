@@ -940,6 +940,10 @@ const String CMakeGenerator::gen_cmake_toolchain_content(const HashMap<String, T
             target_toolchain_cmake.append("set(CMAKE_CXX_FLAGS \"");
             target_toolchain_cmake.append(tool.value.flags);
             target_toolchain_cmake.append("\" CACHE STRING \"\" FORCE)");
+            target_toolchain_cmake.append("\n");
+            target_toolchain_cmake.append("set(CMAKE_CXX_TEST_FLAGS \"");
+            target_toolchain_cmake.append(tool.value.test_flags);
+            target_toolchain_cmake.append("\" CACHE STRING \"\" FORCE)");
             target_toolchain_cmake.append("\n\n");
 
         } else if (tool.key == "cc") {
@@ -949,6 +953,10 @@ const String CMakeGenerator::gen_cmake_toolchain_content(const HashMap<String, T
             target_toolchain_cmake.append("\n");
             target_toolchain_cmake.append("set(CMAKE_C_FLAGS \"");
             target_toolchain_cmake.append(tool.value.flags);
+            target_toolchain_cmake.append("\" CACHE STRING \"\" FORCE)");
+            target_toolchain_cmake.append("\n");
+            target_toolchain_cmake.append("set(CMAKE_C_TEST_FLAGS \"");
+            target_toolchain_cmake.append(tool.value.test_flags);
             target_toolchain_cmake.append("\" CACHE STRING \"\" FORCE)");
             target_toolchain_cmake.append("\n\n");
 
