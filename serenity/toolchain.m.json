@@ -17,9 +17,7 @@
                     "cc": {
                         "flags": "-Os -DRELEASE"
                     }
-                },
-                "MinSizeRel": {},
-                "DebWithRelInfo": {}
+                }
             },
             "build_tools": {
                 "cxx": {

@@ -1,0 +1,400 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "package": {
+            "patternProperties": {
+                "^.*$": {
+                    "$ref": "#/$defs/package"
+                }
+            }
+        },
+        "image": {
+            "patternProperties": {
+                "^.*$": {
+                    "$ref": "#/$defs/image"
+                }
+            }
+        },
+        "settings": {
+            "project": {"$ref": "#/$defs/settings"},
+            "user": {"$ref": "#/$defs/settings"}
+        },
+        "toolchain": {
+            "patternProperties": {
+                "^.*$": {
+                    "$ref": "#/$defs/toolchain"
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+
+    "$defs": {
+        "package": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "library",
+                        "executable",
+                        "collection",
+                        "deployment",
+                        "script"
+                    ]
+                },
+                "source": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                "include": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                "dependency": {"$ref": "#/$defs/dependency"},
+                "run_generators": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^.*$": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": [
+                                    "input",
+                                    "output"
+                                ],
+                                "properties": {
+                                    "input": {"type": "string"},
+                                    "output": {"type": "string"},
+                                    "flags": {"type": "string"}
+                                },
+                                "additionalProperties": false
+                            }
+
+                        }
+                    }
+                },
+                "deploy": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "type"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "file",
+                                    "program",
+                                    "directory",
+                                    "target",
+                                    "object"
+                                ]
+                            },
+                            "symlink": {"type": "string"},
+                            "source": {"type": "string"},
+                            "pattern": {"type": "string"},
+                            "permission": {"type": "string"},
+                            "name": {"type": "string"},
+                            "rename": {"type": "string"},
+                            "dest": {"type": "string"}
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "test": {
+                    "type": "object",
+                    "properties": {
+                        "executable": {
+                            "type": "object",
+                            "patternProperties": {
+                                "^.*$": {
+                                    "type": "object",
+                                    "properties": {
+                                        "source": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                        "include": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                        "additional_dependency": {"$ref": "#/$defs/dependency"},
+                                        "additional_resource": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                        "exclude_from_package_source": {"$ref": "#/$defs/string_or_array_of_unique_strings"}
+                                    },
+                                    "additionalProperties": false
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "version": {"type": "string"},
+                "machine": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "build",
+                                "host",
+                                "target"
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "build",
+                                    "host",
+                                    "target"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "build": {
+                                    "source": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                    "include": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                    "dependency": {"$ref": "#/$defs/dependency"}
+                                },
+                                "host": {
+                                    "source": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                    "include": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                    "dependency": {"$ref": "#/$defs/dependency"}
+                                },
+                                "target": {
+                                    "source": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                    "include": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                    "dependency": {"$ref": "#/$defs/dependency"}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "toolchain": {
+                    "type": "object",
+                    "properties": {
+                        "steps": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "download",
+                                    "patch",
+                                    "configure",
+                                    "build",
+                                    "install"
+                                ]
+                            },
+                            "uniqueItems": true
+                        },
+                        "options": {
+                            "type": "object",
+                            "properties": {
+                                "download": {
+                                    "type": "object",
+                                    "properties": {
+                                        "url": {"type": "string"},
+                                        "url_hash": {"type": "string"},
+                                        "url_hash_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "md5",
+                                                "sha1",
+                                                "sha224",
+                                                "sha256",
+                                                "sha384",
+                                                "sha512",
+                                                "sha3_224",
+                                                "sha3_256",
+                                                "sha3_384",
+                                                "sha3_512"
+                                            ]
+                                        }
+                                    },
+                                    "required": ["url"],
+                                    "dependentRequired": {
+                                        "url_hash": ["url_hash_type"]
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "patch": {
+                                    "type": "object",
+                                    "properties": {
+                                        "file": {"$ref": "#/$defs/string_or_array_of_unique_strings"}
+                                    },
+                                    "required": [
+                                        "file"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                "configure": {
+                                    "type": "object",
+                                    "properties": {
+                                        "flags": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                        "path": {"type": "string"}
+                                    },
+                                    "required": ["flags"],
+                                    "additionalProperties": false
+                                },
+                                "build": {
+                                    "type": "object",
+                                    "properties": {
+                                        "targets": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                                        "use_toolchain": {"type": "string"}
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "install": {
+                                    "type": "object",
+                                    "properties": {
+                                        "targets": {"$ref": "#/$defs/string_or_array_of_unique_strings"}
+                                    },
+                                    "additionalProperties": false
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "provides": {
+                    "type": "object",
+                    "properties": {
+                        "executable": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                        "library": {"$ref": "#/$defs/string_or_array_of_unique_strings"}
+                    },
+                    "additionalProperties": false
+                },
+                "build_tools": {"$ref": "#/$defs/tool_configuration"},
+                "host_tools": {"$ref": "#/$defs/tool_configuration"},
+                "target_tools": {"$ref": "#/$defs/tool_configuration"}
+            },
+            "additionalProperties": false
+        },
+        "dependency": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                },
+                {
+                    "type": "object",
+                    "patternProperties": {
+                        "^.*$": {
+                            "type": "string",
+                            "enum": [
+                                "static",
+                                "dynamic",
+                                "direct",
+                                "header_only"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "toolchain": {
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "type": "object",
+                    "properties": {
+                        "Debug": {"$ref": "#/$defs/tool_configuration"},
+                        "Release": {"$ref": "#/$defs/tool_configuration"},
+                        "MinSizeRel": {"$ref": "#/$defs/tool_configuration"},
+                        "DebWithRelInfo": {"$ref": "#/$defs/tool_configuration"}
+                    },
+                    "additionalProperties": false
+                },
+                "build_tools": {"$ref": "#/$defs/tool_configuration"},
+                "host_tools": {"$ref": "#/$defs/tool_configuration"},
+                "target_tools": {"$ref": "#/$defs/tool_configuration"}
+            },
+            "additionalProperties": false
+        },
+        "tool_configuration": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "flags": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                        "test_flags": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                        "executable": {"type": "string"},
+                        "run_as_su": {"type": "boolean"},
+                        "add_as_target": {"type": "boolean"},
+                        "reset_toolchain_flags": {"type": "boolean"},
+                        "execution_result_definitions": {
+                            "type": "object",
+                            "patternProperties": {
+                                "^.*$": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "minProperties": 1
+        },
+        "string_or_array_of_unique_strings": {
+            "oneOf": [
+                {"type": "string"},
+                {"type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "settings": {
+            "type": "object",
+            "properties": {
+                "root": {"type": "string"},
+                "toolchain": {"type": "string"},
+                "build_directory": {"type": "string"},
+                "gendata_directory": {"type": "string"},
+                "build_generator": {"type": "string"},
+                "build_configuration": {
+                    "type": "object",
+                    "properties": {
+                        "type":  {"type": "string"},
+                        "parallel_jobs":  {"type": "integer"}
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "install": {"$ref": "#/$defs/string_or_array_of_unique_strings"},
+                "install_dirs": {
+                    "type": "object",
+                    "propertyNames": {
+                        "type": "string",
+                        "enum": [
+                            "BinDir",
+                            "SbinDir",
+                            "LibexecDir",
+                            "SysconfDir",
+                            "SharedstateDir",
+                            "LocalstateDir",
+                            "LibDir",
+                            "IncludeDir",
+                            "DatarootDir",
+                            "DataDir",
+                            "InfoDir",
+                            "LocaleDir",
+                            "ManDir"
+                        ]
+                    },
+                    "patternProperties": {"^.*$": {"type": "string"}}
+                }
+            },
+            "additionalProperties": true
+        }
+    }
+}
