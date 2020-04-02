@@ -1,23 +1,20 @@
 {
     "package": {
-        "Shell": {
+        "Calendar": {
             "type": "executable",
             "source": [
-                "${root}/Shell/*.cpp"
+                "${root}/Applications/Calendar/*.cpp"
             ],
             "include": [
-                "${root}/Shell"
+                "${root}/Applications/Calendar"
             ],
             "dependency": [
-                "LibCore",
-                "LibC",
-                "LibM",
-                "LibLine"
+                "LibGUI"
             ],
             "deploy": [
                 {
                     "type": "target",
-                    "symlink": "sh"
+                    "symlink": "cal"
                 }
             ]
         }

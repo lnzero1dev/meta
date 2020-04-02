@@ -1,0 +1,16 @@
+{
+    "package": {
+        "UserName.MenuApplet": {
+            "type": "executable",
+            "source": [
+                "${root}/MenuApplets/UserName/*.cpp"
+            ],
+            "include": [
+                "${root}/MenuApplets/UserName"
+            ],
+            "dependency": [
+                "LibGUI"
+            ]
+        }
+    }
+}

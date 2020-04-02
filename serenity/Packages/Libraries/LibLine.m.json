@@ -1,28 +1,26 @@
 {
     "package": {
-        "LibJS": {
+        "LibLine": {
             "type": "library",
             "source": [
-                "${root}/Libraries/LibJS/**/*.cpp"
+                "${root}/Libraries/LibLine/*.cpp"
             ],
             "include": [
-                "${root}/Libraries/LibJS"
-            ],
-            "dependency": [
-                "LibC",
-                "LibCore"
+                "${root}/Libraries/LibLine",
+                "${root}/Libraries",
+                "${root}"
             ],
             "deploy": [
                 {
                     "type": "target",
-                    "name": "js",
+                    "name": "line",
                     "dest": "${LibDir}"
                 },
                 {
                     "type": "directory",
-                    "source": "${root}/Libraries/LibJS/",
+                    "source": "${root}/Libraries/LibLine/",
                     "pattern": "*.h",
-                    "dest": "${IncludeDir}/LibJS"
+                    "dest": "${IncludeDir}/LibLine"
                 }
             ]
         }

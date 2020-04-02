@@ -5,16 +5,18 @@
             "machine": {
                 "host": {
                     "source": [
+                        "${root}/AK/FileSystemPath.cpp",
                         "${root}/AK/FlyString.cpp",
+                        "${root}/AK/JsonParser.cpp",
+                        "${root}/AK/JsonValue.cpp",
+                        "${root}/AK/LogStream.cpp",
                         "${root}/AK/String.cpp",
                         "${root}/AK/StringImpl.cpp",
                         "${root}/AK/StringBuilder.cpp",
                         "${root}/AK/StringUtils.cpp",
                         "${root}/AK/StringView.cpp",
-                        "${root}/AK/JsonValue.cpp",
-                        "${root}/AK/JsonParser.cpp",
-                        "${root}/AK/LogStream.cpp",
-                        "${root}/AK/FileSystemPath.cpp"
+                        "${root}/AK/URL.cpp",
+                        "${root}/AK/Utf8View.cpp"
                     ],
                     "include": [
                         "${root}/AK",
@@ -39,7 +41,36 @@
                     "dest": "${IncludeDir}",
                     "pattern": "*.h"
                 }
-            ]
+            ],
+            "test": {
+                "executable": {
+                    "TestAtomic": { "source": "${root}/AK/Tests/TestAtomic.cpp"},
+                    "TestBinarySearch": { "source": "${root}/AK/Tests/TestBinarySearch.cpp"},
+                    "TestCircularDeque": { "source": "${root}/AK/Tests/TestCircularDeque.cpp"},
+                    "TestCircularQueue": { "source": "${root}/AK/Tests/TestCircularQueue.cpp"},
+                    "TestFileSystemPath": { "source": "${root}/AK/Tests/TestFileSystemPath.cpp"},
+                    "TestFixedArray": { "source": "${root}/AK/Tests/TestFixedArray.cpp"},
+                    "TestHashMap": { "source": "${root}/AK/Tests/TestHashMap.cpp"},
+                    "TestJSON": {
+                        "source": "${root}/AK/Tests/TestJSON.cpp",
+                        "additional_resource": [
+                            "${root}/AK/Tests/4chan_catalog.json",
+                            "${root}/AK/Tests/test.frm"
+                        ]
+                    },
+                    "TestNonnullRefPtr": { "source": "${root}/AK/Tests/TestNonnullRefPtr.cpp"},
+                    "TestOptional": { "source": "${root}/AK/Tests/TestOptional.cpp"},
+                    "TestQueue": { "source": "${root}/AK/Tests/TestQueue.cpp"},
+                    "TestRefPtr": { "source": "${root}/AK/Tests/TestRefPtr.cpp"},
+                    "TestString": { "source": "${root}/AK/Tests/TestString.cpp"},
+                    "TestStringUtils": { "source": "${root}/AK/Tests/TestStringUtils.cpp"},
+                    "TestStringView": { "source": "${root}/AK/Tests/TestStringView.cpp"},
+                    "TestURL": { "source": "${root}/AK/Tests/TestURL.cpp"},
+                    "TestUtf8": { "source": "${root}/AK/Tests/TestUtf8.cpp"},
+                    "TestVector": { "source": "${root}/AK/Tests/TestVector.cpp"},
+                    "TestWeakPtr": { "source": "${root}/AK/Tests/TestWeakPtr.cpp"}
+                }
+            }
         }
     }
 }
