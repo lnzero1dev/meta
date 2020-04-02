@@ -123,12 +123,14 @@ public:
     {
         m_exclude_from_package_source.append(exclude_from_package_source);
     }
+    void add_resource(const String& resource) { m_resource.append(resource); }
 
     const String& name() const { return m_name; }
     const Vector<String>& source() const { return m_source; }
     const Vector<String>& include() const { return m_include; }
     const HashMap<String, LinkageType>& dependency() const { return m_dependency; }
     const Vector<String>& exclude_from_package_source() const { return m_exclude_from_package_source; }
+    const Vector<String>& resource() const { return m_resource; }
 
 private:
     String m_name;
@@ -136,6 +138,7 @@ private:
     Vector<String> m_include;
     HashMap<String, LinkageType> m_dependency;
     Vector<String> m_exclude_from_package_source;
+    Vector<String> m_resource;
 };
 
 class Test : public Core::Object {

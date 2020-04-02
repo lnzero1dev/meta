@@ -530,6 +530,13 @@ bool CMakeGenerator::gen_test_executable(const Package& package, const TestExecu
         cmakelists_txt.append("endif()\n\n");
     }
 
+    for (auto& resource : test_executable.resource()) {
+        String res = make_path_with_cmake_variables(resource);
+        cmakelists_txt.appendf("if(EXISTS %s)\n", res.characters());
+        cmakelists_txt.appendf("    execute_process(COMMAND ln -sf %s ${CMAKE_CURRENT_BINARY_DIR})\n", res.characters());
+        cmakelists_txt.append("endif()\n\n");
+    }
+
     // write out
     StringBuilder pathBuilder;
     pathBuilder.appendf("%s/%s", test_path.characters(), test_executable.name().characters());
@@ -803,10 +810,10 @@ bool CMakeGenerator::gen_package(const Package& package)
             cmakelists_txt.append("\n");
 
             if (!target_symlink.is_empty()) {
-                symlink_builder.appendf("add_custom_command(OUTPUT %s", target_symlink.characters());
+                symlink_builder.appendf("add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/%s", target_symlink.characters());
                 symlink_builder.appendf("    COMMAND sh -c \"ln -sf %s/%s ${CMAKE_CURRENT_BINARY_DIR}/%s\" VERBATIM)\n",
                     replace_dest_vars(target_dest).characters(), targetName.characters(), target_symlink.characters());
-                symlink_builder.appendf("add_custom_target(%s_%s ALL DEPENDS %s)\n",
+                symlink_builder.appendf("add_custom_target(%s_%s ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/%s)\n",
                     targetName.characters(), "target_symlink", target_symlink.characters());
                 symlink_builder.appendf("install(FILES ${CMAKE_CURRENT_BINARY_DIR}/%s DESTINATION %s)\n\n",
                     target_symlink.characters(), replace_dest_vars(target_dest).characters());
@@ -1687,7 +1694,10 @@ bool CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
     cmakelists_txt.append("SET(DOWNLOAD_DIRECTORY ${CMAKE_BINARY_DIR}/Download)\n");
 
     cmakelists_txt.append("SET(META_BINARY ");
-    for (int i = 0; i < argc; ++i) {
+    cmakelists_txt.append(argv[0]);
+    cmakelists_txt.append(")\n");
+    cmakelists_txt.append("SET(META_ARGUMENTS ");
+    for (int i = 1; i < argc; ++i) {
         cmakelists_txt.append(argv[i]);
         cmakelists_txt.append(" ");
     }
@@ -1699,18 +1709,21 @@ bool CMakeGenerator::gen_root(const Toolchain& toolchain, int argc, char** argv)
 
     cmakelists_txt.append("if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend)\n");
     cmakelists_txt.append("    file(STRINGS \"${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\" META_JSON_FILES_DEPEND)\n");
+    cmakelists_txt.append("    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${META_JSON_FILES_DEPEND})\n");
     cmakelists_txt.append("endif()\n");
     cmakelists_txt.append("add_custom_command(\n");
     cmakelists_txt.append("    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend\n");
-    cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
-    cmakelists_txt.append("    DEPENDS ${META_JSON_FILES_DEPEND}\n");
+    cmakelists_txt.append("    COMMAND ${META_BINARY} ${META_ARGUMENTS}\n");
+    cmakelists_txt.append("    DEPENDS ${META_JSON_FILES_DEPEND} ${META_BINARY}\n");
     cmakelists_txt.append("    WORKING_DIRECTORY ${WORKING_DIRECTORY}\n");
-    cmakelists_txt.append("    COMMENT \"Execute META to re-generate CMake files.\"\n");
+    cmakelists_txt.append("    COMMENT \"Run meta...\"\n");
     cmakelists_txt.append(")\n");
-    cmakelists_txt.append("add_custom_target(auto-meta-generation ALL DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend)\n\n");
+    cmakelists_txt.append("add_custom_target(auto-meta-generation\n");
+    cmakelists_txt.append("    ALL DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Toolchain/meta_json_files.depend");
+    cmakelists_txt.append("    COMMENT \"Auto-Execute META to re-generate CMake files.\")\n");
 
     cmakelists_txt.append("add_custom_target(meta-generation\n");
-    cmakelists_txt.append("    COMMAND ${META_BINARY}\n");
+    cmakelists_txt.append("    COMMAND ${META_BINARY} ${META_ARGUMENTS}\n");
     cmakelists_txt.append("    WORKING_DIRECTORY ${WORKING_DIRECTORY}\n");
     cmakelists_txt.append("    COMMENT \"Execute META to re-generate CMake files.\"\n");
     cmakelists_txt.append(")\n");

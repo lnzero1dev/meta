@@ -93,7 +93,7 @@
                         "-DSANITIZE_PTRS"
                     ],
                     "test_flags": [
-                        "-std=c++17 -Wall -Wextra -ggdb3 -O2 -fexceptions",
+                        "-std=c++2a -Wall -Wextra -ggdb3 -O2 -fexceptions -fno-rtti",
                         "-I${root}",
                         "-I${root}/DevTools",
                         "-I${root}/Libraries",

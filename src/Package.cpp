@@ -462,6 +462,18 @@ Package::Package(const String& name, const String& filename, MachineType machine
                                     }
                                     return;
                                 }
+                                if (key == "additional_resource") {
+                                    if (value.is_array()) {
+                                        auto values = value.as_array().values();
+                                        for (auto& value : values) {
+                                            test_executable.add_resource(FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata));
+                                        }
+                                    } else if (value.is_string()) {
+                                        test_executable.add_resource(FileProvider::the().full_path_update(value.as_string(), m_directory, &replace_package_gendata));
+                                    }
+                                    return;
+                                }
+
                                 if (key == "exclude_from_package_source") {
                                     JsonArray values;
                                     if (value.is_string()) {
@@ -497,8 +509,8 @@ Package::Package(const String& name, const String& filename, MachineType machine
                         } else {
                             fprintf(stderr, "Test data of test '%s' is not object in %s.\n", key.characters(), m_filename.characters());
                         }
-                        m_test = move(test);
                     });
+                    m_test = move(test);
                 } else {
                     fprintf(stderr, "No test executables provided in test data in %s.\n", m_filename.characters());
                 }
