@@ -1,0 +1,16 @@
+{
+    "package": {
+        "DHCPClient": {
+            "type": "executable",
+            "source": [
+                "${root}/Servers/DHCPClient/*.cpp"
+            ],
+            "include": [
+                "${root}/Servers/DHCPClient"
+            ],
+            "dependency": [
+                "LibCore"
+            ]
+        }
+    }
+}

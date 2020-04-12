@@ -9,7 +9,8 @@
                 "${root}/DevTools/ProfileViewer"
             ],
             "dependency": [
-                "LibGUI"
+                "LibGUI",
+                "LibX86"
             ],
             "deploy": [
                 {

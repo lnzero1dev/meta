@@ -1,12 +1,12 @@
 {
     "package": {
-        "CPUGraph.MenuApplet": {
+        "ResourceGraph.MenuApplet": {
             "type": "executable",
             "source": [
-                "${root}/MenuApplets/CPUGraph/*.cpp"
+                "${root}/MenuApplets/ResourceGraph/*.cpp"
             ],
             "include": [
-                "${root}/MenuApplets/CPUGraph"
+                "${root}/MenuApplets/ResourceGraph"
             ],
             "dependency": [
                 "LibGUI"

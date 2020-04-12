@@ -1,0 +1,28 @@
+{
+    "package": {
+        "LibX86": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibX86/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibX86",
+                "${root}/Libraries",
+                "${root}"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "x86",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibX86/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibX86"
+                }
+            ]
+        }
+    }
+}

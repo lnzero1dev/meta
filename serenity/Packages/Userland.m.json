@@ -166,6 +166,17 @@
                 "LibCore"
             ]
         },
+        "disasm": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/disasm.cpp"
+            ],
+            "dependency": [
+                "AK",
+                "LibCore",
+                "LibX86"
+            ]
+        },
         "disk_benchmark": {
             "type": "executable",
             "source": [
@@ -761,7 +772,15 @@
                 "LibC"
             ]
         },
-        "test_io": {
+        "test-bindtodevice": {
+            "type": "executable",
+            "source": [
+                "${root}/Userland/test-bindtodevice.cpp"
+            ],
+            "dependency": [
+                "AK"
+            ]
+        },        "test_io": {
             "type": "executable",
             "source": [
                 "${root}/Userland/test_io.cpp"
