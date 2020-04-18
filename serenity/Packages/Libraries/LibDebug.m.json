@@ -1,0 +1,28 @@
+{
+    "package": {
+        "LibDebug": {
+            "type": "library",
+            "source": [
+                "${root}/Libraries/LibDebug/*.cpp"
+            ],
+            "include": [
+                "${root}/Libraries/LibDebug",
+                "${root}/Libraries",
+                "${root}"
+            ],
+            "deploy": [
+                {
+                    "type": "target",
+                    "name": "debug",
+                    "dest": "${LibDir}"
+                },
+                {
+                    "type": "directory",
+                    "source": "${root}/Libraries/LibDebug/",
+                    "pattern": "*.h",
+                    "dest": "${IncludeDir}/LibDebug"
+                }
+            ]
+        }
+    }
+}

@@ -5,6 +5,7 @@
             "machine": {
                 "host": {
                     "source": [
+                        "${root}/Libraries/LibCore/ArgsParser.cpp",
                         "${root}/Libraries/LibCore/IODevice.cpp",
                         "${root}/Libraries/LibCore/File.cpp",
                         "${root}/Libraries/LibCore/Object.cpp",

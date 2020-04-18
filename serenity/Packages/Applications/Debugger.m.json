@@ -1,0 +1,19 @@
+{
+    "package": {
+        "Debugger": {
+            "type": "executable",
+            "source": [
+                "${root}/Applications/Debugger/*.cpp"
+            ],
+            "include": [
+                "${root}/Applications/Debugger"
+            ],
+            "dependency": [
+                "LibCore",
+                "LibX86",
+                "LibDebug",
+                "LibLine"
+            ]
+        }
+    }
+}

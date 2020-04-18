@@ -296,7 +296,8 @@
             ],
             "dependency": [
                 "LibGUI",
-                "LibWeb"
+                "LibWeb",
+                "LibGfx"
             ]
         },
         "id": {
@@ -336,7 +337,8 @@
                 "AK",
                 "LibCore",
                 "LibJS",
-                "LibLine"
+                "LibLine",
+                "LibM"
             ]
         },
         "keymap": {
